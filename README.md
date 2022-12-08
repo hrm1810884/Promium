@@ -19,7 +19,7 @@ gitの扱いについてtakepにご教授頂いた。branchの仕組みについ
 
 ### takep
 
-- Git について LEENAHUA にお教えした．
+- Git について LEEANHUA にお教えした．
 - 別レポジトリで作業していた sunburst についてのファイルを history を保ったままこのレポジトリに移動した
 
 ## 開発にあたって
