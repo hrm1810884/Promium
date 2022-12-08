@@ -12,7 +12,10 @@
 
 - 現時点ではwebpackを利用してブラウザ上で`ps auxww`を実行できるように試行錯誤中  
 ローカル上ではすでにjavascriptからLinuxコマンドを実行できるようにはなりました.
-- git galleryから今回の作品に使えそうなプログラムとしてsun burstを選び, d3.jsがv4で書かれていたので, プリントデバッグを行いながらエラー箇所をv7対応となるように書き換えを行いました.
+- git galleryから今回の作品に使えそうなプログラムとしてsun burstを選び, d3.jsがv4で書かれていたので, プリントデバッグを行いながらエラー箇所をv7対応となるように書き換えを行いました.  
+[index.heml](https://gist.github.com/hrm1810884/f1683981dac1dc126e251a1bebc4de94/revisions)  
+[sequences.js_1](https://gist.github.com/hrm1810884/6977ad57e0cfac5e37a3c7d56dc3b19a/revisions)
+[sequences.js_2](https://github.com/takepedia/sunburst/commit/82bd4dea60bc3842d6bb529f2ade5a4ce9901d9e)
 
 ### LEEANHUA
 
