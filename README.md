@@ -24,6 +24,7 @@ gitの扱いについてtakepにご教授頂いた。branchの仕組みについ
 - sunburst について
   - [バグを修正した](https://github.com/InfovisHandsOn/B-Tohoken/commit/cbe4bc66faba535a96f358d9c968e739967aa559)．
   - 別レポジトリで作業していた sunburst についてのファイルを history を保ったままこのレポジトリに移動した．
+  - ツリーのモックを作成した．
 - issue を用いた開発を主導している．
 
 ## 開発にあたって
