@@ -221,7 +221,6 @@ function drawLegend() {
     .append("svg:svg")
     .attr("width", li.w)
     .attr("height", Object.keys(COLORS).length * (li.h + li.s));
-  //   .attr("height", li.h)
 
   let g = legend
     .selectAll("g")
@@ -235,14 +234,14 @@ function drawLegend() {
     .attr("ry", li.r)
     .attr("width", li.w)
     .attr("height", li.h)
-    .style("fill", (d) => d.value);
+    .style("fill", (d) => d[1]);
 
   g.append("svg:text")
     .attr("x", li.w / 2)
     .attr("y", li.h / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text((d) => d.key);
+    .text((d) => d[0]);
 }
 
 function toggleLegend() {
@@ -284,7 +283,7 @@ function buildHierarchy(csv) {
             break;
           }
         }
-        
+
         // If we don't already have a child node for this branch, create it.
         if (!foundChild) {
           childNode = { name: nodeName, children: [] };
