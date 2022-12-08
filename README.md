@@ -8,6 +8,8 @@
 現時点ではwebpackを利用してブラウザ上で`ps auxww`を実行できるように試行錯誤中  
 ローカル上ではすでにjavascriptからLinuxコマンドを実行できるようにはなりました.
 ### LEEANHUA
+gitの扱いについてtakepにご教授頂いた。branchの仕組みについてある程度理解し、作業用branch(create_test_data)を作成した。
+
 
 ### takep
 
