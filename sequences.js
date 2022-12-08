@@ -260,14 +260,15 @@ function toggleLegend() {
 // often that sequence occurred.
 function buildHierarchy(csv) {
   let root = { name: "root", children: [] };
-  for (let i = 0; i < csv.length; i++) {
-    let sequence = csv[i].account;
-    let size = +csv[i].num;
+  for (csv_row of csv) {
+    const sequence = csv_row.account;
+    const size = +csv_row.num;
     if (isNaN(size)) {
       // e.g. if this is a header row
       continue;
     }
-    let parts = sequence.split("-");
+
+    const parts = sequence.split("-");
     let currentNode = root;
     for (let j = 0; j < parts.length; j++) {
       let children = currentNode["children"];
@@ -276,13 +277,14 @@ function buildHierarchy(csv) {
       if (j + 1 < parts.length) {
         // Not yet at the end of the sequence; move down the tree.
         let foundChild = false;
-        for (let k = 0; k < children.length; k++) {
-          if (children[k]["name"] == nodeName) {
-            childNode = children[k];
+        for (child of children) {
+          if (child["name"] == nodeName) {
+            childNode = child;
             foundChild = true;
             break;
           }
         }
+        
         // If we don't already have a child node for this branch, create it.
         if (!foundChild) {
           childNode = { name: nodeName, children: [] };
