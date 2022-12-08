@@ -21,7 +21,9 @@ gitの扱いについてtakepにご教授頂いた。branchの仕組みについ
 ### takep
 
 - Git について LEEANHUA にお教えした．
-- 別レポジトリで作業していた sunburst についてのファイルを history を保ったままこのレポジトリに移動した
+- sunburst について
+  - [バグを修正した](https://github.com/InfovisHandsOn/B-Tohoken/commit/cbe4bc66faba535a96f358d9c968e739967aa559)．
+  - 別レポジトリで作業していた sunburst についてのファイルを history を保ったままこのレポジトリに移動した．
 
 ## 開発にあたって
 
