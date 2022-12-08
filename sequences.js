@@ -22,9 +22,9 @@ const COLORS = {
 };
 
 // Total size of all segments; we set this later, after loading the data.
-var totalSize = 0;
+let totalSize = 0;
 
-var vis = d3
+let vis = d3
   .select("#chart")
   .append("svg:svg")
   .attr("width", WIDTH)
@@ -33,34 +33,17 @@ var vis = d3
   .attr("id", "container")
   .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")");
 
-var partition = d3.partition().size([2 * Math.PI, RADIUS * RADIUS]);
+let partition = d3.partition().size([2 * Math.PI, RADIUS * RADIUS]);
 
-var arc = d3
+let arc = d3
   .arc()
-  .startAngle(function (d) {
-    return d.x0;
-  })
-  .endAngle(function (d) {
-    return d.x1;
-  })
-  .innerRadius(function (d) {
-    return Math.sqrt(d.y0);
-  })
-  .outerRadius(function (d) {
-    return Math.sqrt(d.y1);
-  });
-
-// Use d3.text and d3.csvParseRows so that we do not need to have a header
-// row, and can receive the csv as an array of arrays.
-// d3.text("visit-sequences.csv", function(text) {
-//   console.assert(text)
-//   var csv = d3.csvParseRows(text);
-//   var json = buildHierarchy(csv);
-//   createVisualization(json);
-// });
+  .startAngle((d) => d.x0)
+  .endAngle((d) => d.x1)
+  .innerRadius((d) => Math.sqrt(d.y0))
+  .outerRadius((d) => Math.sqrt(d.y1));
 
 d3.csv("./visit-sequences.csv").then(function (text) {
-  var json = buildHierarchy(text);
+  const json = buildHierarchy(text);
   createVisualization(json);
 });
 
@@ -76,36 +59,26 @@ function createVisualization(json) {
   vis.append("svg:circle").attr("r", RADIUS).style("opacity", 0);
 
   // Turn the data into a d3 hierarchy and calculate the sums.
-  var root = d3
+  let root = d3
     .hierarchy(json)
-    .sum(function (d) {
-      return d.size;
-    })
-    .sort(function (a, b) {
-      return b.value - a.value;
-    });
+    .sum((d) => d.size)
+    .sort((a, b) => b.value - a.value);
 
   // For efficiency, filter nodes to keep only those large enough to see.
-  var nodes = partition(root)
+  let nodes = partition(root)
     .descendants()
-    .filter(function (d) {
-      return d.x1 - d.x0 > 0.005; // 0.005 radians = 0.29 degrees
-    });
+    .filter((d) => d.x1 - d.x0 > 0.005);
 
-  var path = vis
+  let path = vis
     .data([json])
     .selectAll("path")
     .data(nodes)
     .enter()
     .append("svg:path")
-    .attr("display", function (d) {
-      return d.depth ? null : "none";
-    })
+    .attr("display", (d) => (d.depth ? null : "none"))
     .attr("d", arc)
     .attr("fill-rule", "evenodd")
-    .style("fill", function (d) {
-      return COLORS[d.data.name];
-    })
+    .style("fill", (d) => COLORS[d.data.name])
     .style("opacity", 1)
     .on("mouseover", mouseover);
 
@@ -118,8 +91,8 @@ function createVisualization(json) {
 
 // Fade all but the current sequence, and show it in the breadcrumb trail.
 function mouseover(d) {
-  var percentage = ((100 * d.value) / totalSize).toPrecision(3);
-  var percentageString = percentage + "%";
+  let percentage = ((100 * d.value) / totalSize).toPrecision(3);
+  let percentageString = percentage + "%";
   if (percentage < 0.1) {
     percentageString = "< 0.1%";
   }
@@ -128,7 +101,7 @@ function mouseover(d) {
 
   d3.select("#explanation").style("visibility", "");
 
-  var sequenceArray = d.ancestors().reverse();
+  let sequenceArray = d.ancestors().reverse();
   sequenceArray.shift(); // remove root node from the array
   updateBreadcrumbs(sequenceArray, percentageString);
 
@@ -138,9 +111,7 @@ function mouseover(d) {
   // Then highlight only those that are an ancestor of the current segment.
   vis
     .selectAll("path")
-    .filter(function (node) {
-      return sequenceArray.indexOf(node) >= 0;
-    })
+    .filter((node) => sequenceArray.indexOf(node) >= 0)
     .style("opacity", 1);
 }
 
@@ -166,7 +137,7 @@ function mouseleave(d) {
 
 function initializeBreadcrumbTrail() {
   // Add the svg area.
-  var trail = d3
+  let trail = d3
     .select("#sequence")
     .append("svg:svg")
     .attr("width", WIDTH)
@@ -178,7 +149,7 @@ function initializeBreadcrumbTrail() {
 
 // Generate a string that describes the points of a breadcrumb polygon.
 function breadcrumbPoints(d, i) {
-  var points = [];
+  let points = [];
   points.push("0,0");
   points.push(B.w + ",0");
   points.push(B.w + B.t + "," + B.h / 2);
@@ -194,25 +165,21 @@ function breadcrumbPoints(d, i) {
 // Update the breadcrumb trail to show the current sequence and percentage.
 function updateBreadcrumbs(nodeArray, percentageString) {
   // Data join; key function combines name and depth (= position in sequence).
-  var trail = d3
+  let trail = d3
     .select("#trail")
     .selectAll("g")
-    .data(nodeArray, function (d) {
-      return d.data.name + d.depth;
-    });
+    .data(nodeArray, (d) => d.data.name + d.depth);
 
   // Remove exiting nodes.
   trail.exit().remove();
 
   // Add breadcrumb and label for entering nodes.
-  var entering = trail.enter().append("svg:g");
+  let entering = trail.enter().append("svg:g");
 
   entering
     .append("svg:polygon")
     .attr("points", breadcrumbPoints)
-    .style("fill", function (d) {
-      return COLORS[d.data.name];
-    });
+    .style("fill", (d) => COLORS[d.data.name]);
 
   entering
     .append("svg:text")
@@ -220,14 +187,12 @@ function updateBreadcrumbs(nodeArray, percentageString) {
     .attr("y", B.h / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text(function (d) {
-      return d.data.name;
-    });
+    .text((d) => d.data.name);
 
   // Merge enter and update selections; set position for all nodes.
-  entering.merge(trail).attr("transform", function (d, i) {
-    return "translate(" + i * (B.w + B.s) + ", 0)";
-  });
+  entering
+    .merge(trail)
+    .attr("transform", (d, i) => "translate(" + i * (B.w + B.s) + ", 0)");
 
   // Now move and update the percentage at the end.
   d3.select("#trail")
@@ -244,50 +209,44 @@ function updateBreadcrumbs(nodeArray, percentageString) {
 
 function drawLegend() {
   // Dimensions of legend item: width, height, spacing, radius of rounded rect.
-  var li = {
+  const li = {
     w: 75,
     h: 30,
     s: 3,
     r: 3,
   };
 
-  var legend = d3
+  let legend = d3
     .select("#legend")
     .append("svg:svg")
     .attr("width", li.w)
     .attr("height", Object.keys(COLORS).length * (li.h + li.s));
   //   .attr("height", li.h)
 
-  var g = legend
+  let g = legend
     .selectAll("g")
     .data(Object.entries(COLORS))
     .enter()
     .append("svg:g")
-    .attr("transform", function (d, i) {
-      return "translate(0," + i * (li.h + li.s) + ")";
-    });
+    .attr("transform", (d, i) => "translate(0," + i * (li.h + li.s) + ")");
 
   g.append("svg:rect")
     .attr("rx", li.r)
     .attr("ry", li.r)
     .attr("width", li.w)
     .attr("height", li.h)
-    .style("fill", function (d) {
-      return d.value;
-    });
+    .style("fill", (d) => d.value);
 
   g.append("svg:text")
     .attr("x", li.w / 2)
     .attr("y", li.h / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text(function (d) {
-      return d.key;
-    });
+    .text((d) => d.key);
 }
 
 function toggleLegend() {
-  var legend = d3.select("#legend");
+  let legend = d3.select("#legend");
   if (legend.style("visibility") == "hidden") {
     legend.style("visibility", "");
   } else {
@@ -300,30 +259,32 @@ function toggleLegend() {
 // root to leaf, separated by hyphens. The second column is a count of how
 // often that sequence occurred.
 function buildHierarchy(csv) {
-  var root = { name: "root", children: [] };
-  for (var i = 0; i < csv.length; i++) {
-    var sequence = csv[i].account;
-    var size = +csv[i].num;
+  let root = { name: "root", children: [] };
+  for (csv_row of csv) {
+    const sequence = csv_row.account;
+    const size = +csv_row.num;
     if (isNaN(size)) {
       // e.g. if this is a header row
       continue;
     }
-    var parts = sequence.split("-");
-    var currentNode = root;
-    for (var j = 0; j < parts.length; j++) {
-      var children = currentNode["children"];
-      var nodeName = parts[j];
-      var childNode;
+
+    const parts = sequence.split("-");
+    let currentNode = root;
+    for (let j = 0; j < parts.length; j++) {
+      let children = currentNode["children"];
+      let nodeName = parts[j];
+      let childNode;
       if (j + 1 < parts.length) {
         // Not yet at the end of the sequence; move down the tree.
-        var foundChild = false;
-        for (var k = 0; k < children.length; k++) {
-          if (children[k]["name"] == nodeName) {
-            childNode = children[k];
+        let foundChild = false;
+        for (child of children) {
+          if (child["name"] == nodeName) {
+            childNode = child;
             foundChild = true;
             break;
           }
         }
+        
         // If we don't already have a child node for this branch, create it.
         if (!foundChild) {
           childNode = { name: nodeName, children: [] };
