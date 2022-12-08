@@ -60,9 +60,7 @@ var arc = d3
 // });
 
 d3.csv("./visit-sequences.csv").then(function (text) {
-  console.log(text);
   var json = buildHierarchy(text);
-  console.log(json);
   createVisualization(json);
 });
 
@@ -304,7 +302,6 @@ function toggleLegend() {
 function buildHierarchy(csv) {
   var root = { name: "root", children: [] };
   for (var i = 0; i < csv.length; i++) {
-    console.log(csv[i]);
     var sequence = csv[i].account;
     var size = +csv[i].num;
     if (isNaN(size)) {
@@ -340,6 +337,5 @@ function buildHierarchy(csv) {
       }
     }
   }
-  console.log(root);
   return root;
 }
