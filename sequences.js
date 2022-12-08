@@ -216,14 +216,14 @@ function drawLegend() {
     r: 3,
   };
 
-  var legend = d3
+  let legend = d3
     .select("#legend")
     .append("svg:svg")
     .attr("width", li.w)
     .attr("height", Object.keys(COLORS).length * (li.h + li.s));
   //   .attr("height", li.h)
 
-  var g = legend
+  let g = legend
     .selectAll("g")
     .data(Object.entries(COLORS))
     .enter()
@@ -246,7 +246,7 @@ function drawLegend() {
 }
 
 function toggleLegend() {
-  var legend = d3.select("#legend");
+  let legend = d3.select("#legend");
   if (legend.style("visibility") == "hidden") {
     legend.style("visibility", "");
   } else {
@@ -260,29 +260,31 @@ function toggleLegend() {
 // often that sequence occurred.
 function buildHierarchy(csv) {
   let root = { name: "root", children: [] };
-  for (var i = 0; i < csv.length; i++) {
-    let sequence = csv[i].account;
-    let size = +csv[i].num;
+  for (csv_row of csv) {
+    const sequence = csv_row.account;
+    const size = +csv_row.num;
     if (isNaN(size)) {
       // e.g. if this is a header row
       continue;
     }
-    let parts = sequence.split("-");
+
+    const parts = sequence.split("-");
     let currentNode = root;
-    for (var j = 0; j < parts.length; j++) {
+    for (let j = 0; j < parts.length; j++) {
       let children = currentNode["children"];
       let nodeName = parts[j];
       let childNode;
       if (j + 1 < parts.length) {
         // Not yet at the end of the sequence; move down the tree.
         let foundChild = false;
-        for (var k = 0; k < children.length; k++) {
-          if (children[k]["name"] == nodeName) {
-            childNode = children[k];
+        for (child of children) {
+          if (child["name"] == nodeName) {
+            childNode = child;
             foundChild = true;
             break;
           }
         }
+        
         // If we don't already have a child node for this branch, create it.
         if (!foundChild) {
           childNode = { name: nodeName, children: [] };
