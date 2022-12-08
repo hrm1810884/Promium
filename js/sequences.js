@@ -42,7 +42,7 @@ let arc = d3
   .innerRadius((d) => Math.sqrt(d.y0))
   .outerRadius((d) => Math.sqrt(d.y1));
 
-d3.csv("./visit-sequences.csv").then(function (text) {
+d3.csv("./data/visit-sequences.csv").then(function (text) {
   const json = buildHierarchy(text);
   createVisualization(json);
 });
