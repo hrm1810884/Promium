@@ -284,7 +284,7 @@ function buildHierarchy(csv) {
             break;
           }
         }
-        
+
         // If we don't already have a child node for this branch, create it.
         if (!foundChild) {
           childNode = { name: nodeName, children: [] };
