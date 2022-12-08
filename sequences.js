@@ -1,10 +1,10 @@
 // Dimensions of sunburst.
-var width = 750;
-var height = 600;
-var radius = Math.min(width, height) / 2;
+const WIDTH = 750;
+const HEIGHT = 600;
+const RADIUS = Math.min(WIDTH, HEIGHT) / 2;
 
 // Breadcrumb dimensions: width, height, spacing, width of tip/tail.
-var b = {
+const B = {
   w: 75,
   h: 30,
   s: 3,
@@ -12,7 +12,7 @@ var b = {
 };
 
 // Mapping of step names to colors.
-var colors = {
+const COLORS = {
   home: "#5687d1",
   product: "#7b615c",
   search: "#de783b",
@@ -27,13 +27,13 @@ var totalSize = 0;
 var vis = d3
   .select("#chart")
   .append("svg:svg")
-  .attr("width", width)
-  .attr("height", height)
+  .attr("width", WIDTH)
+  .attr("height", HEIGHT)
   .append("svg:g")
   .attr("id", "container")
-  .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")");
 
-var partition = d3.partition().size([2 * Math.PI, radius * radius]);
+var partition = d3.partition().size([2 * Math.PI, RADIUS * RADIUS]);
 
 var arc = d3
   .arc()
@@ -75,7 +75,7 @@ function createVisualization(json) {
 
   // Bounding circle underneath the sunburst, to make it easier to detect
   // when the mouse leaves the parent g.
-  vis.append("svg:circle").attr("r", radius).style("opacity", 0);
+  vis.append("svg:circle").attr("r", RADIUS).style("opacity", 0);
 
   // Turn the data into a d3 hierarchy and calculate the sums.
   var root = d3
@@ -106,7 +106,7 @@ function createVisualization(json) {
     .attr("d", arc)
     .attr("fill-rule", "evenodd")
     .style("fill", function (d) {
-      return colors[d.data.name];
+      return COLORS[d.data.name];
     })
     .style("opacity", 1)
     .on("mouseover", mouseover);
@@ -171,7 +171,7 @@ function initializeBreadcrumbTrail() {
   var trail = d3
     .select("#sequence")
     .append("svg:svg")
-    .attr("width", width)
+    .attr("width", WIDTH)
     .attr("height", 50)
     .attr("id", "trail");
   // Add the label at the end, for the percentage.
@@ -182,13 +182,13 @@ function initializeBreadcrumbTrail() {
 function breadcrumbPoints(d, i) {
   var points = [];
   points.push("0,0");
-  points.push(b.w + ",0");
-  points.push(b.w + b.t + "," + b.h / 2);
-  points.push(b.w + "," + b.h);
-  points.push("0," + b.h);
+  points.push(B.w + ",0");
+  points.push(B.w + B.t + "," + B.h / 2);
+  points.push(B.w + "," + B.h);
+  points.push("0," + B.h);
   if (i > 0) {
     // Leftmost breadcrumb; don't include 6th vertex.
-    points.push(b.t + "," + b.h / 2);
+    points.push(B.t + "," + B.h / 2);
   }
   return points.join(" ");
 }
@@ -213,13 +213,13 @@ function updateBreadcrumbs(nodeArray, percentageString) {
     .append("svg:polygon")
     .attr("points", breadcrumbPoints)
     .style("fill", function (d) {
-      return colors[d.data.name];
+      return COLORS[d.data.name];
     });
 
   entering
     .append("svg:text")
-    .attr("x", (b.w + b.t) / 2)
-    .attr("y", b.h / 2)
+    .attr("x", (B.w + B.t) / 2)
+    .attr("y", B.h / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
     .text(function (d) {
@@ -228,14 +228,14 @@ function updateBreadcrumbs(nodeArray, percentageString) {
 
   // Merge enter and update selections; set position for all nodes.
   entering.merge(trail).attr("transform", function (d, i) {
-    return "translate(" + i * (b.w + b.s) + ", 0)";
+    return "translate(" + i * (B.w + B.s) + ", 0)";
   });
 
   // Now move and update the percentage at the end.
   d3.select("#trail")
     .select("#endlabel")
-    .attr("x", (nodeArray.length + 0.5) * (b.w + b.s))
-    .attr("y", b.h / 2)
+    .attr("x", (nodeArray.length + 0.5) * (B.w + B.s))
+    .attr("y", B.h / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
     .text(percentageString);
@@ -257,12 +257,12 @@ function drawLegend() {
     .select("#legend")
     .append("svg:svg")
     .attr("width", li.w)
-    .attr("height", Object.keys(colors).length * (li.h + li.s));
+    .attr("height", Object.keys(COLORS).length * (li.h + li.s));
   //   .attr("height", li.h)
 
   var g = legend
     .selectAll("g")
-    .data(Object.entries(colors))
+    .data(Object.entries(COLORS))
     .enter()
     .append("svg:g")
     .attr("transform", function (d, i) {
