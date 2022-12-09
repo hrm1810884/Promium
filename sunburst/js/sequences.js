@@ -251,7 +251,9 @@ function drawLegend() {
     .attr("ry", li.r)
     .attr("width", li.w)
     .attr("height", li.h)
-    .style("fill", (d) => d[1]);
+    .style("fill", (d) => d[1])
+    .style("opacity", 0.5)
+    .attr("class", function (d) {return "rect_" + d[0]; });
 
   g.append("svg:text")
     .attr("x", li.w / 2)
@@ -259,6 +261,9 @@ function drawLegend() {
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
     .text((d) => d[0]);
+  
+  g.on("mouseover", mouseoverLegend)
+    .on("mouseleave", mouseleaveLegend);
 }
 
 function toggleLegend() {
@@ -268,6 +273,29 @@ function toggleLegend() {
   } else {
     legend.style("visibility", "hidden");
   }
+}
+
+function mouseoverLegend(event, d) {
+  // mouseoverしたボタンを濃くする
+  d3.selectAll(".rect_" + d[0])
+    .style("opacity", 1);
+
+  // mouseoverした名前のデータをハイライト表示する
+  d3.selectAll("path")
+    .style("opacity", 0.3)
+    .filter(function(nd) {return nd.data.name == d[0]; })
+    .style("opacity", 1);
+
+}
+
+function mouseleaveLegend(event, d) {
+  // ボタンの色を薄く戻す
+  d3.selectAll("rect")
+    .style("opacity", 0.5);
+
+  // ハイライト表示を戻す
+  d3.selectAll("path")
+    .style("opacity", 1);
 }
 
 function drawHierarchy(json) {
