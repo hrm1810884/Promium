@@ -35,7 +35,7 @@ let arc = d3
   .innerRadius((d) => Math.sqrt(d.y0))
   .outerRadius((d) => Math.sqrt(d.y1));
 
-d3.tsv("./data.tsv").then(function (text) {
+d3.tsv("./data/process_data.tsv").then(function (text) {
   const json = buildHierarchy(text);
   createVisualization(json);
 });
