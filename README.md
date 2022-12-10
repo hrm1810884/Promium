@@ -16,6 +16,8 @@
 [index.heml](https://gist.github.com/hrm1810884/f1683981dac1dc126e251a1bebc4de94/revisions)  
 [sequences.js_1](https://gist.github.com/hrm1810884/6977ad57e0cfac5e37a3c7d56dc3b19a/revisions)
 [sequences.js_2](https://github.com/takepedia/sunburst/commit/82bd4dea60bc3842d6bb529f2ade5a4ce9901d9e) 
+- これまでwebからとってきたテストデータだったものをプロセスの情報に対応できるようにpsコマンドの結果から親子関係を導き出し,tsvをjsonに変換し,表示できるようにした.
+[プロセスデータに対応](https://github.com/InfovisHandsOn/B-Tohoken/commit/bde525023d9fe6b831ad05e9a74dcbfa64bbf599)
 
 ### LEEANHUA
 
