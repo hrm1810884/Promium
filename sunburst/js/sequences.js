@@ -11,15 +11,8 @@ const B = {
   t: 10,
 };
 
-// Mapping of step names to colors.
-const COLORS = {
-  home: "#5687d1",
-  product: "#7b615c",
-  search: "#de783b",
-  account: "#6ab975",
-  other: "#a173d1",
-  end: "#bbbbbb",
-};
+// Mapping of step commands to colors.
+var COLORS = d3.scaleOrdinal(d3.schemeCategory10);
 
 // Total size of all segments; we set this later, after loading the data.
 let totalSize = 0;
@@ -42,7 +35,7 @@ let arc = d3
   .innerRadius((d) => Math.sqrt(d.y0))
   .outerRadius((d) => Math.sqrt(d.y1));
 
-d3.csv("./data/visit-sequences.csv").then(function (text) {
+d3.tsv("./data/process_data.tsv").then(function (text) {
   const json = buildHierarchy(text);
   createVisualization(json);
 });
@@ -78,7 +71,9 @@ function createVisualization(json) {
   // Turn the data into a d3 hierarchy and calculate the sums.
   let root = d3
     .hierarchy(json)
-    .sum((d) => d.size)
+    .sum((d) => {
+        console.log(d)
+        return d.cpu})
     .sort((a, b) => b.value - a.value);
 
   // For efficiency, filter nodes to keep only those large enough to see.
@@ -95,7 +90,8 @@ function createVisualization(json) {
     .attr("display", (d) => (d.depth ? null : "none"))
     .attr("d", arc)
     .attr("fill-rule", "evenodd")
-    .style("fill", (d) => COLORS[d.data.name])
+    .style("fill", (d) => {
+        return COLORS(d.data.command)})
     .style("opacity", 1)
     .on("mouseover", mouseover);
 
@@ -185,7 +181,7 @@ function updateBreadcrumbs(nodeArray, percentageString) {
   let trail = d3
     .select("#trail")
     .selectAll("g")
-    .data(nodeArray, (d) => d.data.name + d.depth);
+    .data(nodeArray, (d) => d.data.command + d.depth);
 
   // Remove exiting nodes.
   trail.exit().remove();
@@ -196,7 +192,7 @@ function updateBreadcrumbs(nodeArray, percentageString) {
   entering
     .append("svg:polygon")
     .attr("points", breadcrumbPoints)
-    .style("fill", (d) => COLORS[d.data.name]);
+    .style("fill", (d) => COLORS(d.data.command));
 
   entering
     .append("svg:text")
@@ -204,7 +200,7 @@ function updateBreadcrumbs(nodeArray, percentageString) {
     .attr("y", B.h / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text((d) => d.data.name);
+    .text((d) => d.data.command);
 
   // Merge enter and update selections; set position for all nodes.
   entering
@@ -338,25 +334,25 @@ function drawHierarchy(json) {
     .attr("height", height);
 
   // 渡された name を含む階層階層を探索（同じ parent の）
-  const seekParent = (currentData, name) => {
+  const seekParent = (currentData, command) => {
     // 今処理しているノードの親の子たちを取得することでその階層のデータを取得
     const crntHrcy = currentData.parent.children;
     // 取得した階層に、今探しているnameを含むものがいれば、それが目的の階層
-    const target = crntHrcy.find((contents) => contents.data.name == name);
+    const target = crntHrcy.find((contents) => contents.data.command == command);
     // 見つかればその階層を name とセットで返却
     // 見つからなければ親を渡して再帰処理させることで一つ上の階層を探索させる
     return target
-      ? { name: name, hierarchy: crntHrcy }
-      : seekParent(currentData.parent, name);
+      ? { command: command, hierarchy: crntHrcy }
+      : seekParent(currentData.parent, command);
   };
 
   // 自分より上にいる末端ノードの数を配列として取り出す
-  const calcLeaves = (names, currentData) => {
+  const calcLeaves = (commands, currentData) => {
     // 親の含まれる階層をそれぞれ抽出する（name と階層の JSON で）
-    const eachHierarchies = names.map((name) => seekParent(currentData, name));
+    const eachHierarchies = commands.map((command) => seekParent(currentData, command));
     // それぞれの階層における、そのnameの位置（インデックス）を取得
     const eachIdxes = eachHierarchies.map((item) =>
-      item.hierarchy.findIndex((contents) => contents.data.name == item.name)
+      item.hierarchy.findIndex((contents) => contents.data.command == item.command)
     );
     // 先ほど取得したインデックスを使って、それぞれの階層をスライスする
     const filteredHierarchies = eachHierarchies.map((item, idx) =>
@@ -373,7 +369,7 @@ function drawHierarchy(json) {
   // y 座標の計算
   const defineY = (data, spaceInfo) => {
     // 親をたどる配列からバインドされたデータを抽出
-    const ancestorValues = data.ancestors().map((item) => item.data.name);
+    const ancestorValues = data.ancestors().map((item) => item.data.command);
     // 自分より上にいる末端ノードの数を配列として取り出す
     const leaves = calcLeaves(
       ancestorValues.slice(0, ancestorValues.length - 1),
@@ -443,52 +439,48 @@ function drawHierarchy(json) {
   // テキスト
   node
     .append("text")
-    .text((d) => d.data.name)
+    .text((d) => d.data.command)
     .attr("transform", `translate(5, 15)`);
 }
 
-// Take a 2-column CSV and transform it into a hierarchical structure suitable
+// Take a 2-column tsv and transform it into a hierarchical structure suitable
 // for a partition layout. The first column is a sequence of step names, from
 // root to leaf, separated by hyphens. The second column is a count of how
 // often that sequence occurred.
-function buildHierarchy(csv) {
-  let root = { name: "root", children: [] };
-  for (csv_row of csv) {
-    const sequence = csv_row.account;
-    const size = +csv_row.num;
-    if (isNaN(size)) {
-      // e.g. if this is a header row
-      continue;
+function buildHierarchy(tsv) {
+  let root = { command: "root", children: [] };
+  let length = tsv.length;
+  let parentNode = root;
+  let children;
+  let childNode;
+  for (i in tsv) {
+    i = Number(i)
+    tsv_row = tsv[i];
+    if(i == length-1){
+        break;
     }
+    const user = tsv_row["USER"];
+    const pid = tsv_row["PID"];
+    const cpu = tsv_row["%CPU"]
+    const rss = tsv_row["RSS"];
+    const stat = tsv_row["STAT"];
+    const command = tsv_row["COMMAND"]
+    const gene = Number(tsv_row["GENE"])
 
-    const parts = sequence.split("-");
-    let currentNode = root;
-    for (let j = 0; j < parts.length; j++) {
-      let children = currentNode["children"];
-      let nodeName = parts[j];
-      let childNode;
-      if (j + 1 < parts.length) {
-        // Not yet at the end of the sequence; move down the tree.
-        let foundChild = false;
-        for (child of children) {
-          if (child["name"] == nodeName) {
-            childNode = child;
-            foundChild = true;
-            break;
-          }
+    if(tsv[i+1]["GENE"] > tsv_row["GENE"]){
+        childNode = { command: command, user: user, pid: pid, cpu: cpu, rss: rss, stat: stat, parent: parentNode, children: []}
+        parentNode["children"].push(childNode)
+        parentNode = childNode;
+    }else if(tsv[i+1]["GENE"] == tsv_row["GENE"]){
+        childNode = { command: command, user: user, pid: pid, cpu: cpu, rss: rss, stat: stat, parent: parentNode, children: []}
+        parentNode["children"].push(childNode)
+    }else{
+        childNode = { command: command, user: user, pid: pid, cpu: cpu, rss: rss, stat: stat, parent: parentNode, children: []}
+        parentNode["children"].push(childNode)
+        gene_gap = tsv_row["GENE"] - tsv[i+1]["GENE"]
+        for(let j = 0; j < gene_gap; j++){
+            parentNode = parentNode["parent"]
         }
-
-        // If we don't already have a child node for this branch, create it.
-        if (!foundChild) {
-          childNode = { name: nodeName, children: [] };
-          children.push(childNode);
-        }
-        currentNode = childNode;
-      } else {
-        // Reached the end of the sequence; create a leaf node.
-        childNode = { name: nodeName, size: size };
-        children.push(childNode);
-      }
     }
   }
   return root;
