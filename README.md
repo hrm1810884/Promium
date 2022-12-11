@@ -12,11 +12,18 @@
 
 - 現時点ではwebpackを利用してブラウザ上で`ps auxww`を実行できるように試行錯誤中  
 ローカル上ではすでにjavascriptからLinuxコマンドを実行できるようにはなりました.
-- git galleryから今回の作品に使えそうなプログラムとしてsun burstを選び, d3.jsがv4で書かれていたので, プリントデバッグを行いながらエラー箇所をv7対応となるように書き換えを行いました.
+- git galleryから今回の作品に使えそうなプログラムとしてsun burstを選び, d3.jsがv4で書かれていたので, プリントデバッグを行いながらエラー箇所をv7対応となるように書き換えを行いました.  
+[index.heml](https://gist.github.com/hrm1810884/f1683981dac1dc126e251a1bebc4de94/revisions)  
+[sequences.js_1](https://gist.github.com/hrm1810884/6977ad57e0cfac5e37a3c7d56dc3b19a/revisions)
+[sequences.js_2](https://github.com/takepedia/sunburst/commit/82bd4dea60bc3842d6bb529f2ade5a4ce9901d9e) 
+- これまでwebからとってきたテストデータだったものをプロセスの情報に対応できるようにpsコマンドの結果から親子関係を導き出し,tsvをjsonに変換し,表示できるようにした.
+[プロセスデータに対応](https://github.com/InfovisHandsOn/B-Tohoken/commit/bde525023d9fe6b831ad05e9a74dcbfa64bbf599)
+- pythonでサーバを立ててブラウザからの要求に応じて,ファイルを送信する[プログラム](https://github.com/InfovisHandsOn/B-Tohoken/commit/fe4e5848eb79a6d75b04cec4d09bf2a8fc657e23)を作成した.データを要求された際にはサーバサイドで`ps auxf`を実行し,データを取得した後に表示する.
 
 ### LEEANHUA
 
-gitの扱いについてtakepにご教授頂いた。branchの仕組みについてある程度理解し、作業用branch(create_test_data)を作成した。
+- gitの扱いについてtakepにご教授頂いた。branchの仕組みについてある程度理解し、作業用branch(create_test_data)を作成した。
+- データ作成用に1個の親プロセスから大量の子プロセスを生成するプログラムを作成([manychild.py](https://github.com/InfovisHandsOn/B-Tohoken/commit/8342cc4b3509e59fde55f0bf4dfe7a6d44a94a90))
 
 ### takep
 
@@ -24,6 +31,7 @@ gitの扱いについてtakepにご教授頂いた。branchの仕組みについ
 - sunburst について
   - [バグを修正した](https://github.com/InfovisHandsOn/B-Tohoken/commit/cbe4bc66faba535a96f358d9c968e739967aa559)．
   - 別レポジトリで作業していた sunburst についてのファイルを history を保ったままこのレポジトリに移動した．
+  - ツリーのモックを作成した．
 - issue を用いた開発を主導している．
 
 ## 開発にあたって

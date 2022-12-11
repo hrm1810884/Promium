@@ -11,8 +11,15 @@ const B = {
   t: 10,
 };
 
-// Mapping of step commands to colors.
-var COLORS = d3.scaleOrdinal(d3.schemeCategory10);
+// Mapping of step names to colors.
+const COLORS = {
+  home: "#5687d1",
+  product: "#7b615c",
+  search: "#de783b",
+  account: "#6ab975",
+  other: "#a173d1",
+  end: "#bbbbbb",
+};
 
 // Total size of all segments; we set this later, after loading the data.
 let totalSize = 0;
@@ -35,7 +42,7 @@ let arc = d3
   .innerRadius((d) => Math.sqrt(d.y0))
   .outerRadius((d) => Math.sqrt(d.y1));
 
-d3.tsv("./data/process_data.tsv").then(function (text) {
+d3.csv("./visit-sequences.csv").then(function (text) {
   const json = buildHierarchy(text);
   createVisualization(json);
 });
@@ -71,9 +78,7 @@ function createVisualization(json) {
   // Turn the data into a d3 hierarchy and calculate the sums.
   let root = d3
     .hierarchy(json)
-    .sum((d) => {
-        console.log(d)
-        return d.cpu})
+    .sum((d) => d.size)
     .sort((a, b) => b.value - a.value);
 
   // For efficiency, filter nodes to keep only those large enough to see.
@@ -90,8 +95,7 @@ function createVisualization(json) {
     .attr("display", (d) => (d.depth ? null : "none"))
     .attr("d", arc)
     .attr("fill-rule", "evenodd")
-    .style("fill", (d) => {
-        return COLORS(d.data.command)})
+    .style("fill", (d) => COLORS[d.data.name])
     .style("opacity", 1)
     .on("mouseover", mouseover);
 
@@ -181,7 +185,7 @@ function updateBreadcrumbs(nodeArray, percentageString) {
   let trail = d3
     .select("#trail")
     .selectAll("g")
-    .data(nodeArray, (d) => d.data.command + d.depth);
+    .data(nodeArray, (d) => d.data.name + d.depth);
 
   // Remove exiting nodes.
   trail.exit().remove();
@@ -192,7 +196,7 @@ function updateBreadcrumbs(nodeArray, percentageString) {
   entering
     .append("svg:polygon")
     .attr("points", breadcrumbPoints)
-    .style("fill", (d) => COLORS(d.data.command));
+    .style("fill", (d) => COLORS[d.data.name]);
 
   entering
     .append("svg:text")
@@ -200,7 +204,7 @@ function updateBreadcrumbs(nodeArray, percentageString) {
     .attr("y", B.h / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text((d) => d.data.command);
+    .text((d) => d.data.name);
 
   // Merge enter and update selections; set position for all nodes.
   entering
@@ -247,9 +251,7 @@ function drawLegend() {
     .attr("ry", li.r)
     .attr("width", li.w)
     .attr("height", li.h)
-    .style("fill", (d) => d[1])
-    .style("opacity", 0.5)
-    .attr("class", function (d) {return "rect_" + d[0]; });
+    .style("fill", (d) => d[1]);
 
   g.append("svg:text")
     .attr("x", li.w / 2)
@@ -257,9 +259,6 @@ function drawLegend() {
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
     .text((d) => d[0]);
-  
-  g.on("mouseover", mouseoverLegend)
-    .on("mouseleave", mouseleaveLegend);
 }
 
 function toggleLegend() {
@@ -269,29 +268,6 @@ function toggleLegend() {
   } else {
     legend.style("visibility", "hidden");
   }
-}
-
-function mouseoverLegend(event, d) {
-  // mouseoverしたボタンを濃くする
-  d3.selectAll(".rect_" + d[0])
-    .style("opacity", 1);
-
-  // mouseoverした名前のデータをハイライト表示する
-  d3.selectAll("path")
-    .style("opacity", 0.3)
-    .filter(function(nd) {return nd.data.name == d[0]; })
-    .style("opacity", 1);
-
-}
-
-function mouseleaveLegend(event, d) {
-  // ボタンの色を薄く戻す
-  d3.selectAll("rect")
-    .style("opacity", 0.5);
-
-  // ハイライト表示を戻す
-  d3.selectAll("path")
-    .style("opacity", 1);
 }
 
 function drawHierarchy(json) {
@@ -334,25 +310,25 @@ function drawHierarchy(json) {
     .attr("height", height);
 
   // 渡された name を含む階層階層を探索（同じ parent の）
-  const seekParent = (currentData, command) => {
+  const seekParent = (currentData, name) => {
     // 今処理しているノードの親の子たちを取得することでその階層のデータを取得
     const crntHrcy = currentData.parent.children;
     // 取得した階層に、今探しているnameを含むものがいれば、それが目的の階層
-    const target = crntHrcy.find((contents) => contents.data.command == command);
+    const target = crntHrcy.find((contents) => contents.data.name == name);
     // 見つかればその階層を name とセットで返却
     // 見つからなければ親を渡して再帰処理させることで一つ上の階層を探索させる
     return target
-      ? { command: command, hierarchy: crntHrcy }
-      : seekParent(currentData.parent, command);
+      ? { name: name, hierarchy: crntHrcy }
+      : seekParent(currentData.parent, name);
   };
 
   // 自分より上にいる末端ノードの数を配列として取り出す
-  const calcLeaves = (commands, currentData) => {
+  const calcLeaves = (names, currentData) => {
     // 親の含まれる階層をそれぞれ抽出する（name と階層の JSON で）
-    const eachHierarchies = commands.map((command) => seekParent(currentData, command));
+    const eachHierarchies = names.map((name) => seekParent(currentData, name));
     // それぞれの階層における、そのnameの位置（インデックス）を取得
     const eachIdxes = eachHierarchies.map((item) =>
-      item.hierarchy.findIndex((contents) => contents.data.command == item.command)
+      item.hierarchy.findIndex((contents) => contents.data.name == item.name)
     );
     // 先ほど取得したインデックスを使って、それぞれの階層をスライスする
     const filteredHierarchies = eachHierarchies.map((item, idx) =>
@@ -369,7 +345,7 @@ function drawHierarchy(json) {
   // y 座標の計算
   const defineY = (data, spaceInfo) => {
     // 親をたどる配列からバインドされたデータを抽出
-    const ancestorValues = data.ancestors().map((item) => item.data.command);
+    const ancestorValues = data.ancestors().map((item) => item.data.name);
     // 自分より上にいる末端ノードの数を配列として取り出す
     const leaves = calcLeaves(
       ancestorValues.slice(0, ancestorValues.length - 1),
@@ -439,48 +415,52 @@ function drawHierarchy(json) {
   // テキスト
   node
     .append("text")
-    .text((d) => d.data.command)
+    .text((d) => d.data.name)
     .attr("transform", `translate(5, 15)`);
 }
 
-// Take a 2-column tsv and transform it into a hierarchical structure suitable
+// Take a 2-column CSV and transform it into a hierarchical structure suitable
 // for a partition layout. The first column is a sequence of step names, from
 // root to leaf, separated by hyphens. The second column is a count of how
 // often that sequence occurred.
-function buildHierarchy(tsv) {
-  let root = { command: "root", children: [] };
-  let length = tsv.length;
-  let parentNode = root;
-  let children;
-  let childNode;
-  for (i in tsv) {
-    i = Number(i)
-    tsv_row = tsv[i];
-    if(i == length-1){
-        break;
+function buildHierarchy(csv) {
+  let root = { name: "root", children: [] };
+  for (csv_row of csv) {
+    const sequence = csv_row.account;
+    const size = +csv_row.num;
+    if (isNaN(size)) {
+      // e.g. if this is a header row
+      continue;
     }
-    const user = tsv_row["USER"];
-    const pid = tsv_row["PID"];
-    const cpu = tsv_row["%CPU"]
-    const rss = tsv_row["RSS"];
-    const stat = tsv_row["STAT"];
-    const command = tsv_row["COMMAND"]
-    const gene = Number(tsv_row["GENE"])
 
-    if(tsv[i+1]["GENE"] > tsv_row["GENE"]){
-        childNode = { command: command, user: user, pid: pid, cpu: cpu, rss: rss, stat: stat, parent: parentNode, children: []}
-        parentNode["children"].push(childNode)
-        parentNode = childNode;
-    }else if(tsv[i+1]["GENE"] == tsv_row["GENE"]){
-        childNode = { command: command, user: user, pid: pid, cpu: cpu, rss: rss, stat: stat, parent: parentNode, children: []}
-        parentNode["children"].push(childNode)
-    }else{
-        childNode = { command: command, user: user, pid: pid, cpu: cpu, rss: rss, stat: stat, parent: parentNode, children: []}
-        parentNode["children"].push(childNode)
-        gene_gap = tsv_row["GENE"] - tsv[i+1]["GENE"]
-        for(let j = 0; j < gene_gap; j++){
-            parentNode = parentNode["parent"]
+    const parts = sequence.split("-");
+    let currentNode = root;
+    for (let j = 0; j < parts.length; j++) {
+      let children = currentNode["children"];
+      let nodeName = parts[j];
+      let childNode;
+      if (j + 1 < parts.length) {
+        // Not yet at the end of the sequence; move down the tree.
+        let foundChild = false;
+        for (child of children) {
+          if (child["name"] == nodeName) {
+            childNode = child;
+            foundChild = true;
+            break;
+          }
         }
+
+        // If we don't already have a child node for this branch, create it.
+        if (!foundChild) {
+          childNode = { name: nodeName, children: [] };
+          children.push(childNode);
+        }
+        currentNode = childNode;
+      } else {
+        // Reached the end of the sequence; create a leaf node.
+        childNode = { name: nodeName, size: size };
+        children.push(childNode);
+      }
     }
   }
   return root;
