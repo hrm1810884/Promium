@@ -294,7 +294,6 @@ function drawHierarchy(json) {
     width: 80,
   };
 
-  // ノード間のスペースなど
   const DIM_SPACE = {
     padding: 30,
     height: 50,
@@ -305,6 +304,8 @@ function drawHierarchy(json) {
     left: 20,
   };
 
+  const DURATION = 500;
+
   const root = d3.hierarchy(json);
   const tree = d3.tree();
   tree(root);
@@ -312,12 +313,8 @@ function drawHierarchy(json) {
   const countChildren = (hierarchy) =>
     hierarchy.eachAfter((node) => {
       let sum = 1;
-      if (node.children === null) {
-        node.value = sum;
-        return;
-      }
-      const children = node.children;
-      if (typeof children !== "undefined") {
+      if (node.children) {
+        const children = node.children;
         for (const child of children) {
           sum += child.value;
         }
@@ -327,27 +324,27 @@ function drawHierarchy(json) {
 
   countChildren(root);
 
-  // 全体 svg 要素の高さと幅を計算し生成
-  // 末端ノードの数 * ノードの高さ + (末端ノードの数 - 1) * (ノードの基準点どうしの縦幅 - ノードの高さ) + 上下の余白
-  const height =
-    root.value * DIM_RECT.height +
-    (root.value - 1) * (DIM_SPACE.height - DIM_RECT.height) +
-    DIM_SPACE.padding * 2;
+  const calcHierarchySize = (source) => {
+    return {
+      height:
+        source.value * DIM_RECT.height +
+        (source.value - 1) * (DIM_SPACE.height - DIM_RECT.height) +
+        DIM_SPACE.padding * 2,
+      width:
+        (source.height + 1) * DIM_RECT.width +
+        source.height * (DIM_SPACE.width - DIM_RECT.width) +
+        DIM_SPACE.padding * 2,
+    };
+  };
 
-  // (rootの高さ + 1) * ノードの幅 + root の高さ * (ノードの基準点どうしの横幅 - ノードの幅) + 上下の余白
-  // 最終的に90度回転した状態になるため root の存在する高さで横幅を計算する
-  const width =
-    (root.height + 1) * DIM_RECT.width +
-    root.height * (DIM_SPACE.width - DIM_RECT.width) +
-    DIM_SPACE.padding * 2;
+  const DIM_HIERARCHY = calcHierarchySize(root);
 
   const hierarchy = d3
     .select("#hierarchy")
     .append("svg")
-    .attr("width", width)
-    .attr("height", height);
+    .attr("width", DIM_HIERARCHY.width)
+    .attr("height", DIM_HIERARCHY.height);
 
-  // 全体をグループ化
   const g = hierarchy.append("g");
 
   let index = 0;
@@ -365,91 +362,63 @@ function drawHierarchy(json) {
 
   function updateTree(source) {
     countChildren(root);
+    DIM_HIERARCHY.height,
+      (DIM_HIERARCHY.width = calcHierarchySize(root).height),
+      calcHierarchySize(root).width;
 
-    // 渡された name を含む階層階層を探索（同じ parent の）
     const seekParent = (currentData, command) => {
-      // 今処理しているノードの親の子たちを取得することでその階層のデータを取得
       const currentHierarchy = currentData.parent.children;
-      // 取得した階層に、今探している name を含むものがいれば、それが目的の階層
       const targetFound = currentHierarchy.find(
         (contents) => contents.data.command == command
       );
-      // 見つかればその階層を name とセットで返却
-      // 見つからなければ親を渡して再帰処理させることで一つ上の階層を探索させる
       return targetFound
         ? { command: command, hierarchy: currentHierarchy }
         : seekParent(currentData.parent, command);
     };
 
-    // 自分より上にいる末端ノードの数を配列として取り出す
     const calcLeaves = (commands, currentData) => {
-      // 親の含まれる階層をそれぞれ抽出する（name と階層の JSON で）
       const eachHierarchies = commands.map((command) =>
         seekParent(currentData, command)
       );
-      // それぞれの階層における、その name の位置（インデックス）を取得
       const eachIdxes = eachHierarchies.map((item) =>
         item.hierarchy.findIndex(
           (contents) => contents.data.command == item.command
         )
       );
-      // 先ほど取得したインデックスを使って、それぞれの階層をスライスする
       const filteredHierarchies = eachHierarchies.map((item, idx) =>
         item.hierarchy.slice(0, eachIdxes[idx])
       );
-      // それぞれの階層に含まれる value を抽出
       const values = filteredHierarchies.map((hierarchy) =>
-        hierarchy.map((item) => {
-          if (item.value === 1) {
-            if (item.data.children.length === 0) {
-              return item.value;
-            } else {
-              return item.value + 1;
-            }
-          }
-          return item.value;
-        })
+        hierarchy.map((item) => item.value)
       );
-      // 平坦化して返却
       return values.flat();
     };
 
-    // y 座標の計算
-    const defineY = (data, spaceInfo) => {
-      // 親をたどる配列からバインドされたデータを抽出
+    const defineY = (data) => {
+      if (data.data.command === "root") {
+        return DIM_SPACE.padding;
+      }
       const ancestorValues = data.ancestors().map((item) => item.data.command);
-      // 自分より上にいる末端ノードの数を配列として取り出す
       const leaves = calcLeaves(
         ancestorValues.slice(0, ancestorValues.length - 1),
         data
       );
-      // ノードの数を合計
       const sumLeaves = leaves.reduce(
         (previous, current) => previous + current,
         0
       );
-      // y 座標を計算 末端ノードの数 * ノードの基準点同士の縦幅 + 上の余白
-      if (data.data.command === "root") {
-        return spaceInfo.padding;
-      }
-      return (data.depth + sumLeaves) * spaceInfo.height + spaceInfo.padding;
+
+      return (data.depth + sumLeaves) * DIM_SPACE.height + DIM_SPACE.padding;
     };
 
-    // 位置決め
-    const definePos = (treeData, spaceInfo) => {
+    const definePos = (treeData) => {
       treeData.each((d) => {
-        // x 座標は 深さ * ノード間の幅 + 左側の余白
-        d.x =
-          d.depth > 0
-            ? d.depth * 2 * DIM_LINK.left + DIM_SPACE.padding
-            : DIM_SPACE.padding; // root
-        d.y = defineY(d, spaceInfo);
+        d.x = d.depth * 2 * DIM_LINK.left + DIM_SPACE.padding;
+        d.y = defineY(d);
       });
     };
 
     definePos(root, DIM_SPACE);
-
-    const duration = 500;
 
     tree(root);
     definePos(root, DIM_SPACE);
@@ -474,7 +443,7 @@ function drawHierarchy(json) {
     const linkUpdate = linkEnter.merge(link);
     linkUpdate
       .transition()
-      .duration(duration)
+      .duration(DURATION)
       .attr("d", (d) =>
         ` M ${d.target.x}, ${d.target.y + DIM_RECT.height / 2}
             L ${d.source.x + DIM_LINK.left}, 
@@ -488,7 +457,7 @@ function drawHierarchy(json) {
     link
       .exit()
       .transition()
-      .duration(duration)
+      .duration(DURATION)
       .attr("d", (d) =>
         ` M ${source.x}, ${source.y + DIM_RECT.height / 2}
         L ${d.source.x + DIM_LINK.left}, 
@@ -503,7 +472,6 @@ function drawHierarchy(json) {
     const node = g
       .selectAll(".node")
       .data(root.descendants(), (d) => d.id || (d.id = ++index));
-
     const nodeEnter = node
       .enter()
       .append("g")
@@ -527,7 +495,7 @@ function drawHierarchy(json) {
     const nodeUpdate = nodeEnter.merge(node);
     nodeUpdate
       .transition()
-      .duration(duration)
+      .duration(DURATION)
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     nodeUpdate
       .select("rect")
@@ -537,7 +505,7 @@ function drawHierarchy(json) {
     const nodeExit = node
       .exit()
       .transition()
-      .duration(duration)
+      .duration(DURATION)
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
       .remove();
     nodeExit.select("rect").attr("height", 0).attr("width", 0);
