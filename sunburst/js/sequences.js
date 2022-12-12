@@ -5,7 +5,7 @@ const RADIUS = Math.min(WIDTH, HEIGHT) / 2;
 
 // Breadcrumb dimensions: width, height, spacing, width of tip/tail.
 const DIM_BREADCRUMB = {
-  width: 75,
+  width: 200,
   height: 30,
   spacing: 3,
   tip: 10,
@@ -74,59 +74,68 @@ function createVisualization(json) {
     .attr("fill-rule", "evenodd")
     .style("fill", (d) => COLORS(d.data.command))
     .style("opacity", 1)
-    .on("mouseover", mouseover);
+    .on("mouseover", mouseoverSunburst);
 
   // Add the mouseleave handler to the bounding circle.
-  d3.select("#container").on("mouseleave", mouseleave);
+  d3.select("#container").on("mouseleave", mouseleaveSunburst);
 
   // Get total size of the tree = value of root node from partition.
   totalSize = path.datum().value;
-}
 
-// Fade all but the current sequence, and show it in the breadcrumb trail.
-function mouseover(event, d) {
-  const percentage = ((100 * d.value) / totalSize).toPrecision(3);
-  const percentageString = percentage + "%";
-  if (percentage < 0.1) {
-    percentageString = "< 0.1%";
+  function toggleLegend() {
+    const legend = d3.select("#legend");
+    if (legend.style("visibility") == "hidden") {
+      legend.style("visibility", "");
+    } else {
+      legend.style("visibility", "hidden");
+    }
   }
 
-  d3.select("#percentage").text(percentageString);
+  // Fade all but the current sequence, and show it in the breadcrumb trail.
+  function mouseoverSunburst(event, d) {
+    const percentage = ((100 * d.value) / totalSize).toPrecision(3);
+    const percentageString = percentage + "%";
+    if (percentage < 0.1) {
+      percentageString = "< 0.1%";
+    }
 
-  d3.select("#explanation").style("visibility", "");
+    d3.select("#percentage").text(percentageString);
 
-  let sequenceArray = d.ancestors().reverse();
-  sequenceArray.shift(); // remove root node from the array
-  updateBreadcrumbs(sequenceArray, percentageString);
+    d3.select("#explanation").style("visibility", "");
 
-  // Fade all the segments.
-  d3.selectAll("path").style("opacity", 0.3);
+    let sequenceArray = d.ancestors().reverse();
+    sequenceArray.shift(); // remove root node from the array
+    updateBreadcrumbs(sequenceArray, percentageString);
 
-  // Then highlight only those that are an ancestor of the current segment.
-  vis
-    .selectAll("path")
-    .filter((node) => sequenceArray.indexOf(node) >= 0)
-    .style("opacity", 1);
-}
+    // Fade all the segments.
+    d3.selectAll("path").style("opacity", 0.3);
 
-// Restore everything to full opacity when moving off the visualization.
-function mouseleave(d) {
-  // Hide the breadcrumb trail
-  d3.select("#trail").style("visibility", "hidden");
+    // Then highlight only those that are an ancestor of the current segment.
+    vis
+      .selectAll("path")
+      .filter((node) => sequenceArray.indexOf(node) >= 0)
+      .style("opacity", 1);
+  }
 
-  // Deactivate all segments during transition.
-  d3.selectAll("path").on("mouseover", null);
+  // Restore everything to full opacity when moving off the visualization.
+  function mouseleaveSunburst(d) {
+    // Hide the breadcrumb trail
+    d3.select("#trail").style("visibility", "hidden");
 
-  // Transition each segment to full opacity and then reactivate it.
-  d3.selectAll("path")
-    .transition()
-    .duration(1000)
-    .style("opacity", 1)
-    .on("end", function () {
-      d3.select(this).on("mouseover", mouseover);
-    });
+    // Deactivate all segments during transition.
+    d3.selectAll("path").on("mouseover", null);
 
-  d3.select("#explanation").style("visibility", "hidden");
+    // Transition each segment to full opacity and then reactivate it.
+    d3.selectAll("path")
+      .transition()
+      .duration(1000)
+      .style("opacity", 1)
+      .on("end", function () {
+        d3.select(this).on("mouseover", mouseoverSunburst);
+      });
+
+    d3.select("#explanation").style("visibility", "hidden");
+  }
 }
 
 function initializeBreadcrumbTrail() {
@@ -258,33 +267,24 @@ function drawLegend() {
     .text((d) => d[0]);
 
   g.on("mouseover", mouseoverLegend).on("mouseleave", mouseleaveLegend);
-}
 
-function toggleLegend() {
-  const legend = d3.select("#legend");
-  if (legend.style("visibility") == "hidden") {
-    legend.style("visibility", "");
-  } else {
-    legend.style("visibility", "hidden");
+  function mouseoverLegend(event, d) {
+    // mouseoverしたボタンを濃くする
+    d3.selectAll(".rect_" + d[0]).style("opacity", 1);
+
+    // mouseoverした名前のデータをハイライト表示する
+    d3.selectAll("path").style("opacity", (data) =>
+      data.data.command == d[0] ? 1 : 0.3
+    );
   }
-}
 
-function mouseoverLegend(event, d) {
-  // mouseoverしたボタンを濃くする
-  d3.selectAll(".rect_" + d[0]).style("opacity", 1);
+  function mouseleaveLegend(event, d) {
+    // ボタンの色を薄く戻す
+    d3.selectAll("rect").style("opacity", 0.5);
 
-  // mouseoverした名前のデータをハイライト表示する
-  d3.selectAll("path").style("opacity", (data) =>
-    data.data.command == d[0] ? 1 : 0.3
-  );
-}
-
-function mouseleaveLegend(event, d) {
-  // ボタンの色を薄く戻す
-  d3.selectAll("rect").style("opacity", 0.5);
-
-  // ハイライト表示を戻す
-  d3.selectAll("path").style("opacity", 1);
+    // ハイライト表示を戻す
+    d3.selectAll("path").style("opacity", 1);
+  }
 }
 
 function drawHierarchy(json) {
@@ -454,9 +454,9 @@ function buildHierarchy(tsv) {
     const currentRow = tsv[i];
     const nextRow = tsv[i + 1];
     const user = currentRow["USER"];
-    const pid = currentRow["PID"];
-    const cpu = currentRow["%CPU"];
-    const rss = currentRow["RSS"];
+    const pid = parseInt(currentRow["PID"]);
+    const cpu = parseFloat(currentRow["%CPU"]);
+    const rss = parseFloat(currentRow["RSS"]);
     const stat = currentRow["STAT"];
     const command = currentRow["COMMAND"];
     const currentGene = parseInt(currentRow["GENE"]);
