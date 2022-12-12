@@ -326,120 +326,237 @@ function drawHierarchy(json) {
     .attr("width", width)
     .attr("height", height);
 
-  // 渡された name を含む階層階層を探索（同じ parent の）
-  const seekParent = (currentData, command) => {
-    // 今処理しているノードの親の子たちを取得することでその階層のデータを取得
-    const currentHierarchy = currentData.parent.children;
-    // 取得した階層に、今探しているnameを含むものがいれば、それが目的の階層
-    const target = currentHierarchy.find(
-      (contents) => contents.data.command == command
-    );
-    // 見つかればその階層を name とセットで返却
-    // 見つからなければ親を渡して再帰処理させることで一つ上の階層を探索させる
-    return target
-      ? { command: command, hierarchy: currentHierarchy }
-      : seekParent(currentData.parent, command);
-  };
-
-  // 自分より上にいる末端ノードの数を配列として取り出す
-  const calcLeaves = (commands, currentData) => {
-    // 親の含まれる階層をそれぞれ抽出する（name と階層の JSON で）
-    const eachHierarchies = commands.map((command) =>
-      seekParent(currentData, command)
-    );
-    // それぞれの階層における、そのnameの位置（インデックス）を取得
-    const eachIdxes = eachHierarchies.map((item) =>
-      item.hierarchy.findIndex(
-        (contents) => contents.data.command == item.command
-      )
-    );
-    // 先ほど取得したインデックスを使って、それぞれの階層をスライスする
-    const filteredHierarchies = eachHierarchies.map((item, idx) =>
-      item.hierarchy.slice(0, eachIdxes[idx])
-    );
-    // それぞれの階層に含まれるvalueを抽出
-    const values = filteredHierarchies.map((hierarchy) =>
-      hierarchy.map((item) => item.value)
-    );
-    // 平坦化して返却
-    return values.flat();
-  };
-
-  // y 座標の計算
-  const defineY = (data, spaceInfo) => {
-    // 親をたどる配列からバインドされたデータを抽出
-    const ancestorValues = data.ancestors().map((item) => item.data.command);
-    // 自分より上にいる末端ノードの数を配列として取り出す
-    const leaves = calcLeaves(
-      ancestorValues.slice(0, ancestorValues.length - 1),
-      data
-    );
-    // ノードの数を合計
-    const sumLeaves = leaves.reduce(
-      (previous, current) => previous + current,
-      0
-    );
-    // y 座標を計算 末端ノードの数 * ノードの基準点同士の縦幅 + 上の余白
-    return sumLeaves * spaceInfo.height + spaceInfo.padding;
-  };
-
-  // 位置決め
-  const definePos = (treeData, spaceInfo) => {
-    treeData.each((d) => {
-      // x 座標は 深さ * ノード間の幅 + 左側の余白
-      d.x = d.depth * spaceInfo.width + spaceInfo.padding;
-      d.y = defineY(d, spaceInfo);
-    });
-  };
-  definePos(root, DIM_SPACE);
-
   // 全体をグループ化
   const g = hierarchy.append("g");
 
-  // path要素の追加
-  g.selectAll(".link")
-    .data(root.descendants().slice(1))
-    .enter()
-    .append("path")
-    .attr("class", "link")
-    .attr("fill", "none")
-    .attr("stroke", "black")
-    .attr("d", (d) =>
-      `M${d.x},${d.y}
-    L${d.parent.x + DIM_RECT.width + (DIM_SPACE.width - DIM_RECT.width) / 2},${
-        d.y
-      }
-    ${d.parent.x + DIM_RECT.width + (DIM_SPACE.width - DIM_RECT.width) / 2},${
-        d.parent.y
-      }
-    ${d.parent.x + DIM_RECT.width},${d.parent.y}`
-        .replace(/\r?\n/g, "")
-        .replace(/\s+/g, " ")
-    )
-    .attr("transform", (d) => `translate(0, ${DIM_RECT.height / 2})`);
+  let index = 0;
+  updateTree(root);
 
-  // 各ノード用グループの作成
-  const node = g
-    .selectAll(".node")
-    .data(root.descendants())
-    .enter()
-    .append("g")
-    .attr("class", "node")
-    .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+  function toggle(d) {
+    if (d.children) {
+      d._children = d.children;
+      d.children = null;
+    } else {
+      d.children = d._children;
+      d._children = null;
+    }
+  }
 
-  // 四角
-  node
-    .append("rect")
-    .attr("width", DIM_RECT.width)
-    .attr("height", DIM_RECT.height)
-    .attr("fill", "#fff")
-    .attr("stroke", "black");
+  function updateTree(source) {
+    // 渡された name を含む階層階層を探索（同じ parent の）
+    const seekParent = (currentData, command) => {
+      // 今処理しているノードの親の子たちを取得することでその階層のデータを取得
+      const currentHierarchy = currentData.parent.children;
+      // 取得した階層に、今探しているnameを含むものがいれば、それが目的の階層
+      const target = currentHierarchy.find(
+        (contents) => contents.data.command == command
+      );
+      // 見つかればその階層を name とセットで返却
+      // 見つからなければ親を渡して再帰処理させることで一つ上の階層を探索させる
+      return target
+        ? { command: command, hierarchy: currentHierarchy }
+        : seekParent(currentData.parent, command);
+    };
 
-  // テキスト
-  node
-    .append("text")
-    .text((d) => d.data.command)
-    .attr("transform", `translate(5, 15)`);
+    // 自分より上にいる末端ノードの数を配列として取り出す
+    const calcLeaves = (commands, currentData) => {
+      // 親の含まれる階層をそれぞれ抽出する（name と階層の JSON で）
+      const eachHierarchies = commands.map((command) =>
+        seekParent(currentData, command)
+      );
+      // それぞれの階層における、そのnameの位置（インデックス）を取得
+      const eachIdxes = eachHierarchies.map((item) =>
+        item.hierarchy.findIndex(
+          (contents) => contents.data.command == item.command
+        )
+      );
+      // 先ほど取得したインデックスを使って、それぞれの階層をスライスする
+      const filteredHierarchies = eachHierarchies.map((item, idx) =>
+        item.hierarchy.slice(0, eachIdxes[idx])
+      );
+      // それぞれの階層に含まれるvalueを抽出
+      const values = filteredHierarchies.map((hierarchy) =>
+        hierarchy.map((item) => item.value)
+      );
+      // 平坦化して返却
+      return values.flat();
+    };
+
+    // y 座標の計算
+    const defineY = (data, spaceInfo) => {
+      // 親をたどる配列からバインドされたデータを抽出
+      const ancestorValues = data.ancestors().map((item) => item.data.command);
+      // 自分より上にいる末端ノードの数を配列として取り出す
+      const leaves = calcLeaves(
+        ancestorValues.slice(0, ancestorValues.length - 1),
+        data
+      );
+      // ノードの数を合計
+      const sumLeaves = leaves.reduce(
+        (previous, current) => previous + current,
+        0
+      );
+      // y 座標を計算 末端ノードの数 * ノードの基準点同士の縦幅 + 上の余白
+      return sumLeaves * spaceInfo.height + spaceInfo.padding;
+    };
+
+    // 位置決め
+    const definePos = (treeData, spaceInfo) => {
+      treeData.each((d) => {
+        // x 座標は 深さ * ノード間の幅 + 左側の余白
+        d.x = d.depth * spaceInfo.width + spaceInfo.padding;
+        d.y = defineY(d, spaceInfo);
+      });
+    };
+
+    definePos(root, DIM_SPACE);
+
+    const duration = 500;
+
+    tree(root);
+    definePos(root, DIM_SPACE);
+
+    const link = g.selectAll(".link").data(root.links(), (d) => d.target.id);
+    const linkEnter = link
+      .enter()
+      .append("path")
+      .attr("class", "link")
+      .attr("fill", "none")
+      .attr("stroke", "black")
+      // .attr("d", d3.linkHorizontal().x(source.x0).y(source.y0));
+      /** - 子のy座標, 子のx座標 + 四角の高さ / 2
+          - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 子のx座標 + 四角の高さ / 2
+          - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 親のx座標 + 四角の高さ / 2
+          - 親のy座標, 親のx座標 + 四角の高さ / 2 */
+      .attr("d", (d) => {
+        console.log(d);
+        return ` M ${source.x0}, ${source.y0 + DIM_RECT.height / 2}
+            L ${
+              d.source.x +
+              DIM_RECT.width +
+              (DIM_SPACE.width - DIM_RECT.width) / 2
+            },
+              ${source.y0 + DIM_RECT.height / 2}
+            L ${
+              d.source.x +
+              DIM_RECT.width +
+              (DIM_SPACE.width - DIM_RECT.width) / 2
+            },
+              ${d.source.y + DIM_RECT.height / 2}
+            L ${d.source.x + DIM_RECT.width},
+              ${d.source.y + DIM_RECT.height / 2}`
+          .replace(/\r?\n/g, "")
+          .replace(/\s+/g, " ");
+      });
+
+    const linkUpdate = linkEnter.merge(link);
+    linkUpdate
+      .transition()
+      .duration(duration)
+      .attr(
+        "d",
+        // d3
+        //   .linkHorizontal()
+        //   .x((d) => d.x)
+        //   .y((d) => d.y)
+        /** - 子のy座標, 子のx座標 + 四角の高さ / 2
+            - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 子のx座標 + 四角の高さ / 2
+            - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 親のx座標 + 四角の高さ / 2
+            - 親のy座標, 親のx座標 + 四角の高さ / 2 */
+        (d) =>
+          ` M ${d.target.x}, ${d.target.y + DIM_RECT.height / 2}
+            L ${
+              d.source.x +
+              DIM_RECT.width +
+              (DIM_SPACE.width - DIM_RECT.width) / 2
+            }, 
+              ${d.target.y + DIM_RECT.height / 2}
+            L ${
+              d.source.x +
+              DIM_RECT.width +
+              (DIM_SPACE.width - DIM_RECT.width) / 2
+            },
+              ${d.source.y + DIM_RECT.height / 2}
+            L ${d.source.x + DIM_RECT.width},
+              ${d.source.y + DIM_RECT.height / 2}`
+            .replace(/\r?\n/g, "")
+            .replace(/\s+/g, " ")
+      );
+
+    link
+      .exit()
+      .transition()
+      .duration(duration)
+      // .attr("d", d3.linkHorizontal().x(source.x).y(source.y))
+      /** - 子のy座標, 子のx座標 + 四角の高さ / 2
+          - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 子のx座標 + 四角の高さ / 2
+          - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 親のx座標 + 四角の高さ / 2
+          - 親のy座標, 親のx座標 + 四角の高さ / 2 */
+      .attr("d", (d) =>
+        ` M ${source.x}, ${source.y + DIM_RECT.height / 2}
+        L ${
+          d.source.x + DIM_RECT.width + (DIM_SPACE.width - DIM_RECT.width) / 2
+        }, 
+          ${source.y + DIM_RECT.height / 2}
+        L ${
+          d.source.x + DIM_RECT.width + (DIM_SPACE.width - DIM_RECT.width) / 2
+        },
+          ${d.source.y + DIM_RECT.height / 2}
+        L ${d.source.x + DIM_RECT.width},
+          ${d.source.y + DIM_RECT.height / 2}`
+          .replace(/\r?\n/g, "")
+          .replace(/\s+/g, " ")
+      )
+      .remove();
+
+    const node = g
+      .selectAll(".node")
+      .data(root.descendants(), (d) => d.id || (d.id = ++index));
+
+    const nodeEnter = node
+      .enter()
+      .append("g")
+      .attr("class", "node")
+      .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
+      .on("click", (event, d) => {
+        toggle(d);
+        updateTree(d);
+      });
+    nodeEnter
+      .append("rect")
+      .attr("width", DIM_RECT.width)
+      .attr("height", DIM_RECT.height)
+      .attr("fill", "#fff")
+      .attr("stroke", "black");
+    nodeEnter
+      .append("text")
+      .text((d) => d.data.command)
+      .attr("transform", `translate(5, 15)`);
+
+    const nodeUpdate = nodeEnter.merge(node);
+    nodeUpdate
+      .transition()
+      .duration(duration)
+      .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+    nodeUpdate
+      .select("rect")
+      .style("fill", (d) => (d._children ? "lightsteelblue" : "#fff"));
+    nodeEnter.select("text").style("fill-opacity", 1);
+
+    const nodeExit = node
+      .exit()
+      .transition()
+      .duration(duration)
+      .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
+      .remove();
+    nodeExit.select("rect").attr("height", 0).attr("width", 0);
+    nodeExit.select("text").style("fill-opacity", 1e-6);
+
+    node.each((d) => {
+      d.x0 = d.x;
+      d.y0 = d.y;
+    });
+  }
 }
 
 // Take a 2-column tsv and transform it into a hierarchical structure suitable
