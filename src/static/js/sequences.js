@@ -301,10 +301,26 @@ function drawHierarchy(json) {
     width: 120,
   };
 
+  const DIM_LINK = {
+    left: 20,
+  };
+
   const root = d3.hierarchy(json);
   const tree = d3.tree();
   tree(root);
-  root.count();
+
+  const countChildren = (hierarchy) =>
+    hierarchy.eachAfter((node) => {
+      let sum = 1;
+      const children = node.children;
+      if (typeof children !== "undefined") {
+        for (const child of children) {
+          sum += child.value;
+        }
+      }
+      node.value = sum;
+    });
+  countChildren(root);
 
   // 全体 svg 要素の高さと幅を計算し生成
   // 末端ノードの数 * ノードの高さ + (末端ノードの数 - 1) * (ノードの基準点どうしの縦幅 - ノードの高さ) + 上下の余白
@@ -348,12 +364,12 @@ function drawHierarchy(json) {
       // 今処理しているノードの親の子たちを取得することでその階層のデータを取得
       const currentHierarchy = currentData.parent.children;
       // 取得した階層に、今探している name を含むものがいれば、それが目的の階層
-      const target = currentHierarchy.find(
+      const targetFound = currentHierarchy.find(
         (contents) => contents.data.command == command
       );
       // 見つかればその階層を name とセットで返却
       // 見つからなければ親を渡して再帰処理させることで一つ上の階層を探索させる
-      return target
+      return targetFound
         ? { command: command, hierarchy: currentHierarchy }
         : seekParent(currentData.parent, command);
     };
@@ -364,7 +380,7 @@ function drawHierarchy(json) {
       const eachHierarchies = commands.map((command) =>
         seekParent(currentData, command)
       );
-      // それぞれの階層における、そのnameの位置（インデックス）を取得
+      // それぞれの階層における、その name の位置（インデックス）を取得
       const eachIdxes = eachHierarchies.map((item) =>
         item.hierarchy.findIndex(
           (contents) => contents.data.command == item.command
@@ -376,7 +392,16 @@ function drawHierarchy(json) {
       );
       // それぞれの階層に含まれる value を抽出
       const values = filteredHierarchies.map((hierarchy) =>
-        hierarchy.map((item) => item.value)
+        hierarchy.map((item) => {
+          if (item.value === 1) {
+            if (item.data.children.length === 0) {
+              return item.value;
+            } else {
+              return item.value + 1;
+            }
+          }
+          return item.value;
+        })
       );
       // 平坦化して返却
       return values.flat();
@@ -397,14 +422,20 @@ function drawHierarchy(json) {
         0
       );
       // y 座標を計算 末端ノードの数 * ノードの基準点同士の縦幅 + 上の余白
-      return sumLeaves * spaceInfo.height + spaceInfo.padding;
+      if (data.data.command === "root") {
+        return spaceInfo.padding;
+      }
+      return (data.depth + sumLeaves) * spaceInfo.height + spaceInfo.padding;
     };
 
     // 位置決め
     const definePos = (treeData, spaceInfo) => {
       treeData.each((d) => {
         // x 座標は 深さ * ノード間の幅 + 左側の余白
-        d.x = d.depth * spaceInfo.width + spaceInfo.padding;
+        d.x =
+          d.depth > 0
+            ? d.depth * 2 * DIM_LINK.left + DIM_SPACE.padding
+            : DIM_SPACE.padding; // root
         d.y = defineY(d, spaceInfo);
       });
     };
@@ -425,20 +456,10 @@ function drawHierarchy(json) {
       .attr("stroke", "black")
       .attr("d", (d) =>
         ` M ${source.xPrev}, ${source.yPrev + DIM_RECT.height / 2}
-            L ${
-              d.source.x +
-              DIM_RECT.width +
-              (DIM_SPACE.width - DIM_RECT.width) / 2
-            },
+            L ${d.source.x + DIM_LINK.left},
               ${source.yPrev + DIM_RECT.height / 2}
-            L ${
-              d.source.x +
-              DIM_RECT.width +
-              (DIM_SPACE.width - DIM_RECT.width) / 2
-            },
-              ${d.source.y + DIM_RECT.height / 2}
-            L ${d.source.x + DIM_RECT.width},
-              ${d.source.y + DIM_RECT.height / 2}`
+            L ${d.source.x + DIM_LINK.left},
+              ${d.source.y + DIM_RECT.height}`
           .replace(/\r?\n/g, "")
           .replace(/\s+/g, " ")
       );
@@ -449,20 +470,10 @@ function drawHierarchy(json) {
       .duration(duration)
       .attr("d", (d) =>
         ` M ${d.target.x}, ${d.target.y + DIM_RECT.height / 2}
-            L ${
-              d.source.x +
-              DIM_RECT.width +
-              (DIM_SPACE.width - DIM_RECT.width) / 2
-            }, 
+            L ${d.source.x + DIM_LINK.left}, 
               ${d.target.y + DIM_RECT.height / 2}
-            L ${
-              d.source.x +
-              DIM_RECT.width +
-              (DIM_SPACE.width - DIM_RECT.width) / 2
-            },
-              ${d.source.y + DIM_RECT.height / 2}
-            L ${d.source.x + DIM_RECT.width},
-              ${d.source.y + DIM_RECT.height / 2}`
+            L ${d.source.x + DIM_LINK.left},
+              ${d.source.y + DIM_RECT.height}`
           .replace(/\r?\n/g, "")
           .replace(/\s+/g, " ")
       );
@@ -473,16 +484,10 @@ function drawHierarchy(json) {
       .duration(duration)
       .attr("d", (d) =>
         ` M ${source.x}, ${source.y + DIM_RECT.height / 2}
-        L ${
-          d.source.x + DIM_RECT.width + (DIM_SPACE.width - DIM_RECT.width) / 2
-        }, 
+        L ${d.source.x + DIM_LINK.left}, 
           ${source.y + DIM_RECT.height / 2}
-        L ${
-          d.source.x + DIM_RECT.width + (DIM_SPACE.width - DIM_RECT.width) / 2
-        },
-          ${d.source.y + DIM_RECT.height / 2}
-        L ${d.source.x + DIM_RECT.width},
-          ${d.source.y + DIM_RECT.height / 2}`
+        L ${d.source.x + DIM_LINK.left},
+          ${d.source.y + DIM_RECT.height}`
           .replace(/\r?\n/g, "")
           .replace(/\s+/g, " ")
       )
