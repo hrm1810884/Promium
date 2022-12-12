@@ -301,6 +301,10 @@ function drawHierarchy(json) {
     width: 120,
   };
 
+  const DIM_LINK = {
+    left: 20,
+  };
+
   const root = d3.hierarchy(json);
   const tree = d3.tree();
   tree(root);
@@ -425,20 +429,10 @@ function drawHierarchy(json) {
       .attr("stroke", "black")
       .attr("d", (d) =>
         ` M ${source.xPrev}, ${source.yPrev + DIM_RECT.height / 2}
-            L ${
-              d.source.x +
-              DIM_RECT.width +
-              (DIM_SPACE.width - DIM_RECT.width) / 2
-            },
+            L ${d.source.x + DIM_LINK.left},
               ${source.yPrev + DIM_RECT.height / 2}
-            L ${
-              d.source.x +
-              DIM_RECT.width +
-              (DIM_SPACE.width - DIM_RECT.width) / 2
-            },
-              ${d.source.y + DIM_RECT.height / 2}
-            L ${d.source.x + DIM_RECT.width},
-              ${d.source.y + DIM_RECT.height / 2}`
+            L ${d.source.x + DIM_LINK.left},
+              ${d.source.y + DIM_RECT.height}`
           .replace(/\r?\n/g, "")
           .replace(/\s+/g, " ")
       );
@@ -449,20 +443,10 @@ function drawHierarchy(json) {
       .duration(duration)
       .attr("d", (d) =>
         ` M ${d.target.x}, ${d.target.y + DIM_RECT.height / 2}
-            L ${
-              d.source.x +
-              DIM_RECT.width +
-              (DIM_SPACE.width - DIM_RECT.width) / 2
-            }, 
+            L ${d.source.x + DIM_LINK.left}, 
               ${d.target.y + DIM_RECT.height / 2}
-            L ${
-              d.source.x +
-              DIM_RECT.width +
-              (DIM_SPACE.width - DIM_RECT.width) / 2
-            },
-              ${d.source.y + DIM_RECT.height / 2}
-            L ${d.source.x + DIM_RECT.width},
-              ${d.source.y + DIM_RECT.height / 2}`
+            L ${d.source.x + DIM_LINK.left},
+              ${d.source.y + DIM_RECT.height}`
           .replace(/\r?\n/g, "")
           .replace(/\s+/g, " ")
       );
@@ -473,16 +457,10 @@ function drawHierarchy(json) {
       .duration(duration)
       .attr("d", (d) =>
         ` M ${source.x}, ${source.y + DIM_RECT.height / 2}
-        L ${
-          d.source.x + DIM_RECT.width + (DIM_SPACE.width - DIM_RECT.width) / 2
-        }, 
+        L ${d.source.x + DIM_LINK.left}, 
           ${source.y + DIM_RECT.height / 2}
-        L ${
-          d.source.x + DIM_RECT.width + (DIM_SPACE.width - DIM_RECT.width) / 2
-        },
-          ${d.source.y + DIM_RECT.height / 2}
-        L ${d.source.x + DIM_RECT.width},
-          ${d.source.y + DIM_RECT.height / 2}`
+        L ${d.source.x + DIM_LINK.left},
+          ${d.source.y + DIM_RECT.height}`
           .replace(/\r?\n/g, "")
           .replace(/\s+/g, " ")
       )
