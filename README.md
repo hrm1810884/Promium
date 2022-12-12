@@ -33,6 +33,7 @@
   - 別レポジトリで作業していた sunburst についてのファイルを history を保ったままこのレポジトリに移動した．
   - ツリーのモックを作成した．
 - issue を用いた開発を主導している．
+- [ツリーを実装した](https://github.com/InfovisHandsOn/B-Tohoken/commit/08c094f9f11df1b053414c8a9cdaf4cfe52014bd)
 
 ## 開発にあたって
 
