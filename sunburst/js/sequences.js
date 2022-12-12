@@ -5,7 +5,7 @@ const RADIUS = Math.min(WIDTH, HEIGHT) / 2;
 
 // Breadcrumb dimensions: width, height, spacing, width of tip/tail.
 const DIM_BREADCRUMB = {
-  width: 75,
+  width: 200,
   height: 30,
   spacing: 3,
   tip: 10,
@@ -37,6 +37,7 @@ let arc = d3
 
 d3.tsv("./data/process_data.tsv").then(function (text) {
   const json = buildHierarchy(text);
+  console.log(json);
   createVisualization(json);
 });
 
@@ -62,6 +63,36 @@ function createVisualization(json) {
   const nodes = partition(root)
     .descendants()
     .filter((d) => d.x1 - d.x0 > 0.005);
+
+  // refactoring needed
+  let cpuByMajorProcess = [];
+  let cpuSum = 0;
+  for (const majorProcess of json.children) {
+    console.log(majorProcess);
+    let cpuSumTmp = 0;
+    cpuSumTmp += "cpu" in majorProcess ? majorProcess.cpu : 0;
+    for (const childProcess of majorProcess.children) {
+      cpuSumTmp += "cpu" in childProcess ? childProcess.cpu : 0;
+      for (const grandchildProcess of childProcess.children) {
+        cpuSumTmp += "cpu" in grandchildProcess ? grandchildProcess.cpu : 0;
+        for (const grandgrandchildProcess of grandchildProcess.children) {
+          cpuSumTmp +=
+            "cpu" in grandgrandchildProcess ? grandgrandchildProcess.cpu : 0;
+        }
+      }
+    }
+    cpuByMajorProcess.push({
+      command: majorProcess.command,
+      cpu: cpuSumTmp,
+    });
+    cpuSum += cpuSumTmp;
+  }
+
+  cpuByMajorProcess.map((process) => {
+    process.ratio = process.cpu / cpuSum;
+  })
+
+  console.log(cpuByMajorProcess.filter((process) => process.cpu > 0.1));
 
   const path = vis
     .data([json])
@@ -454,9 +485,9 @@ function buildHierarchy(tsv) {
     const currentRow = tsv[i];
     const nextRow = tsv[i + 1];
     const user = currentRow["USER"];
-    const pid = currentRow["PID"];
-    const cpu = currentRow["%CPU"];
-    const rss = currentRow["RSS"];
+    const pid = parseInt(currentRow["PID"]);
+    const cpu = parseFloat(currentRow["%CPU"]);
+    const rss = parseFloat(currentRow["RSS"]);
     const stat = currentRow["STAT"];
     const command = currentRow["COMMAND"];
     const currentGene = parseInt(currentRow["GENE"]);
