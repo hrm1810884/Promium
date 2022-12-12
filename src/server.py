@@ -92,7 +92,10 @@ class WebServer:
                     response_header += "Host: HenaServer/0.1\r\n"
                     response_header += f"Content-Length: {len(response_body)}\r\n"
                     response_header += "Connection: Close\r\n"
-                    response_header += "Content-Type: text/html\r\n"
+                    if "html" in request_line.decode("utf-8"):
+                        response_header += "Content-Type: text/html\r\n"
+                    elif "css" in request_line.decode("utf-8"):
+                        response_header += "Content-Type: text/css\r\n"
 
                     # レスポンス全体を生成する
                     response = (
