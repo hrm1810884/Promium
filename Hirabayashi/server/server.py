@@ -1,10 +1,10 @@
-from logging import BASIC_FORMAT
 import os
 import socket
 import traceback
 from datetime import datetime
 
 PORT = 8000
+
 
 class WebServer:
     """
@@ -73,7 +73,9 @@ class WebServer:
 
                     except OSError:
                         # ファイルが見つからなかった場合は404を返す
-                        response_body = b"<html><body><h1>404 Not Found</h1></body></html>"
+                        response_body = (
+                            b"<html><body><h1>404 Not Found</h1></body></html>"
+                        )
                         response_line = "HTTP/1.1 404 Not Found\r\n"
 
                     # レスポンスヘッダーを生成
@@ -85,7 +87,9 @@ class WebServer:
                     response_header += "Content-Type: text/html\r\n"
 
                     # レスポンス全体を生成する
-                    response = (response_line + response_header + "\r\n").encode() + response_body
+                    response = (
+                        response_line + response_header + "\r\n"
+                    ).encode() + response_body
 
                     # クライアントへレスポンスを送信する
                     client_socket.send(response)
