@@ -4,15 +4,15 @@ const HEIGHT = 600;
 const RADIUS = Math.min(WIDTH, HEIGHT) / 2;
 
 // Breadcrumb dimensions: width, height, spacing, width of tip/tail.
-const B = {
-  w: 75,
-  h: 30,
-  s: 3,
-  t: 10,
+const DIM_BREADCRUMB = {
+  width: 75,
+  height: 30,
+  spacing: 3,
+  tip: 10,
 };
 
 // Mapping of step commands to colors.
-var COLORS = d3.scaleOrdinal(d3.schemeCategory10);
+const COLORS = d3.scaleOrdinal(d3.schemeCategory10);
 
 // Total size of all segments; we set this later, after loading the data.
 let totalSize = 0;
@@ -53,19 +53,17 @@ function createVisualization(json) {
   vis.append("svg:circle").attr("r", RADIUS).style("opacity", 0);
 
   // Turn the data into a d3 hierarchy and calculate the sums.
-  let root = d3
+  const root = d3
     .hierarchy(json)
-    .sum((d) => {
-        console.log(d)
-        return d.cpu})
+    .sum((d) => d.cpu)
     .sort((a, b) => b.value - a.value);
 
   // For efficiency, filter nodes to keep only those large enough to see.
-  let nodes = partition(root)
+  const nodes = partition(root)
     .descendants()
     .filter((d) => d.x1 - d.x0 > 0.005);
 
-  let path = vis
+  const path = vis
     .data([json])
     .selectAll("path")
     .data(nodes)
@@ -74,8 +72,7 @@ function createVisualization(json) {
     .attr("display", (d) => (d.depth ? null : "none"))
     .attr("d", arc)
     .attr("fill-rule", "evenodd")
-    .style("fill", (d) => {
-        return COLORS(d.data.command)})
+    .style("fill", (d) => COLORS(d.data.command))
     .style("opacity", 1)
     .on("mouseover", mouseover);
 
@@ -88,8 +85,8 @@ function createVisualization(json) {
 
 // Fade all but the current sequence, and show it in the breadcrumb trail.
 function mouseover(event, d) {
-  let percentage = ((100 * d.value) / totalSize).toPrecision(3);
-  let percentageString = percentage + "%";
+  const percentage = ((100 * d.value) / totalSize).toPrecision(3);
+  const percentageString = percentage + "%";
   if (percentage < 0.1) {
     percentageString = "< 0.1%";
   }
@@ -134,7 +131,7 @@ function mouseleave(d) {
 
 function initializeBreadcrumbTrail() {
   // Add the svg area.
-  let trail = d3
+  const trail = d3
     .select("#sequence")
     .append("svg:svg")
     .attr("width", WIDTH)
@@ -148,13 +145,13 @@ function initializeBreadcrumbTrail() {
 function breadcrumbPoints(d, i) {
   let points = [];
   points.push("0,0");
-  points.push(B.w + ",0");
-  points.push(B.w + B.t + "," + B.h / 2);
-  points.push(B.w + "," + B.h);
-  points.push("0," + B.h);
+  points.push(DIM_BREADCRUMB.width + ",0");
+  points.push(DIM_BREADCRUMB.width + DIM_BREADCRUMB.tip + "," + DIM_BREADCRUMB.height / 2);
+  points.push(DIM_BREADCRUMB.width + "," + DIM_BREADCRUMB.height);
+  points.push("0," + DIM_BREADCRUMB.height);
   if (i > 0) {
     // Leftmost breadcrumb; don't include 6th vertex.
-    points.push(B.t + "," + B.h / 2);
+    points.push(DIM_BREADCRUMB.tip + "," + DIM_BREADCRUMB.height / 2);
   }
   return points.join(" ");
 }
@@ -180,8 +177,8 @@ function updateBreadcrumbs(nodeArray, percentageString) {
 
   entering
     .append("svg:text")
-    .attr("x", (B.w + B.t) / 2)
-    .attr("y", B.h / 2)
+    .attr("x", (DIM_BREADCRUMB.width + DIM_BREADCRUMB.tip) / 2)
+    .attr("y", DIM_BREADCRUMB.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
     .text((d) => d.data.command);
@@ -189,13 +186,13 @@ function updateBreadcrumbs(nodeArray, percentageString) {
   // Merge enter and update selections; set position for all nodes.
   entering
     .merge(trail)
-    .attr("transform", (d, i) => "translate(" + i * (B.w + B.s) + ", 0)");
+    .attr("transform", (d, i) => "translate(" + i * (DIM_BREADCRUMB.width + DIM_BREADCRUMB.spacing) + ", 0)");
 
   // Now move and update the percentage at the end.
   d3.select("#trail")
     .select("#endlabel")
-    .attr("x", (nodeArray.length + 0.5) * (B.w + B.s))
-    .attr("y", B.h / 2)
+    .attr("x", (nodeArray.length + 0.5) * (DIM_BREADCRUMB.width + DIM_BREADCRUMB.spacing))
+    .attr("y", DIM_BREADCRUMB.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
     .text(percentageString);
@@ -206,48 +203,49 @@ function updateBreadcrumbs(nodeArray, percentageString) {
 
 function drawLegend() {
   // Dimensions of legend item: width, height, spacing, radius of rounded rect.
-  const li = {
-    w: 75,
-    h: 30,
-    s: 3,
-    r: 3,
+  const DIM_LEGEND = {
+    width: 75,
+    height: 30,
+    spacing: 3,
+    radius: 3,
   };
 
-  let legend = d3
+  const legend = d3
     .select("#legend")
     .append("svg:svg")
-    .attr("width", li.w)
-    .attr("height", Object.keys(COLORS).length * (li.h + li.s));
+    .attr("width", DIM_LEGEND.width)
+    .attr("height", Object.keys(COLORS).length * (DIM_LEGEND.height + DIM_LEGEND.spacing));
 
-  let g = legend
+  const g = legend
     .selectAll("g")
     .data(Object.entries(COLORS))
     .enter()
     .append("svg:g")
-    .attr("transform", (d, i) => "translate(0," + i * (li.h + li.s) + ")");
+    .attr("transform", (d, i) => "translate(0," + i * (DIM_LEGEND.height + DIM_LEGEND.spacing) + ")");
 
   g.append("svg:rect")
-    .attr("rx", li.r)
-    .attr("ry", li.r)
-    .attr("width", li.w)
-    .attr("height", li.h)
+    .attr("rx", DIM_LEGEND.radius)
+    .attr("ry", DIM_LEGEND.radius)
+    .attr("width", DIM_LEGEND.width)
+    .attr("height", DIM_LEGEND.height)
     .style("fill", (d) => d[1])
     .style("opacity", 0.5)
-    .attr("class", function (d) {return "rect_" + d[0]; });
+    .attr("class", function (d) {
+      return "rect_" + d[0];
+    });
 
   g.append("svg:text")
-    .attr("x", li.w / 2)
-    .attr("y", li.h / 2)
+    .attr("x", DIM_LEGEND.width / 2)
+    .attr("y", DIM_LEGEND.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
     .text((d) => d[0]);
-  
-  g.on("mouseover", mouseoverLegend)
-    .on("mouseleave", mouseleaveLegend);
+
+  g.on("mouseover", mouseoverLegend).on("mouseleave", mouseleaveLegend);
 }
 
 function toggleLegend() {
-  let legend = d3.select("#legend");
+  const legend = d3.select("#legend");
   if (legend.style("visibility") == "hidden") {
     legend.style("visibility", "");
   } else {
@@ -257,25 +255,21 @@ function toggleLegend() {
 
 function mouseoverLegend(event, d) {
   // mouseoverしたボタンを濃くする
-  d3.selectAll(".rect_" + d[0])
-    .style("opacity", 1);
+  d3.selectAll(".rect_" + d[0]).style("opacity", 1);
 
   // mouseoverした名前のデータをハイライト表示する
   d3.selectAll("path")
     .style("opacity", 0.3)
-    .filter(function(nd) {return nd.data.name == d[0]; })
+    .filter((nd) => nd.data.name == d[0])
     .style("opacity", 1);
-
 }
 
 function mouseleaveLegend(event, d) {
   // ボタンの色を薄く戻す
-  d3.selectAll("rect")
-    .style("opacity", 0.5);
+  d3.selectAll("rect").style("opacity", 0.5);
 
   // ハイライト表示を戻す
-  d3.selectAll("path")
-    .style("opacity", 1);
+  d3.selectAll("path").style("opacity", 1);
 }
 
 function drawHierarchy(json) {
@@ -322,7 +316,9 @@ function drawHierarchy(json) {
     // 今処理しているノードの親の子たちを取得することでその階層のデータを取得
     const crntHrcy = currentData.parent.children;
     // 取得した階層に、今探しているnameを含むものがいれば、それが目的の階層
-    const target = crntHrcy.find((contents) => contents.data.command == command);
+    const target = crntHrcy.find(
+      (contents) => contents.data.command == command
+    );
     // 見つかればその階層を name とセットで返却
     // 見つからなければ親を渡して再帰処理させることで一つ上の階層を探索させる
     return target
@@ -333,10 +329,14 @@ function drawHierarchy(json) {
   // 自分より上にいる末端ノードの数を配列として取り出す
   const calcLeaves = (commands, currentData) => {
     // 親の含まれる階層をそれぞれ抽出する（name と階層の JSON で）
-    const eachHierarchies = commands.map((command) => seekParent(currentData, command));
+    const eachHierarchies = commands.map((command) =>
+      seekParent(currentData, command)
+    );
     // それぞれの階層における、そのnameの位置（インデックス）を取得
     const eachIdxes = eachHierarchies.map((item) =>
-      item.hierarchy.findIndex((contents) => contents.data.command == item.command)
+      item.hierarchy.findIndex(
+        (contents) => contents.data.command == item.command
+      )
     );
     // 先ほど取得したインデックスを使って、それぞれの階層をスライスする
     const filteredHierarchies = eachHierarchies.map((item, idx) =>
@@ -433,38 +433,61 @@ function drawHierarchy(json) {
 // often that sequence occurred.
 function buildHierarchy(tsv) {
   let root = { command: "root", children: [] };
-  let length = tsv.length;
   let parentNode = root;
-  let children;
   let childNode;
-  for (i in tsv) {
-    i = Number(i)
-    tsv_row = tsv[i];
-    if(i == length-1){
-        break;
-    }
-    const user = tsv_row["USER"];
-    const pid = tsv_row["PID"];
-    const cpu = tsv_row["%CPU"]
-    const rss = tsv_row["RSS"];
-    const stat = tsv_row["STAT"];
-    const command = tsv_row["COMMAND"]
-    const gene = Number(tsv_row["GENE"])
+  for (let i = 0; i < tsv.length - 1; i++) {
+    const currentRow = tsv[i];
+    const nextRow = tsv[i + 1];
+    const user = currentRow["USER"];
+    const pid = currentRow["PID"];
+    const cpu = currentRow["%CPU"];
+    const rss = currentRow["RSS"];
+    const stat = currentRow["STAT"];
+    const command = currentRow["COMMAND"];
+    const currentGene = parseInt(currentRow["GENE"]);
+    const nextGene = parseInt(nextRow["GENE"]);
 
-    if(tsv[i+1]["GENE"] > tsv_row["GENE"]){
-        childNode = { command: command, user: user, pid: pid, cpu: cpu, rss: rss, stat: stat, parent: parentNode, children: []}
-        parentNode["children"].push(childNode)
-        parentNode = childNode;
-    }else if(tsv[i+1]["GENE"] == tsv_row["GENE"]){
-        childNode = { command: command, user: user, pid: pid, cpu: cpu, rss: rss, stat: stat, parent: parentNode, children: []}
-        parentNode["children"].push(childNode)
-    }else{
-        childNode = { command: command, user: user, pid: pid, cpu: cpu, rss: rss, stat: stat, parent: parentNode, children: []}
-        parentNode["children"].push(childNode)
-        gene_gap = tsv_row["GENE"] - tsv[i+1]["GENE"]
-        for(let j = 0; j < gene_gap; j++){
-            parentNode = parentNode["parent"]
-        }
+    if (nextGene > currentGene) {
+      childNode = {
+        command: command,
+        user: user,
+        pid: pid,
+        cpu: cpu,
+        rss: rss,
+        stat: stat,
+        parent: parentNode,
+        children: [],
+      };
+      parentNode["children"].push(childNode);
+      parentNode = childNode;
+    } else if (nextGene == currentGene) {
+      childNode = {
+        command: command,
+        user: user,
+        pid: pid,
+        cpu: cpu,
+        rss: rss,
+        stat: stat,
+        parent: parentNode,
+        children: [],
+      };
+      parentNode["children"].push(childNode);
+    } else {
+      childNode = {
+        command: command,
+        user: user,
+        pid: pid,
+        cpu: cpu,
+        rss: rss,
+        stat: stat,
+        parent: parentNode,
+        children: [],
+      };
+      parentNode["children"].push(childNode);
+      const geneGap = currentGene - nextGene;
+      for (let j = 0; j < geneGap; j++) {
+        parentNode = parentNode["parent"];
+      }
     }
   }
   return root;
