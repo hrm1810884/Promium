@@ -146,7 +146,9 @@ function breadcrumbPoints(d, i) {
   let points = [];
   points.push("0,0");
   points.push(DIM_BREADCRUMB.width + ",0");
-  points.push(DIM_BREADCRUMB.width + DIM_BREADCRUMB.tip + "," + DIM_BREADCRUMB.height / 2);
+  points.push(
+    DIM_BREADCRUMB.width + DIM_BREADCRUMB.tip + "," + DIM_BREADCRUMB.height / 2
+  );
   points.push(DIM_BREADCRUMB.width + "," + DIM_BREADCRUMB.height);
   points.push("0," + DIM_BREADCRUMB.height);
   if (i > 0) {
@@ -186,12 +188,21 @@ function updateBreadcrumbs(nodeArray, percentageString) {
   // Merge enter and update selections; set position for all nodes.
   entering
     .merge(trail)
-    .attr("transform", (d, i) => "translate(" + i * (DIM_BREADCRUMB.width + DIM_BREADCRUMB.spacing) + ", 0)");
+    .attr(
+      "transform",
+      (d, i) =>
+        "translate(" +
+        i * (DIM_BREADCRUMB.width + DIM_BREADCRUMB.spacing) +
+        ", 0)"
+    );
 
   // Now move and update the percentage at the end.
   d3.select("#trail")
     .select("#endlabel")
-    .attr("x", (nodeArray.length + 0.5) * (DIM_BREADCRUMB.width + DIM_BREADCRUMB.spacing))
+    .attr(
+      "x",
+      (nodeArray.length + 0.5) * (DIM_BREADCRUMB.width + DIM_BREADCRUMB.spacing)
+    )
     .attr("y", DIM_BREADCRUMB.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
@@ -214,14 +225,21 @@ function drawLegend() {
     .select("#legend")
     .append("svg:svg")
     .attr("width", DIM_LEGEND.width)
-    .attr("height", Object.keys(COLORS).length * (DIM_LEGEND.height + DIM_LEGEND.spacing));
+    .attr(
+      "height",
+      Object.keys(COLORS).length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
+    );
 
   const g = legend
     .selectAll("g")
     .data(Object.entries(COLORS))
     .enter()
     .append("svg:g")
-    .attr("transform", (d, i) => "translate(0," + i * (DIM_LEGEND.height + DIM_LEGEND.spacing) + ")");
+    .attr(
+      "transform",
+      (d, i) =>
+        "translate(0," + i * (DIM_LEGEND.height + DIM_LEGEND.spacing) + ")"
+    );
 
   g.append("svg:rect")
     .attr("rx", DIM_LEGEND.radius)
@@ -230,9 +248,7 @@ function drawLegend() {
     .attr("height", DIM_LEGEND.height)
     .style("fill", (d) => d[1])
     .style("opacity", 0.5)
-    .attr("class", function (d) {
-      return "rect_" + d[0];
-    });
+    .attr("class", (d) => "rect_" + d[0]);
 
   g.append("svg:text")
     .attr("x", DIM_LEGEND.width / 2)
@@ -258,10 +274,9 @@ function mouseoverLegend(event, d) {
   d3.selectAll(".rect_" + d[0]).style("opacity", 1);
 
   // mouseoverした名前のデータをハイライト表示する
-  d3.selectAll("path")
-    .style("opacity", 0.3)
-    .filter((nd) => nd.data.name == d[0])
-    .style("opacity", 1);
+  d3.selectAll("path").style("opacity", (data) =>
+    data.data.command == d[0] ? 1 : 0.3
+  );
 }
 
 function mouseleaveLegend(event, d) {
@@ -274,13 +289,13 @@ function mouseleaveLegend(event, d) {
 
 function drawHierarchy(json) {
   // 参考：https://qiita.com/e_a_s_y/items/dd1f0f9366ce5d1d1e7c
-  const rectSize = {
+  const DIM_RECT = {
     height: 20,
     width: 80,
   };
 
   // ノード間のスペースなど
-  const basicSpace = {
+  const DIM_SPACE = {
     padding: 30,
     height: 50,
     width: 120,
@@ -294,16 +309,16 @@ function drawHierarchy(json) {
   // 全体 svg 要素の高さと幅を計算し生成
   // 末端ノードの数 * ノードの高さ + (末端ノードの数 - 1) * (ノードの基準点どうしの縦幅 - ノードの高さ) + 上下の余白
   const height =
-    root.value * rectSize.height +
-    (root.value - 1) * (basicSpace.height - rectSize.height) +
-    basicSpace.padding * 2;
+    root.value * DIM_RECT.height +
+    (root.value - 1) * (DIM_SPACE.height - DIM_RECT.height) +
+    DIM_SPACE.padding * 2;
 
   // (rootの高さ + 1) * ノードの幅 + root の高さ * (ノードの基準点どうしの横幅 - ノードの幅) + 上下の余白
   // 最終的に90度回転した状態になるため root の存在する高さで横幅を計算する
   const width =
-    (root.height + 1) * rectSize.width +
-    root.height * (basicSpace.width - rectSize.width) +
-    basicSpace.padding * 2;
+    (root.height + 1) * DIM_RECT.width +
+    root.height * (DIM_SPACE.width - DIM_RECT.width) +
+    DIM_SPACE.padding * 2;
 
   const hierarchy = d3
     .select("body")
@@ -314,15 +329,15 @@ function drawHierarchy(json) {
   // 渡された name を含む階層階層を探索（同じ parent の）
   const seekParent = (currentData, command) => {
     // 今処理しているノードの親の子たちを取得することでその階層のデータを取得
-    const crntHrcy = currentData.parent.children;
+    const currentHierarchy = currentData.parent.children;
     // 取得した階層に、今探しているnameを含むものがいれば、それが目的の階層
-    const target = crntHrcy.find(
+    const target = currentHierarchy.find(
       (contents) => contents.data.command == command
     );
     // 見つかればその階層を name とセットで返却
     // 見つからなければ親を渡して再帰処理させることで一つ上の階層を探索させる
     return target
-      ? { command: command, hierarchy: crntHrcy }
+      ? { command: command, hierarchy: currentHierarchy }
       : seekParent(currentData.parent, command);
   };
 
@@ -376,7 +391,7 @@ function drawHierarchy(json) {
       d.y = defineY(d, spaceInfo);
     });
   };
-  definePos(root, basicSpace);
+  definePos(root, DIM_SPACE);
 
   // 全体をグループ化
   const g = hierarchy.append("g");
@@ -391,17 +406,17 @@ function drawHierarchy(json) {
     .attr("stroke", "black")
     .attr("d", (d) =>
       `M${d.x},${d.y}
-    L${d.parent.x + rectSize.width + (basicSpace.width - rectSize.width) / 2},${
+    L${d.parent.x + DIM_RECT.width + (DIM_SPACE.width - DIM_RECT.width) / 2},${
         d.y
       }
-    ${d.parent.x + rectSize.width + (basicSpace.width - rectSize.width) / 2},${
+    ${d.parent.x + DIM_RECT.width + (DIM_SPACE.width - DIM_RECT.width) / 2},${
         d.parent.y
       }
-    ${d.parent.x + rectSize.width},${d.parent.y}`
+    ${d.parent.x + DIM_RECT.width},${d.parent.y}`
         .replace(/\r?\n/g, "")
         .replace(/\s+/g, " ")
     )
-    .attr("transform", (d) => `translate(0, ${rectSize.height / 2})`);
+    .attr("transform", (d) => `translate(0, ${DIM_RECT.height / 2})`);
 
   // 各ノード用グループの作成
   const node = g
@@ -415,8 +430,8 @@ function drawHierarchy(json) {
   // 四角
   node
     .append("rect")
-    .attr("width", rectSize.width)
-    .attr("height", rectSize.height)
+    .attr("width", DIM_RECT.width)
+    .attr("height", DIM_RECT.height)
     .attr("fill", "#fff")
     .attr("stroke", "black");
 
