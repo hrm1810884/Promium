@@ -17,7 +17,7 @@ const COLORS = d3.scaleOrdinal(d3.schemeCategory10);
 // Total size of all segments; we set this later, after loading the data.
 let totalSize = 0;
 
-let vis = d3
+const vis = d3
   .select("#chart")
   .append("svg:svg")
   .attr("width", WIDTH)
@@ -26,9 +26,9 @@ let vis = d3
   .attr("id", "container")
   .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")");
 
-let partition = d3.partition().size([2 * Math.PI, RADIUS * RADIUS]);
+const partition = d3.partition().size([2 * Math.PI, RADIUS * RADIUS]);
 
-let arc = d3
+const arc = d3
   .arc()
   .startAngle((d) => d.x0)
   .endAngle((d) => d.x1)
@@ -347,7 +347,7 @@ function drawHierarchy(json) {
     const seekParent = (currentData, command) => {
       // 今処理しているノードの親の子たちを取得することでその階層のデータを取得
       const currentHierarchy = currentData.parent.children;
-      // 取得した階層に、今探しているnameを含むものがいれば、それが目的の階層
+      // 取得した階層に、今探している name を含むものがいれば、それが目的の階層
       const target = currentHierarchy.find(
         (contents) => contents.data.command == command
       );
@@ -374,7 +374,7 @@ function drawHierarchy(json) {
       const filteredHierarchies = eachHierarchies.map((item, idx) =>
         item.hierarchy.slice(0, eachIdxes[idx])
       );
-      // それぞれの階層に含まれるvalueを抽出
+      // それぞれの階層に含まれる value を抽出
       const values = filteredHierarchies.map((hierarchy) =>
         hierarchy.map((item) => item.value)
       );
@@ -423,20 +423,14 @@ function drawHierarchy(json) {
       .attr("class", "link")
       .attr("fill", "none")
       .attr("stroke", "black")
-      // .attr("d", d3.linkHorizontal().x(source.x0).y(source.y0));
-      /** - 子のy座標, 子のx座標 + 四角の高さ / 2
-          - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 子のx座標 + 四角の高さ / 2
-          - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 親のx座標 + 四角の高さ / 2
-          - 親のy座標, 親のx座標 + 四角の高さ / 2 */
-      .attr("d", (d) => {
-        console.log(d);
-        return ` M ${source.x0}, ${source.y0 + DIM_RECT.height / 2}
+      .attr("d", (d) =>
+        ` M ${source.xPrev}, ${source.yPrev + DIM_RECT.height / 2}
             L ${
               d.source.x +
               DIM_RECT.width +
               (DIM_SPACE.width - DIM_RECT.width) / 2
             },
-              ${source.y0 + DIM_RECT.height / 2}
+              ${source.yPrev + DIM_RECT.height / 2}
             L ${
               d.source.x +
               DIM_RECT.width +
@@ -446,25 +440,15 @@ function drawHierarchy(json) {
             L ${d.source.x + DIM_RECT.width},
               ${d.source.y + DIM_RECT.height / 2}`
           .replace(/\r?\n/g, "")
-          .replace(/\s+/g, " ");
-      });
+          .replace(/\s+/g, " ")
+      );
 
     const linkUpdate = linkEnter.merge(link);
     linkUpdate
       .transition()
       .duration(duration)
-      .attr(
-        "d",
-        // d3
-        //   .linkHorizontal()
-        //   .x((d) => d.x)
-        //   .y((d) => d.y)
-        /** - 子のy座標, 子のx座標 + 四角の高さ / 2
-            - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 子のx座標 + 四角の高さ / 2
-            - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 親のx座標 + 四角の高さ / 2
-            - 親のy座標, 親のx座標 + 四角の高さ / 2 */
-        (d) =>
-          ` M ${d.target.x}, ${d.target.y + DIM_RECT.height / 2}
+      .attr("d", (d) =>
+        ` M ${d.target.x}, ${d.target.y + DIM_RECT.height / 2}
             L ${
               d.source.x +
               DIM_RECT.width +
@@ -479,19 +463,14 @@ function drawHierarchy(json) {
               ${d.source.y + DIM_RECT.height / 2}
             L ${d.source.x + DIM_RECT.width},
               ${d.source.y + DIM_RECT.height / 2}`
-            .replace(/\r?\n/g, "")
-            .replace(/\s+/g, " ")
+          .replace(/\r?\n/g, "")
+          .replace(/\s+/g, " ")
       );
 
     link
       .exit()
       .transition()
       .duration(duration)
-      // .attr("d", d3.linkHorizontal().x(source.x).y(source.y))
-      /** - 子のy座標, 子のx座標 + 四角の高さ / 2
-          - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 子のx座標 + 四角の高さ / 2
-          - 親のy座標 + 四角の幅 + (ノード同士の幅 - 四角の幅) / 2, 親のx座標 + 四角の高さ / 2
-          - 親のy座標, 親のx座標 + 四角の高さ / 2 */
       .attr("d", (d) =>
         ` M ${source.x}, ${source.y + DIM_RECT.height / 2}
         L ${
@@ -553,8 +532,8 @@ function drawHierarchy(json) {
     nodeExit.select("text").style("fill-opacity", 1e-6);
 
     node.each((d) => {
-      d.x0 = d.x;
-      d.y0 = d.y;
+      d.xPrev = d.x;
+      d.yPrev = d.y;
     });
   }
 }
