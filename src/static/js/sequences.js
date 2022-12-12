@@ -342,7 +342,7 @@ function drawHierarchy(json) {
     DIM_SPACE.padding * 2;
 
   const hierarchy = d3
-    .select("body")
+    .select("#hierarchy")
     .append("svg")
     .attr("width", width)
     .attr("height", height);
