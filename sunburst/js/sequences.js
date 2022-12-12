@@ -46,23 +46,7 @@ function createVisualization(json) {
   initializeBreadcrumbTrail();
   drawLegend();
   d3.select("#togglelegend").on("click", toggleLegend);
-  const test_json = {
-    name: "A",
-    children: [
-      { name: "B" },
-      {
-        name: "C",
-        children: [{ name: "D" }, { name: "E" }, { name: "F" }],
-      },
-      { name: "G" },
-      {
-        name: "H",
-        children: [{ name: "I" }, { name: "J" }],
-      },
-      { name: "K" },
-    ],
-  };
-  drawHierarchy(test_json);
+  drawHierarchy(json);
 
   // Bounding circle underneath the sunburst, to make it easier to detect
   // when the mouse leaves the parent g.
