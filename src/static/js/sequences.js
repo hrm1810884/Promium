@@ -312,6 +312,10 @@ function drawHierarchy(json) {
   const countChildren = (hierarchy) =>
     hierarchy.eachAfter((node) => {
       let sum = 1;
+      if (node.children === null) {
+        node.value = sum;
+        return;
+      }
       const children = node.children;
       if (typeof children !== "undefined") {
         for (const child of children) {
@@ -320,6 +324,7 @@ function drawHierarchy(json) {
       }
       node.value = sum;
     });
+
   countChildren(root);
 
   // 全体 svg 要素の高さと幅を計算し生成
@@ -337,7 +342,7 @@ function drawHierarchy(json) {
     DIM_SPACE.padding * 2;
 
   const hierarchy = d3
-    .select("body")
+    .select("#hierarchy")
     .append("svg")
     .attr("width", width)
     .attr("height", height);
@@ -359,6 +364,8 @@ function drawHierarchy(json) {
   }
 
   function updateTree(source) {
+    countChildren(root);
+
     // 渡された name を含む階層階層を探索（同じ parent の）
     const seekParent = (currentData, command) => {
       // 今処理しているノードの親の子たちを取得することでその階層のデータを取得
