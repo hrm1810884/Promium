@@ -1,0 +1,324 @@
+USER	PID	%CPU	%MEM	VSZ	RSS	TTY	STAT	START	TIME	COMMAND	GENE
+root	2	0.0	0.0	0	0	?	S	12月11	0:00	kthreadd	0
+root	3	0.0	0.0	0	0	?	I<	12月11	0:00	rcu_gp	1
+root	4	0.0	0.0	0	0	?	I<	12月11	0:00	rcu_par_gp	1
+root	6	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/0:0H-kblockd	1
+root	8	0.0	0.0	0	0	?	I<	12月11	0:00	mm_percpu_wq	1
+root	9	0.0	0.0	0	0	?	S	12月11	0:00	ksoftirqd/0	1
+root	10	0.0	0.0	0	0	?	I	12月11	0:07	rcu_sched	1
+root	11	0.0	0.0	0	0	?	S	12月11	0:00	migration/0	1
+root	12	0.0	0.0	0	0	?	S	12月11	0:00	idle_inject/0	1
+root	14	0.0	0.0	0	0	?	S	12月11	0:00	cpuhp/0	1
+root	15	0.0	0.0	0	0	?	S	12月11	0:00	cpuhp/1	1
+root	16	0.0	0.0	0	0	?	S	12月11	0:00	idle_inject/1	1
+root	17	0.0	0.0	0	0	?	S	12月11	0:00	migration/1	1
+root	18	0.0	0.0	0	0	?	S	12月11	0:00	ksoftirqd/1	1
+root	20	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/1:0H-events_highpri	1
+root	21	0.0	0.0	0	0	?	S	12月11	0:00	cpuhp/2	1
+root	22	0.0	0.0	0	0	?	S	12月11	0:00	idle_inject/2	1
+root	23	0.0	0.0	0	0	?	S	12月11	0:00	migration/2	1
+root	24	0.0	0.0	0	0	?	S	12月11	0:00	ksoftirqd/2	1
+root	26	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/2:0H-kblockd	1
+root	27	0.0	0.0	0	0	?	S	12月11	0:00	cpuhp/3	1
+root	28	0.0	0.0	0	0	?	S	12月11	0:00	idle_inject/3	1
+root	29	0.0	0.0	0	0	?	S	12月11	0:00	migration/3	1
+root	30	0.0	0.0	0	0	?	S	12月11	0:00	ksoftirqd/3	1
+root	32	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/3:0H-events_highpri	1
+root	33	0.0	0.0	0	0	?	S	12月11	0:00	cpuhp/4	1
+root	34	0.0	0.0	0	0	?	S	12月11	0:00	idle_inject/4	1
+root	35	0.0	0.0	0	0	?	S	12月11	0:00	migration/4	1
+root	36	0.0	0.0	0	0	?	S	12月11	0:00	ksoftirqd/4	1
+root	38	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/4:0H-events_highpri	1
+root	39	0.0	0.0	0	0	?	S	12月11	0:00	cpuhp/5	1
+root	40	0.0	0.0	0	0	?	S	12月11	0:00	idle_inject/5	1
+root	41	0.0	0.0	0	0	?	S	12月11	0:00	migration/5	1
+root	42	0.0	0.0	0	0	?	S	12月11	0:00	ksoftirqd/5	1
+root	44	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/5:0H-kblockd	1
+root	45	0.0	0.0	0	0	?	S	12月11	0:00	cpuhp/6	1
+root	46	0.0	0.0	0	0	?	S	12月11	0:00	idle_inject/6	1
+root	47	0.0	0.0	0	0	?	S	12月11	0:00	migration/6	1
+root	48	0.0	0.0	0	0	?	S	12月11	0:00	ksoftirqd/6	1
+root	50	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/6:0H-events_highpri	1
+root	51	0.0	0.0	0	0	?	S	12月11	0:00	cpuhp/7	1
+root	52	0.0	0.0	0	0	?	S	12月11	0:00	idle_inject/7	1
+root	53	0.0	0.0	0	0	?	S	12月11	0:00	migration/7	1
+root	54	0.0	0.0	0	0	?	S	12月11	0:00	ksoftirqd/7	1
+root	56	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/7:0H-events_highpri	1
+root	57	0.0	0.0	0	0	?	S	12月11	0:00	kdevtmpfs	1
+root	58	0.0	0.0	0	0	?	I<	12月11	0:00	netns	1
+root	59	0.0	0.0	0	0	?	S	12月11	0:00	rcu_tasks_kthre	1
+root	60	0.0	0.0	0	0	?	S	12月11	0:00	kauditd	1
+root	61	0.0	0.0	0	0	?	S	12月11	0:00	khungtaskd	1
+root	62	0.0	0.0	0	0	?	S	12月11	0:00	oom_reaper	1
+root	63	0.0	0.0	0	0	?	I<	12月11	0:00	writeback	1
+root	64	0.0	0.0	0	0	?	S	12月11	0:00	kcompactd0	1
+root	65	0.0	0.0	0	0	?	SN	12月11	0:00	ksmd	1
+root	66	0.0	0.0	0	0	?	SN	12月11	0:00	khugepaged	1
+root	113	0.0	0.0	0	0	?	I<	12月11	0:00	kintegrityd	1
+root	114	0.0	0.0	0	0	?	I<	12月11	0:00	kblockd	1
+root	115	0.0	0.0	0	0	?	I<	12月11	0:00	blkcg_punt_bio	1
+root	116	0.0	0.0	0	0	?	I<	12月11	0:00	tpm_dev_wq	1
+root	117	0.0	0.0	0	0	?	I<	12月11	0:00	ata_sff	1
+root	118	0.0	0.0	0	0	?	I<	12月11	0:00	md	1
+root	119	0.0	0.0	0	0	?	I<	12月11	0:00	edac-poller	1
+root	120	0.0	0.0	0	0	?	I<	12月11	0:00	devfreq_wq	1
+root	121	0.0	0.0	0	0	?	S	12月11	0:00	watchdogd	1
+root	123	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/1:1H-events_highpri	1
+root	131	0.0	0.0	0	0	?	S	12月11	0:00	kswapd0	1
+root	132	0.0	0.0	0	0	?	S	12月11	0:00	ecryptfs-kthrea	1
+root	134	0.0	0.0	0	0	?	I<	12月11	0:00	kthrotld	1
+root	135	0.0	0.0	0	0	?	S	12月11	0:00	irq/122-pciehp	1
+root	136	0.0	0.0	0	0	?	S	12月11	0:00	irq/123-aerdrv	1
+root	137	0.0	0.0	0	0	?	S	12月11	0:00	irq/124-pciehp	1
+root	138	0.0	0.0	0	0	?	S	12月11	0:00	irq/125-aerdrv	1
+root	139	0.0	0.0	0	0	?	I<	12月11	0:00	acpi_thermal_pm	1
+root	140	0.0	0.0	0	0	?	I<	12月11	0:00	vfio-irqfd-clea	1
+root	141	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/6:1H-events_highpri	1
+root	143	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/7:1H-events_highpri	1
+root	144	0.0	0.0	0	0	?	I<	12月11	0:00	ipv6_addrconf	1
+root	153	0.0	0.0	0	0	?	I<	12月11	0:00	kstrp	1
+root	171	0.0	0.0	0	0	?	I<	12月11	0:00	charger_manager	1
+root	229	0.0	0.0	0	0	?	I<	12月11	0:00	sdhci	1
+root	230	0.0	0.0	0	0	?	S	12月11	0:00	scsi_eh_0	1
+root	231	0.0	0.0	0	0	?	I<	12月11	0:00	scsi_tmf_0	1
+root	236	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/4:1H-events_highpri	1
+root	237	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/0:1H-events_highpri	1
+root	257	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/3:1H-events_highpri	1
+root	259	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/2:1H-events_highpri	1
+root	260	0.0	0.0	0	0	?	S	12月11	0:00	jbd2/sda5-8	1
+root	261	0.0	0.0	0	0	?	I<	12月11	0:00	ext4-rsv-conver	1
+root	270	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/5:1H-events_highpri	1
+root	338	0.0	0.0	0	0	?	S<	12月11	0:00	loop0	1
+root	369	0.0	0.0	0	0	?	S<	12月11	0:00	loop1	1
+root	394	0.0	0.0	0	0	?	S<	12月11	0:00	loop2	1
+root	405	0.0	0.0	0	0	?	S<	12月11	0:00	loop3	1
+root	406	0.0	0.0	0	0	?	S<	12月11	0:00	loop4	1
+root	407	0.0	0.0	0	0	?	S<	12月11	0:00	loop5	1
+root	408	0.0	0.0	0	0	?	S<	12月11	0:00	loop6	1
+root	415	0.0	0.0	0	0	?	S<	12月11	0:00	loop7	1
+root	416	0.0	0.0	0	0	?	S<	12月11	0:00	loop8	1
+root	419	0.0	0.0	0	0	?	S<	12月11	0:00	loop9	1
+root	438	0.0	0.0	0	0	?	S	12月11	1:33	irq/131-elan_i2	1
+root	440	0.0	0.0	0	0	?	I<	12月11	0:00	cfg80211	1
+root	442	0.0	0.0	0	0	?	S<	12月11	0:00	loop10	1
+root	444	0.0	0.0	0	0	?	I<	12月11	0:00	ktpacpid	1
+root	448	0.0	0.0	0	0	?	I<	12月11	0:00	kworker/u17:1-rb_allocator	1
+root	461	0.0	0.0	0	0	?	I<	12月11	0:00	cryptd	1
+root	476	0.0	0.0	0	0	?	S	12月11	0:09	irq/132-iwlwifi	1
+root	485	0.0	0.0	0	0	?	S<	12月11	0:00	loop11	1
+root	488	0.0	0.0	0	0	?	I	12月11	0:00	kworker/5:3-events	1
+root	500	0.0	0.0	0	0	?	S<	12月11	0:00	loop12	1
+root	509	0.0	0.0	0	0	?	S<	12月11	0:00	loop13	1
+root	516	0.0	0.0	0	0	?	S<	12月11	0:00	loop14	1
+root	533	0.0	0.0	0	0	?	S<	12月11	0:00	loop15	1
+root	597	0.0	0.0	0	0	?	S<	12月11	0:00	loop16	1
+root	646	0.0	0.0	0	0	?	S<	12月11	0:00	loop17	1
+root	694	0.0	0.0	0	0	?	S<	12月11	0:00	loop18	1
+root	695	0.0	0.0	0	0	?	S<	12月11	0:00	loop19	1
+root	697	0.0	0.0	0	0	?	S<	12月11	0:00	loop20	1
+root	717	0.0	0.0	0	0	?	S<	12月11	0:00	loop21	1
+root	737	0.0	0.0	0	0	?	S<	12月11	0:00	loop22	1
+root	791	0.0	0.0	0	0	?	S<	12月11	0:00	loop23	1
+root	829	0.0	0.0	0	0	?	S<	12月11	0:00	loop24	1
+root	831	0.0	0.0	0	0	?	S<	12月11	0:00	loop25	1
+root	832	0.0	0.0	0	0	?	S<	12月11	0:00	loop26	1
+root	833	0.0	0.0	0	0	?	S<	12月11	0:00	loop27	1
+root	834	0.0	0.0	0	0	?	S<	12月11	0:00	loop28	1
+root	1736	0.0	0.0	0	0	?	S<	12月11	0:00	krfcommd	1
+root	14060	0.0	0.0	0	0	?	I	12月11	0:00	kworker/0:0-events	1
+root	14395	0.0	0.0	0	0	?	I	12月11	0:00	kworker/4:0-events	1
+root	14396	0.0	0.0	0	0	?	I	12月11	0:01	kworker/4:3-events	1
+root	14444	0.0	0.0	0	0	?	I	12月11	0:00	kworker/3:3-events	1
+root	15660	0.0	0.0	0	0	?	I	12月11	0:01	kworker/0:4-events	1
+root	15844	0.0	0.0	0	0	?	I	12月11	0:00	kworker/1:1-events	1
+root	15896	0.0	0.0	0	0	?	I	12月11	0:00	kworker/2:1-mm_percpu_wq	1
+root	16027	0.0	0.0	0	0	?	I	12月11	0:00	kworker/7:0-events	1
+root	16028	0.0	0.0	0	0	?	I	12月11	0:00	kworker/7:3-events	1
+root	16143	0.1	0.0	0	0	?	D	13:19	0:04	kworker/u16:38+events_unbound	1
+root	16154	0.0	0.0	0	0	?	S	13:19	0:00	irq/129-mei_me	1
+root	16155	0.0	0.0	0	0	?	S	13:19	0:00	irq/128-mmc0	1
+root	16157	0.0	0.0	0	0	?	I<	13:19	0:00	kworker/u17:2-rb_allocator	1
+root	17448	0.0	0.0	0	0	?	I	13:19	0:00	kworker/2:3-events	1
+root	18454	0.0	0.0	0	0	?	I	13:24	0:00	kworker/6:2-events	1
+root	19219	0.0	0.0	0	0	?	I	13:27	0:00	kworker/1:0-events	1
+root	19343	0.0	0.0	0	0	?	I	13:27	0:00	kworker/3:1-events	1
+root	20496	0.0	0.0	0	0	?	I	13:39	0:01	kworker/u16:1-i915	1
+root	20661	0.2	0.0	0	0	?	I	13:40	0:04	kworker/6:1-events	1
+root	21559	0.0	0.0	0	0	?	I	13:49	0:00	kworker/5:0-events	1
+root	21911	0.1	0.0	0	0	?	I	13:58	0:01	kworker/u16:2-i915	1
+root	22891	0.2	0.0	0	0	?	I	14:07	0:01	kworker/6:0-events	1
+root	23262	0.3	0.0	0	0	?	I	14:11	0:00	kworker/u16:0-i915	1
+root	23303	0.0	0.0	0	0	?	I	14:11	0:00	kworker/6:3	1
+root	23388	0.0	0.0	0	0	?	I	14:13	0:00	kworker/1:2-events	1
+root	23415	0.0	0.0	0	0	?	I	14:13	0:00	kworker/3:0	1
+root	23500	0.0	0.0	0	0	?	I	14:13	0:00	kworker/5:1	1
+root	1	0.0	0.0	168400	11952	?	Ss	12月11	0:12	/sbin/init splash	0
+root	300	0.0	0.2	74540	40692	?	S<s	12月11	0:03	/lib/systemd/systemd-journald	0
+root	334	0.0	0.0	24932	7904	?	Ss	12月11	0:01	/lib/systemd/systemd-udevd	0
+systemd+	884	0.0	0.0	24676	13100	?	Ss	12月11	0:02	/lib/systemd/systemd-resolved	0
+systemd+	886	0.0	0.0	91004	6128	?	Ssl	12月11	0:00	/lib/systemd/systemd-timesyncd	0
+root	952	0.0	0.0	237236	8072	?	Ssl	12月11	0:00	/usr/lib/accountsservice/accounts-daemon	0
+root	953	0.0	0.0	2672	1972	?	Ss	12月11	0:00	/usr/sbin/acpid	0
+avahi	955	0.1	0.0	13776	9132	?	Ss	12月11	3:23	avahi-daemon: running [DJ00001-3.local	0
+avahi	1014	0.0	0.0	8560	356	?	S	12月11	0:00	avahi-daemon: chroot helper	1
+root	956	0.0	0.0	8420	4628	?	Ss	12月11	0:00	/usr/lib/bluetooth/bluetoothd	0
+root	958	0.0	0.0	8068	3264	?	Ss	12月11	0:00	/usr/sbin/cron -f	0
+root	959	0.0	0.0	28016	10328	?	Ss	12月11	0:01	/usr/sbin/cupsd -l	0
+message+	961	0.0	0.0	10272	6824	?	Ss	12月11	0:08	/usr/bin/dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only	0
+root	963	0.0	0.1	336776	23492	?	Ssl	12月11	0:05	/usr/sbin/NetworkManager --no-daemon	0
+root	969	0.0	0.0	81896	3776	?	Ssl	12月11	0:00	/usr/sbin/irqbalance --foreground	0
+root	971	0.0	0.1	38636	20828	?	Ss	12月11	0:00	/usr/bin/python3 /usr/bin/networkd-dispatcher --run-startup-triggers	0
+root	975	0.0	0.0	421604	868	?	Ssl	12月11	0:00	/usr/sbin/osspd -f --dsp-slave=/usr/lib/osspd/ossp-slave	0
+root	978	0.0	0.0	235216	11156	?	Ssl	12月11	0:02	/usr/lib/policykit-1/polkitd --no-debug	0
+syslog	996	0.0	0.0	224712	5688	?	Ssl	12月11	0:00	/usr/sbin/rsyslogd -n -iNONE	0
+root	1004	0.0	0.2	1540360	47092	?	Ssl	12月11	0:04	/usr/lib/snapd/snapd	0
+root	1006	0.0	0.0	234156	6088	?	Ssl	12月11	0:00	/usr/libexec/switcheroo-control	0
+root	1007	0.0	0.0	17660	8628	?	Ss	12月11	0:00	/lib/systemd/systemd-logind	0
+root	1008	0.0	0.0	124692	9320	?	Ssl	12月11	0:00	/usr/sbin/thermald --systemd --dbus-enable --adaptive	0
+root	1009	0.0	0.0	394280	14108	?	Ssl	12月11	0:00	/usr/lib/udisks2/udisksd	0
+root	1010	0.0	0.0	14664	10176	?	Ss	12月11	0:00	/sbin/wpa_supplicant -u -s -O /run/wpa_supplicant	0
+root	1040	0.0	0.1	180128	16720	?	Ssl	12月11	0:05	/usr/sbin/cups-browsed	0
+root	1059	0.0	0.0	315224	11664	?	Ssl	12月11	0:00	/usr/sbin/ModemManager	0
+colord	1061	0.0	0.0	245256	15220	?	Ssl	12月11	0:00	/usr/libexec/colord	0
+root	1081	0.0	0.0	12280	6820	?	Ss	12月11	0:00	sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups	0
+root	1089	0.0	0.0	238308	8704	?	Ssl	12月11	0:00	/usr/sbin/gdm3	0
+root	1659	0.0	0.0	313344	10396	?	Sl	12月11	0:00	gdm-session-worker [pam/gdm-password	1
+denjo	1759	0.0	0.0	162608	6796	tty2	Ssl+	12月11	0:00	/usr/lib/gdm3/gdm-x-session --run-script env GNOME_SHELL_SESSION_MODE=ubuntu /usr/bin/gnome-session --systemd --session=ubuntu	2
+denjo	1761	0.1	0.5	513852	88000	tty2	Sl+	12月11	2:47	/usr/lib/xorg/Xorg vt2 -displayfd 3 -auth /run/user/1000/gdm/Xauthority -background none -noreset -keeptty -verbose 3	3
+denjo	1774	0.0	0.0	186804	14004	tty2	Sl+	12月11	0:00	/usr/libexec/gnome-session-binary --systemd --systemd --session=ubuntu	3
+denjo	1841	0.0	0.0	6032	448	?	Ss	12月11	0:00	/usr/bin/ssh-agent /usr/bin/im-launch env GNOME_SHELL_SESSION_MODE=ubuntu /usr/bin/gnome-session --systemd --session=ubuntu	4
+root	1125	0.0	0.1	116800	23020	?	Ssl	12月11	0:00	/usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal	0
+rtkit	1148	0.0	0.0	153148	3200	?	SNsl	12月11	0:00	/usr/libexec/rtkit-daemon	0
+root	1249	0.0	0.0	316640	10184	?	Ssl	12月11	0:00	/usr/lib/upower/upowerd	0
+whoopsie	1610	0.0	0.0	253452	15992	?	Ssl	12月11	0:00	/usr/bin/whoopsie -f	0
+kernoops	1613	0.0	0.0	11256	444	?	Ss	12月11	0:00	/usr/sbin/kerneloops --test	0
+kernoops	1621	0.0	0.0	11256	448	?	Ss	12月11	0:00	/usr/sbin/kerneloops	0
+denjo	1665	0.0	0.0	19968	10728	?	Ss	12月11	0:00	/lib/systemd/systemd --user	0
+denjo	1666	0.0	0.0	104504	3776	?	S	12月11	0:00	(sd-pam)	1
+denjo	1671	0.3	0.1	3054768	20404	?	S<sl	12月11	6:30	/usr/bin/pulseaudio --daemonize=no --log-target=journal	1
+denjo	1673	0.0	0.1	657996	25360	?	SNsl	12月11	0:00	/usr/libexec/tracker-miner-fs	1
+denjo	1677	0.0	0.0	8792	5924	?	Ss	12月11	0:01	/usr/bin/dbus-daemon --session --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only	1
+denjo	1691	0.0	0.0	238340	7932	?	Ssl	12月11	0:00	/usr/libexec/gvfsd	1
+denjo	2008	0.0	0.0	312868	8244	?	Sl	12月11	0:00	/usr/libexec/gvfsd-trash --spawner :1.3 /org/gtk/gvfs/exec_spaw/0	2
+denjo	3112	0.0	0.0	386596	9176	?	Sl	12月11	0:00	/usr/libexec/gvfsd-network --spawner :1.3 /org/gtk/gvfs/exec_spaw/1	2
+denjo	3127	0.0	0.0	313736	8968	?	Sl	12月11	0:00	/usr/libexec/gvfsd-dnssd --spawner :1.3 /org/gtk/gvfs/exec_spaw/3	2
+denjo	17739	0.0	0.0	278444	11312	?	Sl	13:21	0:00	/usr/libexec/gvfsd-http --spawner :1.3 /org/gtk/gvfs/exec_spaw/4	2
+denjo	1702	0.0	0.0	378340	6524	?	Sl	12月11	0:00	/usr/libexec/gvfsd-fuse /run/user/1000/gvfs -f -o big_writes	1
+denjo	1707	0.0	0.0	313060	10160	?	Ssl	12月11	0:00	/usr/libexec/gvfs-udisks2-volume-monitor	1
+denjo	1716	0.0	0.0	234500	6188	?	Ssl	12月11	0:00	/usr/libexec/gvfs-goa-volume-monitor	1
+denjo	1720	0.0	0.2	552124	34884	?	Sl	12月11	0:00	/usr/libexec/goa-daemon	1
+denjo	1728	0.0	0.0	313496	8936	?	Sl	12月11	0:00	/usr/libexec/goa-identity-service	1
+denjo	1737	0.0	0.0	315348	9000	?	Ssl	12月11	0:00	/usr/libexec/gvfs-afc-volume-monitor	1
+denjo	1742	0.0	0.0	234296	6320	?	Ssl	12月11	0:00	/usr/libexec/gvfs-mtp-volume-monitor	1
+denjo	1746	0.0	0.0	236572	6896	?	Ssl	12月11	0:00	/usr/libexec/gvfs-gphoto2-volume-monitor	1
+denjo	1859	0.0	0.0	305412	6664	?	Ssl	12月11	0:00	/usr/libexec/at-spi-bus-launcher	1
+denjo	1864	0.0	0.0	7460	4472	?	S	12月11	0:00	/usr/bin/dbus-daemon --config-file=/usr/share/defaults/at-spi2/accessibility.conf --nofork --print-address 3	2
+denjo	1872	0.0	0.0	88660	4244	?	Ssl	12月11	0:00	/usr/libexec/gnome-session-ctl --monitor	1
+denjo	1879	0.0	0.1	483696	16568	?	Ssl	12月11	0:00	/usr/libexec/gnome-session-binary --systemd-service --session=ubuntu	1
+denjo	2064	0.0	0.3	645072	60428	?	Sl	12月11	0:00	/usr/libexec/evolution-data-server/evolution-alarm-notify	2
+denjo	2067	0.0	0.0	231796	5956	?	Sl	12月11	0:00	/usr/libexec/gsd-disk-utility-notify	2
+denjo	3418	0.0	0.3	816464	58536	?	Sl	12月11	0:00	update-notifier	2
+denjo	1893	0.1	2.0	4854276	332116	?	Ssl	12月11	3:34	/usr/bin/gnome-shell	1
+denjo	1919	0.0	0.0	384784	10560	?	Sl	12月11	0:18	ibus-daemon --panel disable --xim	2
+denjo	1923	0.0	0.0	235252	7128	?	Sl	12月11	0:00	/usr/libexec/ibus-dconf	2
+denjo	1924	0.0	0.1	274868	32436	?	Sl	12月11	0:06	/usr/libexec/ibus-extension-gtk3	2
+denjo	2200	0.0	0.0	313688	12456	?	Sl	12月11	0:05	/usr/lib/ibus-mozc/ibus-engine-mozc --ibus	2
+denjo	2203	0.0	0.1	74556	29248	?	SLl	12月11	0:00	/usr/lib/mozc/mozc_server	3
+denjo	15962	0.0	0.0	161420	7036	?	Sl	12月11	0:00	/usr/libexec/ibus-engine-simple	2
+denjo	2352	0.0	1.2	38794504	201072	?	SLl	12月11	1:21	/usr/share/code/code --unity-launch --enable-crashpad	2
+denjo	2356	0.0	0.2	33770960	48364	?	S	12月11	0:00	/usr/share/code/code --type=zygote --no-zygote-sandbox --enable-crashpad --enable-crashpad	2
+denjo	2390	0.1	0.8	34079108	144216	?	Sl	12月11	3:40	/usr/share/code/code --type=gpu-process --enable-crashpad --crashpad-handler-pid=2377 --enable-crash-reporter=af4894b5-2339-45ea-af03-a3d6d9ca834b,no_channel --user-data-dir=/home/denjo/.config/Code --gpu-preferences=WAAAAAAAAAAgAAAIAAAAAAAAAAAAAAAAAABgAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAIAAAAAAAAAABAAAAAAAAAAgAAAAAAAAACAAAAAAAAAAIAAAAAAAAAA== --shared-files --field-trial-handle=0,i,9065327922736091235,16293238121792723526,131072 --enable-features=AutoDisableAccessibility --disable-features=CalculateNativeWinOcclusion,SpareRendererForSitePerProcess	3
+denjo	2357	0.0	0.2	33770948	47372	?	S	12月11	0:00	/usr/share/code/code --type=zygote --enable-crashpad --enable-crashpad	2
+denjo	2363	0.0	0.0	33770976	12120	?	S	12月11	0:00	/usr/share/code/code --type=zygote --enable-crashpad --enable-crashpad	3
+denjo	2416	0.0	0.4	33836820	67588	?	Sl	12月11	0:09	/usr/share/code/code --type=utility --utility-sub-type=network.mojom.NetworkService --lang=ja --service-sandbox-type=none --enable-crashpad --crashpad-handler-pid=2377 --enable-crash-reporter=af4894b5-2339-45ea-af03-a3d6d9ca834b,no_channel --user-data-dir=/home/denjo/.config/Code --standard-schemes=vscode-webview,vscode-file --secure-schemes=vscode-webview,vscode-file --bypasscsp-schemes --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --streaming-schemes --shared-files=v8_context_snapshot_data:100 --field-trial-handle=0,i,9065327922736091235,16293238121792723526,131072 --enable-features=AutoDisableAccessibility --disable-features=CalculateNativeWinOcclusion,SpareRendererForSitePerProcess --enable-crashpad	2
+denjo	2473	0.4	2.3	57197700	385484	?	Sl	12月11	9:33	/usr/share/code/code --type=renderer --enable-crashpad --crashpad-handler-pid=2377 --enable-crash-reporter=af4894b5-2339-45ea-af03-a3d6d9ca834b,no_channel --user-data-dir=/home/denjo/.config/Code --standard-schemes=vscode-webview,vscode-file --secure-schemes=vscode-webview,vscode-file --bypasscsp-schemes --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --streaming-schemes --app-path=/usr/share/code/resources/app --no-sandbox --no-zygote --enable-blink-features=HighlightAPI --lang=ja --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=4 --launch-time-ticks=34554238 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=0,i,9065327922736091235,16293238121792723526,131072 --enable-features=AutoDisableAccessibility --disable-features=CalculateNativeWinOcclusion,SpareRendererForSitePerProcess --vscode-window-config=vscode:d9999bc5-07ca-426e-b87e-058437f9b124 --enable-crashpad	2
+denjo	2801	0.0	0.9	46686064	150276	?	Sl	12月11	0:51	/usr/share/code/code --type=renderer --enable-crashpad --crashpad-handler-pid=2377 --enable-crash-reporter=af4894b5-2339-45ea-af03-a3d6d9ca834b,no_channel --user-data-dir=/home/denjo/.config/Code --standard-schemes=vscode-webview,vscode-file --secure-schemes=vscode-webview,vscode-file --bypasscsp-schemes --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --streaming-schemes --app-path=/usr/share/code/resources/app --no-sandbox --no-zygote --node-integration-in-worker --lang=ja --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=5 --launch-time-ticks=36136881 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=0,i,9065327922736091235,16293238121792723526,131072 --enable-features=AutoDisableAccessibility --disable-features=CalculateNativeWinOcclusion,SpareRendererForSitePerProcess --vscode-window-config=vscode:4ba6c326-01df-40dc-b783-90c434ac6679 --vscode-window-kind=shared-process --enable-crashpad	2
+denjo	2900	0.0	0.5	38194388	88112	?	Sl	12月11	0:17	/usr/share/code/code --ms-enable-electron-run-as-node /usr/share/code/resources/app/out/bootstrap-fork --type=ptyHost --logsPath /home/denjo/.config/Code/logs/20221211T022805	3
+denjo	3269	0.0	0.0	10852	6548	pts/0	Ss+	12月11	0:00	/bin/bash --init-file /usr/share/code/resources/app/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh	4
+denjo	21239	0.0	0.0	9680	5336	pts/1	Ss	13:45	0:00	/bin/bash --init-file /usr/share/code/resources/app/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh	4
+denjo	23558	0.6	0.0	92404	11568	pts/1	Sl+	14:15	0:00	/usr/bin/python3 /home/denjo/Infovis/tohoken/B-Tohoken/sunburst/server/server.py	5
+denjo	23586	0.0	0.0	10568	3972	pts/1	R+	14:15	0:00	ps auxf	6
+denjo	23578	0.0	0.0	2608	596	?	S	14:15	0:00	/bin/sh -c "/usr/share/code/resources/app/out/vs/base/node/cpuUsage.sh" 21239 23558	4
+denjo	23579	0.0	0.0	7924	3380	?	S	14:15	0:00	/bin/bash /usr/share/code/resources/app/out/vs/base/node/cpuUsage.sh 21239 23558	5
+denjo	23583	0.0	0.0	6508	576	?	S	14:15	0:00	sleep 1	6
+denjo	3183	0.0	0.5	38185756	90000	?	Sl	12月11	0:05	/usr/share/code/code --ms-enable-electron-run-as-node /usr/share/code/resources/app/out/bootstrap-fork --type=fileWatcher	3
+denjo	3175	0.0	1.1	38182880	192712	?	Sl	12月11	0:30	/usr/share/code/code --ms-enable-electron-run-as-node --inspect-port=0 /usr/share/code/resources/app/out/bootstrap-fork --type=extensionHost --skipWorkspaceStorageLock	2
+denjo	3231	0.0	1.1	38140208	190164	?	Sl	12月11	1:04	/usr/share/code/code --ms-enable-electron-run-as-node /home/denjo/.vscode/extensions/ms-python.vscode-pylance-2022.5.1/dist/server.bundle.js --cancellationReceive=file:900d2ef0012c343b1251f61fc2109d1169c97888c8 --node-ipc --clientProcessId=3175	3
+denjo	14033	0.0	0.7	38136104	129896	?	Sl	12月11	0:04	/usr/share/code/code --ms-enable-electron-run-as-node /usr/share/code/resources/app/extensions/html-language-features/server/dist/node/htmlServerMain --node-ipc --clientProcessId=3175	3
+denjo	17482	0.3	0.9	38136104	156752	?	Sl	13:20	0:10	/usr/share/code/code --ms-enable-electron-run-as-node --max-old-space-size=3072 /usr/share/code/resources/app/extensions/node_modules/typescript/lib/tsserver.js --serverMode partialSemantic --useInferredProjectPerProjectRoot --disableAutomaticTypingAcquisition --cancellationPipeName /tmp/vscode-typescript1000/16fc3e83603077fa5efb/tscancellation-8e347cf245092cda79af.tmp* --locale en --noGetErrOnBackgroundUpdate --validateDefaultNpmLocation --useNodeIpc	3
+denjo	17483	1.3	1.2	38168888	196116	?	Sl	13:20	0:43	/usr/share/code/code --ms-enable-electron-run-as-node --max-old-space-size=3072 /usr/share/code/resources/app/extensions/node_modules/typescript/lib/tsserver.js --useInferredProjectPerProjectRoot --enableTelemetry --cancellationPipeName /tmp/vscode-typescript1000/16fc3e83603077fa5efb/tscancellation-99d078317a76cf7c6f46.tmp* --locale en --noGetErrOnBackgroundUpdate --validateDefaultNpmLocation --useNodeIpc	3
+denjo	17502	0.1	0.5	38168888	94920	?	Sl	13:20	0:03	/usr/share/code/code --ms-enable-electron-run-as-node /usr/share/code/resources/app/extensions/node_modules/typescript/lib/typingsInstaller.js --globalTypingsCacheLocation /home/denjo/.cache/typescript/4.9 --enableTelemetry --typesMapLocation /usr/share/code/resources/app/extensions/node_modules/typescript/lib/typesMap.json --validateDefaultNpmLocation	4
+denjo	22627	0.0	0.4	38136104	75760	?	Sl	14:02	0:00	/usr/share/code/code --ms-enable-electron-run-as-node /usr/share/code/resources/app/extensions/css-language-features/server/dist/node/cssServerMain --node-ipc --clientProcessId=3175	3
+denjo	18854	1.0	2.6	4001920	435088	?	Sl	13:27	0:29	/usr/lib/thunderbird/thunderbird	2
+denjo	18988	0.0	0.5	2440444	92848	?	Sl	13:27	0:00	/usr/lib/thunderbird/thunderbird -contentproc -childID 1 -isForBrowser -prefsLen 12263 -prefMapSize 233343 -jsInitLen 277276 -parentBuildID 20221101185644 -appDir /usr/lib/thunderbird 18854 true tab	3
+denjo	19074	0.0	0.6	2454112	113528	?	Sl	13:27	0:00	/usr/lib/thunderbird/thunderbird -contentproc -childID 3 -isForBrowser -prefsLen 14104 -prefMapSize 233343 -jsInitLen 277276 -parentBuildID 20221101185644 -appDir /usr/lib/thunderbird 18854 true tab	3
+denjo	1926	0.0	0.1	197012	28888	?	Sl	12月11	0:00	/usr/libexec/ibus-x11 --kill-daemon	1
+denjo	1928	0.0	0.0	235196	7360	?	Sl	12月11	0:00	/usr/libexec/ibus-portal	1
+denjo	1942	0.0	0.0	162832	7708	?	Sl	12月11	0:02	/usr/libexec/at-spi2-registryd --use-gnome-session	1
+denjo	1946	0.0	0.0	234320	6284	?	Ssl	12月11	0:00	/usr/libexec/xdg-permission-store	1
+denjo	1951	0.0	0.1	581092	20416	?	Sl	12月11	0:00	/usr/libexec/gnome-shell-calendar-server	1
+denjo	1957	0.0	0.1	1069232	26272	?	Ssl	12月11	0:00	/usr/libexec/evolution-source-registry	1
+denjo	1966	0.0	0.1	1378380	31368	?	Ssl	12月11	0:00	/usr/libexec/evolution-calendar-factory	1
+denjo	1970	0.0	0.0	156344	5932	?	Sl	12月11	0:00	/usr/libexec/dconf-service	1
+denjo	1979	0.0	0.1	819676	30516	?	Ssl	12月11	0:00	/usr/libexec/evolution-addressbook-factory	1
+denjo	1996	0.0	0.1	2929016	27280	?	Sl	12月11	0:00	/usr/bin/gjs /usr/share/gnome-shell/org.gnome.Shell.Notifications	1
+denjo	2018	0.0	0.0	308440	6632	?	Ssl	12月11	0:00	/usr/libexec/gsd-a11y-settings	1
+denjo	2019	0.0	0.1	642976	31424	?	Ssl	12月11	0:00	/usr/libexec/gsd-color	1
+denjo	2020	0.0	0.1	372392	16512	?	Ssl	12月11	0:00	/usr/libexec/gsd-datetime	1
+denjo	2022	0.0	0.0	310640	8068	?	Ssl	12月11	0:00	/usr/libexec/gsd-housekeeping	1
+denjo	2023	0.0	0.1	345280	29332	?	Ssl	12月11	0:00	/usr/libexec/gsd-keyboard	1
+denjo	2024	0.0	0.1	900464	31988	?	Ssl	12月11	0:00	/usr/libexec/gsd-media-keys	1
+denjo	2029	0.0	0.2	759880	32972	?	Ssl	12月11	0:00	/usr/libexec/gsd-power	1
+denjo	2030	0.0	0.0	247240	11768	?	Ssl	12月11	0:00	/usr/libexec/gsd-print-notifications	1
+denjo	2035	0.0	0.0	455736	6116	?	Ssl	12月11	0:00	/usr/libexec/gsd-rfkill	1
+denjo	2037	0.0	0.0	234144	6220	?	Ssl	12月11	0:00	/usr/libexec/gsd-screensaver-proxy	1
+denjo	2039	0.0	0.0	463696	11352	?	Ssl	12月11	0:00	/usr/libexec/gsd-sharing	1
+denjo	2040	0.0	0.0	313948	8368	?	Ssl	12月11	0:00	/usr/libexec/gsd-smartcard	1
+denjo	2042	0.0	0.0	318128	9364	?	Ssl	12月11	0:00	/usr/libexec/gsd-sound	1
+denjo	2044	0.0	0.0	383756	7456	?	Ssl	12月11	0:00	/usr/libexec/gsd-usb-protection	1
+denjo	2047	0.0	0.1	344564	28928	?	Ssl	12月11	0:00	/usr/libexec/gsd-wacom	1
+denjo	2052	0.0	0.0	312876	8316	?	Ssl	12月11	0:00	/usr/libexec/gsd-wwan	1
+denjo	2054	0.0	0.1	347640	32240	?	Ssl	12月11	0:00	/usr/libexec/gsd-xsettings	1
+denjo	2148	0.0	2.1	1552200	352616	?	Sl	12月11	0:12	/snap/snap-store/599/usr/bin/snap-store --gapplication-service	1
+denjo	2173	0.0	0.0	529984	6956	?	Ssl	12月11	0:00	/usr/libexec/xdg-document-portal	1
+denjo	2195	0.0	0.0	340820	15228	?	Sl	12月11	0:00	/usr/libexec/gsd-printer	1
+denjo	2289	0.0	0.0	608976	10756	?	Ssl	12月11	0:00	/usr/libexec/xdg-desktop-portal	1
+denjo	2293	0.0	0.1	494268	30460	?	Ssl	12月11	0:00	/usr/libexec/xdg-desktop-portal-gtk	1
+denjo	2377	0.0	0.0	33576008	3056	?	Sl	12月11	0:00	/usr/share/code/chrome_crashpad_handler --monitor-self-annotation=ptype=crashpad-handler --no-rate-limit --database=/home/denjo/.config/Code/Crashpad --url=appcenter://code?aid=fba07a4d-84bd-4fc8-a125-9640fc8ce171&uid=9ed6a034-5634-4f19-889c-9eae39a7d38b&iid=9ed6a034-5634-4f19-889c-9eae39a7d38b&sid=9ed6a034-5634-4f19-889c-9eae39a7d38b --annotation=IsOfficialBuild=1 --annotation=_companyName=Microsoft --annotation=_productName=VSCode --annotation=_version=1.74.0 --annotation=exe=/usr/share/code/code --unity-launch --enable-crashpad --annotation=lsb-release=Ubuntu 20.04.5 LTS --annotation=plat=Linux --annotation=prod=Electron --annotation=ver=19.1.8 --initial-client-fd=45 --shared-client-connection	1
+denjo	3415	0.0	0.0	160872	6516	?	Ssl	12月11	0:00	/usr/libexec/gvfsd-metadata	1
+denjo	3756	0.6	4.3	8073616	700416	?	Sl	12月11	13:00	/usr/lib/firefox/firefox -new-window	1
+denjo	3831	0.0	0.2	204508	44392	?	Sl	12月11	0:00	/usr/lib/firefox/firefox -contentproc -parentBuildID 20221110173214 -prefsLen 27284 -prefMapSize 227290 -appDir /usr/lib/firefox/browser {f1cb7467-820f-4a69-aac6-8bf4cd17f0c0} 3756 true socket	2
+denjo	3886	0.0	0.7	2508336	128004	?	Sl	12月11	0:02	/usr/lib/firefox/firefox -contentproc -childID 1 -isForBrowser -prefsLen 27360 -prefMapSize 227290 -jsInitLen 246704 -parentBuildID 20221110173214 -appDir /usr/lib/firefox/browser {57b39cd8-14e4-45ef-a1f0-9870297478af} 3756 true tab	2
+denjo	3934	0.0	0.6	2457052	104116	?	Sl	12月11	0:00	/usr/lib/firefox/firefox -contentproc -childID 2 -isForBrowser -prefsLen 32697 -prefMapSize 227290 -jsInitLen 246704 -parentBuildID 20221110173214 -appDir /usr/lib/firefox/browser {c964ef47-7c03-4510-86b2-a6a45f86e441} 3756 true tab	2
+denjo	4605	0.0	1.1	2721768	186260	?	Sl	12月11	0:10	/usr/lib/firefox/firefox -contentproc -childID 8 -isForBrowser -prefsLen 32805 -prefMapSize 227290 -jsInitLen 246704 -parentBuildID 20221110173214 -appDir /usr/lib/firefox/browser {04ba6ac6-462c-4f1a-9249-f812d12cfc60} 3756 true tab	2
+denjo	4608	0.0	0.5	2435800	95760	?	Sl	12月11	0:00	/usr/lib/firefox/firefox -contentproc -childID 9 -isForBrowser -prefsLen 32805 -prefMapSize 227290 -jsInitLen 246704 -parentBuildID 20221110173214 -appDir /usr/lib/firefox/browser {53d58a33-8795-4b41-a5b0-f8786a0264b4} 3756 true tab	2
+denjo	4695	0.0	0.6	2498428	113528	?	Sl	12月11	0:00	/usr/lib/firefox/firefox -contentproc -childID 10 -isForBrowser -prefsLen 32805 -prefMapSize 227290 -jsInitLen 246704 -parentBuildID 20221110173214 -appDir /usr/lib/firefox/browser {32841f3f-26bd-4163-a234-f5f7eb8aa045} 3756 true tab	2
+denjo	14111	0.0	0.5	2438204	96972	?	Sl	12月11	0:00	/usr/lib/firefox/firefox -contentproc -childID 12 -isForBrowser -prefsLen 32805 -prefMapSize 227290 -jsInitLen 246704 -parentBuildID 20221110173214 -appDir /usr/lib/firefox/browser {a4f9b1d9-2544-4dcf-8a1f-0e71e6deaa52} 3756 true tab	2
+denjo	14115	0.0	0.7	2513816	125840	?	Sl	12月11	0:03	/usr/lib/firefox/firefox -contentproc -childID 13 -isForBrowser -prefsLen 32805 -prefMapSize 227290 -jsInitLen 246704 -parentBuildID 20221110173214 -appDir /usr/lib/firefox/browser {c3759769-a685-4a5e-8659-e114cb625637} 3756 true tab	2
+denjo	14207	0.0	0.4	2404316	78568	?	Sl	12月11	0:00	/usr/lib/firefox/firefox -contentproc -childID 14 -isForBrowser -prefsLen 32805 -prefMapSize 227290 -jsInitLen 246704 -parentBuildID 20221110173214 -appDir /usr/lib/firefox/browser {2d18d32a-1291-4a94-9298-72686f2b8da9} 3756 true tab	2
+denjo	14210	0.0	0.4	2404316	77764	?	Sl	12月11	0:00	/usr/lib/firefox/firefox -contentproc -childID 15 -isForBrowser -prefsLen 32805 -prefMapSize 227290 -jsInitLen 246704 -parentBuildID 20221110173214 -appDir /usr/lib/firefox/browser {6b3c97e0-9666-4ef9-939c-d254ef4baf24} 3756 true tab	2
+denjo	19612	0.0	0.5	2436796	95964	?	Sl	13:31	0:00	/usr/lib/firefox/firefox -contentproc -childID 16 -isForBrowser -prefsLen 32909 -prefMapSize 227290 -jsInitLen 246704 -parentBuildID 20221110173214 -appDir /usr/lib/firefox/browser {4dd8782d-3894-4f9e-af1e-0fa78795a346} 3756 true tab	2
+denjo	21343	0.0	0.4	2404852	76096	?	Sl	13:45	0:00	/usr/lib/firefox/firefox -contentproc -childID 17 -isForBrowser -prefsLen 33151 -prefMapSize 227290 -jsInitLen 246704 -parentBuildID 20221110173214 -appDir /usr/lib/firefox/browser {d48a9e27-6024-446b-b9a2-86d96b25fb6b} 3756 true tab	2
+denjo	14175	0.0	0.0	360056	5708	?	Sl	12月11	0:00	/usr/lib/speech-dispatcher-modules/sd_dummy /etc/speech-dispatcher/modules/dummy.conf	1
+denjo	14189	0.0	0.0	448792	8228	?	Sl	12月11	0:00	/usr/lib/speech-dispatcher-modules/sd_espeak-ng /etc/speech-dispatcher/modules/espeak-ng.conf	1
+denjo	14195	0.0	0.0	158156	2172	?	Ssl	12月11	0:00	/usr/bin/speech-dispatcher --spawn --communication-method unix_socket --socket-path /run/user/1000/speech-dispatcher/speechd.sock	1
+denjo	17747	1.2	1.6	34157668	271900	?	SLl	13:21	0:41	/opt/google/chrome/chrome https://github.com/login/oauth/authorize?client_id=01ab8ac9400c4e429b23&redirect_uri=https://vscode.dev/redirect&scope=read:user+repo+user:email+workflow&state=vscode%253A%252F%252Fvscode.github-authentication%252Fdid-authenticate%253Fnonce%253D9bc49823e449e853%2526windowId%253D1	1
+denjo	17752	0.0	0.0	6652	584	?	S	13:21	0:00	cat	2
+denjo	17753	0.0	0.0	6652	580	?	S	13:21	0:00	cat	2
+denjo	17763	0.0	0.3	33850280	58480	?	S	13:21	0:00	/opt/google/chrome/chrome --type=zygote --no-zygote-sandbox --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --change-stack-guard-on-fork=enable	2
+denjo	17791	0.6	0.9	34121912	157588	?	Sl	13:21	0:20	/opt/google/chrome/chrome --type=gpu-process --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --change-stack-guard-on-fork=enable --gpu-preferences=WAAAAAAAAAAgAAAIAAAAAAAAAAAAAAAAAABgAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAIAAAAAAAAAABAAAAAAAAAAgAAAAAAAAACAAAAAAAAAAIAAAAAAAAAA== --shared-files --field-trial-handle=0,i,10913342661294380094,1022944120407955514,131072	2
+denjo	17764	0.0	0.3	33850268	59112	?	S	13:21	0:00	/opt/google/chrome/chrome --type=zygote --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --change-stack-guard-on-fork=enable	2
+denjo	17765	0.0	0.0	33568420	4876	?	S	13:21	0:00	/opt/google/chrome/nacl_helper	2
+denjo	17768	0.0	0.0	33850292	15924	?	S	13:21	0:00	/opt/google/chrome/chrome --type=zygote --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --change-stack-guard-on-fork=enable	2
+denjo	17803	0.0	0.2	33899868	48312	?	Sl	13:21	0:00	/opt/google/chrome/chrome --type=utility --utility-sub-type=storage.mojom.StorageService --lang=ja --service-sandbox-type=utility --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --field-trial-handle=0,i,10913342661294380094,1022944120407955514,131072	3
+denjo	17830	0.0	0.8	1185875652	134476	?	Sl	13:21	0:01	/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --change-stack-guard-on-fork=enable --first-renderer-process --lang=ja --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=7 --time-ticks-at-unix-epoch=-1670816769459937 --launch-time-ticks=2111665277 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=0,i,10913342661294380094,1022944120407955514,131072	3
+denjo	17831	0.0	0.5	1184827776	94628	?	Sl	13:21	0:00	/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --change-stack-guard-on-fork=enable --lang=ja --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=6 --time-ticks-at-unix-epoch=-1670816769459937 --launch-time-ticks=2111666607 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=0,i,10913342661294380094,1022944120407955514,131072	3
+denjo	17892	0.0	0.5	1184775132	85992	?	Sl	13:21	0:00	/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --extension-process --change-stack-guard-on-fork=enable --lang=ja --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=5 --time-ticks-at-unix-epoch=-1670816769459937 --launch-time-ticks=2111847181 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=0,i,10913342661294380094,1022944120407955514,131072	3
+denjo	19199	0.6	1.3	1184871532	225492	?	Sl	13:27	0:19	/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --change-stack-guard-on-fork=enable --lang=ja --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=19 --time-ticks-at-unix-epoch=-1670816769459937 --launch-time-ticks=2471714237 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=0,i,10913342661294380094,1022944120407955514,131072	3
+denjo	23359	3.5	0.9	1184859112	160612	?	Sl	14:13	0:03	/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --change-stack-guard-on-fork=enable --lang=ja --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=22 --time-ticks-at-unix-epoch=-1670816769459937 --launch-time-ticks=5254038355 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=0,i,10913342661294380094,1022944120407955514,131072	3
+denjo	23464	0.0	0.3	1184725952	62288	?	Sl	14:13	0:00	/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --change-stack-guard-on-fork=enable --lang=ja --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=31 --time-ticks-at-unix-epoch=-1670816769459937 --launch-time-ticks=5261321009 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=0,i,10913342661294380094,1022944120407955514,131072	3
+denjo	17793	0.1	0.6	33918968	109912	?	Sl	13:21	0:04	/opt/google/chrome/chrome --type=utility --utility-sub-type=network.mojom.NetworkService --lang=ja --service-sandbox-type=none --crashpad-handler-pid=17755 --enable-crash-reporter=8572a74c-8163-46c8-b8f2-2409aa661b76, --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --field-trial-handle=0,i,10913342661294380094,1022944120407955514,131072	2
+denjo	17755	0.0	0.0	33577148	3356	?	Sl	13:21	0:00	/opt/google/chrome/chrome_crashpad_handler --monitor-self --monitor-self-annotation=ptype=crashpad-handler --database=/home/denjo/.config/google-chrome/Crash Reports --metrics-dir=/home/denjo/.config/google-chrome --url=https://clients2.google.com/cr/report --annotation=channel= --annotation=lsb-release=Ubuntu 20.04.5 LTS --annotation=plat=Linux --annotation=prod=Chrome_Linux --annotation=ver=108.0.5359.98 --initial-client-fd=5 --shared-client-connection	1
+denjo	17757	0.0	0.0	33567912	2968	?	Sl	13:21	0:00	/opt/google/chrome/chrome_crashpad_handler --no-periodic-tasks --monitor-self-annotation=ptype=crashpad-handler --database=/home/denjo/.config/google-chrome/Crash Reports --url=https://clients2.google.com/cr/report --annotation=channel= --annotation=lsb-release=Ubuntu 20.04.5 LTS --annotation=plat=Linux --annotation=prod=Chrome_Linux --annotation=ver=108.0.5359.98 --initial-client-fd=4 --shared-client-connection	1
+denjo	1679	0.0	0.0	239052	8364	?	Sl	12月11	0:00	/usr/bin/gnome-keyring-daemon --daemonize --login	0
+root	2304	0.0	0.4	429060	72976	?	Ssl	12月11	0:02	/usr/libexec/fwupd/fwupd	0
