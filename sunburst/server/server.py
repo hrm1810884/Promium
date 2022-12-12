@@ -8,6 +8,7 @@ import threading
 
 PORT = 8000
 
+
 class WebServer:
     """
     Webサーバーを表すクラス
@@ -45,17 +46,14 @@ class WebServer:
                     # クライアントから送られてきたデータを取得する
                     request = client_socket.recv(4096)
 
-                    # クライアントから送られてきたデータをファイルに書き出す
-                    with open("server_recv.txt", "wb") as f:
-                        f.write(request)
-
                     # リクエスト全体を
                     # 1. リクエストライン(1行目)
                     # 2. リクエストヘッダー(2行目〜空行)
                     # 3. リクエストボディ(空行〜)
                     # にパースする
                     request_line, remain = request.split(b"\r\n", maxsplit=1)
-                    request_header, request_body = remain.split(b"\r\n\r\n", maxsplit=1)
+                    request_header, request_body = remain.split(
+                        b"\r\n\r\n", maxsplit=1)
 
                     # リクエストラインをパースする
                     method, path, http_version = request_line.decode().split(" ")
@@ -63,16 +61,22 @@ class WebServer:
                     # pathの先頭の/を削除し、相対パスにしておく
                     relative_path = path.lstrip("/")
                     # ファイルのpathを取得
-                    static_file_path = os.path.join(self.STATIC_ROOT, relative_path)
+                    static_file_path = os.path.join(
+                        self.STATIC_ROOT, relative_path)
                     # ファイルからレスポンスボディを生成
                     try:
-                        if("tsv" in request_line.decode("utf-8")):
-                            path = static_file_path
-                            t = threading.Thread(target=server.ps, args=(path,))
+                        if ("tsv" in request_line.decode("utf-8")):
+                            t = threading.Thread(
+                                target=server.ps, args=(static_file_path,))
                             t.start()
                             t.join()
-                        with open(static_file_path, "rb") as f:
-                            response_body = f.read()
+
+                            with open(static_file_path, "rb") as f:
+                                response_body = f.read()
+                            os.remove(static_file_path)
+                        else:
+                            with open(static_file_path, "rb") as f:
+                                response_body = f.read()
 
                             # レスポンスラインを生成
                         response_line = "HTTP/1.1 200 OK\r\n"
@@ -91,7 +95,8 @@ class WebServer:
                     response_header += "Content-Type: text/html\r\n"
 
                     # レスポンス全体を生成する
-                    response = (response_line + response_header + "\r\n").encode() + response_body
+                    response = (response_line + response_header +
+                                "\r\n").encode() + response_body
 
                     # クライアントへレスポンスを送信する
                     client_socket.send(response)
@@ -109,37 +114,39 @@ class WebServer:
         finally:
             print("=== サーバーを停止します。 ===")
 
-    def ps(self,path):
-            try:
-                res = subprocess.check_output(['ps', 'auxf'])
-            except:
-                print("Error.")
+    def ps(self, path):
+        COLUMN_NUM = 11
+        try:
+            res = subprocess.check_output(['ps', 'auxf'])
+        except:
+            print("Error.")
 
-            with open(path,"w") as f:
-                txt = res.decode("utf-8").rstrip('\r\n')
-                lines = txt.split('\n')
+        with open(path, "w") as f:
+            txt = res.decode("utf-8").rstrip('\r\n')
+            lines = txt.split('\n')
 
-                for row,line in enumerate(lines):
-                    if(row == 0):
-                        tsv_header = '\t'.join(line.split(None,10))
-                        f.write(tsv_header +'\t' + 'GENE' + '\n')
+            for row, line in enumerate(lines):
+                if (row == 0):
+                    tsv_header = '\t'.join(line.split(None, COLUMN_NUM-1))
+                    f.write(tsv_header + '\t' + 'GENE' + '\n')
+                else:
+                    split_line = line.split(None, COLUMN_NUM - 2)
+                    line_head = split_line[0:COLUMN_NUM - 2]
+                    time_b_command = split_line[COLUMN_NUM - 2]
+                    time, b_command = time_b_command.split(' ', 1)
+                    line_head.append(time)
+
+                    if (b_command.count('\_')):
+                        blank, command = b_command.split('\_ ')
+                        gene = blank.count(' ')//4 + 1
                     else:
-                        split_line = line.split(None,9)
-                        line_head = split_line[0:9]
-                        time_b_command = split_line[9]
-                        time,b_command = time_b_command.split(' ',1)
-                        line_head.append(time)
+                        command = b_command
+                        gene = 0
 
-                        if(b_command.count('\_')):
-                            blank,command = b_command.split('\_ ')
-                            gene = blank.count(' ')//4 + 1
-                        else:
-                            command = b_command
-                            gene = 0   
-
-                        tsv_head = '\t'.join(line_head)
-                        command = command.lstrip('[').rstrip(']')
-                        f.write(tsv_head + '\t' + command + '\t' + str(gene) + '\n')
+                    tsv_head = '\t'.join(line_head)
+                    command = command.lstrip('[').rstrip(']')
+                    f.write(tsv_head + '\t' + command +
+                            '\t' + str(gene) + '\n')
 
 
 if __name__ == "__main__":
