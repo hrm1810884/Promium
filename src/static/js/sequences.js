@@ -17,15 +17,6 @@ const COLORS = d3.scaleOrdinal(d3.schemeCategory10);
 // Total size of all segments; we set this later, after loading the data.
 let totalSize = 0;
 
-const vis = d3
-  .select("#chart")
-  .append("svg:svg")
-  .attr("width", WIDTH)
-  .attr("height", HEIGHT)
-  .append("svg:g")
-  .attr("id", "container")
-  .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")");
-
 const partition = d3.partition().size([2 * Math.PI, RADIUS * RADIUS]);
 
 const arc = d3
@@ -35,13 +26,27 @@ const arc = d3
   .innerRadius((d) => Math.sqrt(d.y0))
   .outerRadius((d) => Math.sqrt(d.y1));
 
-d3.tsv("./data/process_data.tsv").then(function (text) {
-  createVisualization(text);
-});
+async function readData() {
+  const text = await d3.tsv("./data/process_data.tsv");
+  await createVisualization(text);
+}
+
+setInterval(async () => {
+  await readData();
+}, 1000);
 
 // Main function to draw and set up the visualization, once we have the data.
-function createVisualization(tsv) {
-  const json = buildHierarchy(tsv);
+async function createVisualization(tsv) {
+  const json = await buildHierarchy(tsv);
+
+  const vis = d3
+    .select("#chart")
+    .append("svg:svg")
+    .attr("width", WIDTH)
+    .attr("height", HEIGHT)
+    .append("svg:g")
+    .attr("id", "container")
+    .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")");
 
   // Basic setup of page elements.
   initializeBreadcrumbTrail();
@@ -553,7 +558,7 @@ function drawHierarchy(json) {
 // for a partition layout. The first column is a sequence of step names, from
 // root to leaf, separated by hyphens. The second column is a count of how
 // often that sequence occurred.
-function buildHierarchy(tsv) {
+async function buildHierarchy(tsv) {
   let root = { command: "root", children: [] };
   let parentNode = root;
   let childNode;
