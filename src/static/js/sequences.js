@@ -27,11 +27,13 @@ const arc = d3
   .outerRadius((d) => Math.sqrt(d.y1));
 
 async function readData() {
-  const text = await d3.tsv("./data/process_data.tsv")
+  const text = await d3.tsv("./data/process_data.tsv");
   await createVisualization(text);
 }
 
-setInterval(async () => { await readData() }, 1000)
+setInterval(async () => {
+  await readData();
+}, 1000);
 
 // Main function to draw and set up the visualization, once we have the data.
 async function createVisualization(tsv) {
