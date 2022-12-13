@@ -18,6 +18,11 @@ body {
   width: 200px;
 }
 
+#sequence {
+  width: 600px;
+  height: 70px;
+}
+
 #legend {
   padding: 10px 0 0 3px;
 }
@@ -29,9 +34,7 @@ body {
 }
 
 #chart {
-  position: absolute;
-  width: 750px;
-  height: 750px;
+  position: relative;
 }
 
 #chart path {
