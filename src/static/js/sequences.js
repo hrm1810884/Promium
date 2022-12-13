@@ -225,7 +225,7 @@ function updateBreadcrumbs(nodeArray, percentageString) {
 function drawLegend(tsv) {
   // Dimensions of legend item: width, height, spacing, radius of rounded rect.
   const DIM_LEGEND = {
-    width: 75,
+    width: 120,
     height: 30,
     spacing: 3,
     radius: 3,
@@ -234,8 +234,9 @@ function drawLegend(tsv) {
   let statusId = 0;
   let statusDict = [];
   tsv.forEach((d) => {
-    if (statusDict.map((status) => status.stat).indexOf(d.STAT) === -1) {
-      statusDict.push({ stat: d.STAT, id: statusId });
+    let statLegend = d.STAT[0];
+    if (statusDict.map((status) => status.stat).indexOf(statLegend) === -1) {
+      statusDict.push({ stat: statLegend, id: statusId });
       statusId++;
     }
   });
@@ -278,7 +279,25 @@ function drawLegend(tsv) {
     .attr("y", DIM_LEGEND.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text((d) => d.stat);
+    .text((d) => {
+      if (d.stat === "R") {
+        return "runnable";
+      } else if (d.stat === "D") {
+        return "uninterruptible sleep";
+      } else if (d.stat === "T") {
+        return "stopped";
+      } else if (d.stat === "S") {
+        return "interruptible sleep";
+      } else if (d.stat === "Z") {
+        return "zombie";
+      } else if (d.stat === "I") {
+        return "process generating";
+      } else if (d.stat === "O") {
+        return "running";
+      } else {
+        return "unknown";
+      }
+    });
 
   g.on("mouseover", mouseoverLegend).on("mouseleave", mouseleaveLegend);
 
@@ -291,7 +310,7 @@ function drawLegend(tsv) {
       if (!data.data || data.data.command === "root") {
         return 1;
       }
-      return data.data.stat === d.stat ? 1 : 0.3;
+      return data.data.stat[0] === d.stat ? 1 : 0.3;
     });
   }
 
