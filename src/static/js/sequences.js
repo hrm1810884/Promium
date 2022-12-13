@@ -36,12 +36,13 @@ const arc = d3
   .outerRadius((d) => Math.sqrt(d.y1));
 
 d3.tsv("./data/process_data.tsv").then(function (text) {
-  const json = buildHierarchy(text);
-  createVisualization(json, text);
+  createVisualization(text);
 });
 
 // Main function to draw and set up the visualization, once we have the data.
-function createVisualization(json, tsv) {
+function createVisualization(tsv) {
+  const json = buildHierarchy(tsv);
+
   // Basic setup of page elements.
   initializeBreadcrumbTrail();
   drawLegend(tsv);
@@ -230,17 +231,18 @@ function drawLegend(tsv) {
     radius: 3,
   };
 
-  let i = 0;
-  const statArray = [];
-  const status = [];
-  tsv.forEach(function (d) {
-    if (statArray.indexOf(d.STAT) == -1) {
-      statArray.push(d.STAT);
-      status.push({ stat: d.STAT, id: i });
-      i++;
+  let statusId = 0;
+  let statusDict = [];
+  tsv.forEach((d) => {
+    if (statusDict.map((status) => status.stat).indexOf(d.STAT) === -1) {
+      statusDict.push({ stat: d.STAT, id: statusId });
+      statusId++;
     }
   });
-  sortedStatus = status.slice().sort((a, b) => d3.ascending(a.stat, b.stat));
+
+  const sortedStatus = statusDict
+    .slice()
+    .sort((a, b) => d3.ascending(a.stat, b.stat));
 
   const legend = d3
     .select("#legend")
@@ -248,7 +250,7 @@ function drawLegend(tsv) {
     .attr("width", DIM_LEGEND.width)
     .attr(
       "height",
-      statArray.length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
+      statusDict.length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
     );
 
   const g = legend
@@ -285,9 +287,12 @@ function drawLegend(tsv) {
     d3.selectAll(".rect_" + d.id).style("opacity", 1);
 
     // mouseoverした名前のデータをハイライト表示する
-    d3.selectAll("path").style("opacity", (data) => 
-      data.data.stat == d.stat ? 1 : 0.3
-    );
+    d3.selectAll("path").style("opacity", (data) => {
+      if (!data.data || data.data.command === "root") {
+        return 1;
+      }
+      return data.data.stat === d.stat ? 1 : 0.3;
+    });
   }
 
   function mouseleaveLegend(event, d) {
