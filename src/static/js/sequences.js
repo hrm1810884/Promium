@@ -17,13 +17,36 @@ const COLORS = d3.scaleOrdinal(d3.schemeCategory10);
 // Total size of all segments; we set this later, after loading the data.
 let totalSize = 0;
 
-d3.tsv("./data/process_data.tsv").then(function (text) {
-  createVisualization(text);
-});
+const partition = d3.partition().size([2 * Math.PI, RADIUS * RADIUS]);
+
+const arc = d3
+  .arc()
+  .startAngle((d) => d.x0)
+  .endAngle((d) => d.x1)
+  .innerRadius((d) => Math.sqrt(d.y0))
+  .outerRadius((d) => Math.sqrt(d.y1));
+
+async function readData() {
+  const text = await d3.tsv("./data/process_data.tsv");
+  await createVisualization(text);
+}
+
+setInterval(async () => {
+  await readData();
+}, 1000);
 
 // Main function to draw and set up the visualization, once we have the data.
-function createVisualization(tsv) {
-  const json = buildHierarchy(tsv);
+async function createVisualization(tsv) {
+  const json = await buildHierarchy(tsv);
+
+  const vis = d3
+    .select("#chart")
+    .append("svg:svg")
+    .attr("width", WIDTH)
+    .attr("height", HEIGHT)
+    .append("svg:g")
+    .attr("id", "container")
+    .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")");
 
   drawChart(json);
   drawHierarchy(json);
@@ -280,18 +303,19 @@ function updateBreadcrumbs(nodeArray, percentageString) {
 function drawLegend(tsv) {
   // Dimensions of legend item: width, height, spacing, radius of rounded rect.
   const DIM_LEGEND = {
-    width: 75,
+    width: 130,
     height: 30,
     spacing: 3,
     radius: 3,
   };
 
-  let statusId = 0;
+  let statusIndex = 0;
   let statusDict = [];
   tsv.forEach((d) => {
-    if (statusDict.map((status) => status.stat).indexOf(d.STAT) === -1) {
-      statusDict.push({ stat: d.STAT, id: statusId });
-      statusId++;
+    const statusLegend = d.STAT[0];
+    if (statusDict.map((status) => status.stat).indexOf(statusLegend) === -1) {
+      statusDict.push({ stat: statusLegend, id: statusIndex });
+      statusIndex++;
     }
   });
 
@@ -333,7 +357,20 @@ function drawLegend(tsv) {
     .attr("y", DIM_LEGEND.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text((d) => d.stat);
+    .text((d) => {
+      const statusAbbreviations = {
+        R: "runnable",
+        D: "ninterruptible sleep",
+        T: "stopped",
+        S: "interruptible sleep",
+        Z: "zombie",
+        I: "process generating",
+        O: "running",
+      };
+      return d.stat in statusAbbreviations
+        ? statusAbbreviations.d.stat
+        : "unknown";
+    });
 
   g.on("mouseover", mouseoverLegend).on("mouseleave", mouseleaveLegend);
 
@@ -346,7 +383,7 @@ function drawLegend(tsv) {
       if (!data.data || data.data.command === "root") {
         return 1;
       }
-      return data.data.stat === d.stat ? 1 : 0.3;
+      return data.data.stat[0] === d.stat ? 1 : 0.3;
     });
   }
 
@@ -594,7 +631,7 @@ function drawHierarchy(json) {
 // for a partition layout. The first column is a sequence of step names, from
 // root to leaf, separated by hyphens. The second column is a count of how
 // often that sequence occurred.
-function buildHierarchy(tsv) {
+async function buildHierarchy(tsv) {
   let root = { command: "root", children: [] };
   let parentNode = root;
   let childNode;
