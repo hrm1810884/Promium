@@ -17,24 +17,6 @@ const COLORS = d3.scaleOrdinal(d3.schemeCategory10);
 // Total size of all segments; we set this later, after loading the data.
 let totalSize = 0;
 
-const vis = d3
-  .select("#chart")
-  .append("svg:svg")
-  .attr("width", WIDTH)
-  .attr("height", HEIGHT)
-  .append("svg:g")
-  .attr("id", "container")
-  .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")");
-
-const partition = d3.partition().size([2 * Math.PI, RADIUS * RADIUS]);
-
-const arc = d3
-  .arc()
-  .startAngle((d) => d.x0)
-  .endAngle((d) => d.x1)
-  .innerRadius((d) => Math.sqrt(d.y0))
-  .outerRadius((d) => Math.sqrt(d.y1));
-
 d3.tsv("./data/process_data.tsv").then(function (text) {
   createVisualization(text);
 });
@@ -43,45 +25,163 @@ d3.tsv("./data/process_data.tsv").then(function (text) {
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
 
-  // Basic setup of page elements.
-  initializeBreadcrumbTrail();
-  drawLegend(tsv);
-  d3.select("#togglelegend").on("click", toggleLegend);
+  drawChart(json);
   drawHierarchy(json);
 
-  // Bounding circle underneath the sunburst, to make it easier to detect
-  // when the mouse leaves the parent g.
-  vis.append("svg:circle").attr("r", RADIUS).style("opacity", 0);
+  function drawChart(json) {
+    const root = d3
+      .hierarchy(json)
+      .sum((d) => d.cpu)
+      .sort((a, b) => b.value - a.value);
+    const transform = d3.zoomIdentity;
+    let node;
+    let link;
+    let index = 0;
+    const svg = d3
+      .select("#chart")
+      .append("svg:svg")
+      .call(
+        d3
+          .zoom()
+          .scaleExtent([1 / 2, 8])
+          .on("zoom", zoomed)
+      )
+      .append("g")
+      .attr("transform", `translate(${WIDTH / 2}, ${HEIGHT / 2})`);
 
-  // Turn the data into a d3 hierarchy and calculate the sums.
-  const root = d3
-    .hierarchy(json)
-    .sum((d) => d.cpu)
-    .sort((a, b) => b.value - a.value);
+    const simulation = d3
+      .forceSimulation()
+      .force(
+        "link",
+        d3.forceLink().id((d) => d.id)
+      )
+      .force("charge", d3.forceManyBody().strength(-15).distanceMax(300))
+      .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 4))
+      .on("tick", ticked);
 
-  // For efficiency, filter nodes to keep only those large enough to see.
-  const nodes = partition(root)
-    .descendants()
-    .filter((d) => d.x1 - d.x0 > 0.005);
+    update();
 
-  const path = vis
-    .data([json])
-    .selectAll("path")
-    .data(nodes)
-    .enter()
-    .append("svg:path")
-    .attr("display", (d) => (d.depth ? null : "none"))
-    .attr("d", arc)
-    .attr("fill-rule", "evenodd")
-    .style("fill", (d) => COLORS(d.data.command))
-    .style("opacity", 1)
-    .on("mouseover", mouseoverSunburst);
+    function update() {
+      const nodes = flatten(root);
+      const links = root.links();
 
-  // Add the mouseleave handler to the bounding circle.
-  d3.select("#container").on("mouseleave", mouseleaveSunburst);
+      link = svg.selectAll(".link").data(links, (d) => d.target.id);
+      link.exit().remove();
 
-  // Get total size of the tree = value of root node from partition.
-  totalSize = path.datum().value;
+      const linkEnter = link
+        .enter()
+        .append("line")
+        .attr("class", "link")
+        .style("stroke", "#000")
+        .style("opacity", "0.2")
+        .style("stroke-width", 2);
+
+      link = linkEnter.merge(link);
+
+      node = svg.selectAll(".node").data(nodes, (d) => d.id);
+      node.exit().remove();
+
+      const nodeEnter = node
+        .enter()
+        .append("g")
+        .attr("class", "node")
+        .attr("stroke", "#666")
+        .attr("stroke-width", 2)
+        .style("fill", color)
+        .style("opacity", 1)
+        .on("click", clicked)
+        .call(
+          d3
+            .drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended)
+        );
+
+      nodeEnter
+        .append("circle")
+        .attr("r", (d) => Math.sqrt(d.data.cpu) * 10 || 4)
+        .style("text-anchor", (d) => (d.children ? "end" : "start"))
+        .text((d) => d.data.command);
+
+      node = nodeEnter.merge(node);
+      simulation.nodes(nodes);
+      simulation.force("link").links(links);
+    }
+
+    function color(d) {
+      return d._children
+        ? "#51A1DC" // collapsed package
+        : d.children
+        ? "#51A1DC" // expanded package
+        : "#F94B4C"; // leaf node
+    }
+
+    function ticked() {
+      link
+        .attr("x1", (d) => d.source.x)
+        .attr("y1", (d) => d.source.y)
+        .attr("x2", (d) => d.target.x)
+        .attr("y2", (d) => d.target.y);
+
+      node.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+    }
+
+    function clicked(event, d) {
+      if (!event.defaultPrevented) {
+        if (d.children) {
+          d._children = d.children;
+          d.children = null;
+        } else {
+          d.children = d._children;
+          d._children = null;
+        }
+        update();
+      }
+    }
+
+    function dragstarted(event, d) {
+      if (!event.active) {
+        simulation.alphaTarget(0.3).restart();
+      }
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+      if (!event.active) {
+        simulation.alphaTarget(0);
+      }
+      d.fx = null;
+      d.fy = null;
+    }
+
+    function flatten(root) {
+      const nodes = [];
+      function recurse(node) {
+        if (node.children) {
+          node.children.forEach(recurse);
+        }
+        if (!node.id) {
+          node.id = ++index;
+        } else {
+          ++index;
+        }
+        nodes.push(node);
+      }
+      recurse(root);
+      return nodes;
+    }
+
+    function zoomed(event) {
+      svg.attr("transform", event.transform);
+    }
+  }
 
   function toggleLegend() {
     const legend = d3.select("#legend");
@@ -90,52 +190,6 @@ function createVisualization(tsv) {
     } else {
       legend.style("visibility", "hidden");
     }
-  }
-
-  // Fade all but the current sequence, and show it in the breadcrumb trail.
-  function mouseoverSunburst(event, d) {
-    const percentage = ((100 * d.value) / totalSize).toPrecision(3);
-    const percentageString = percentage + "%";
-    if (percentage < 0.1) {
-      percentageString = "< 0.1%";
-    }
-
-    d3.select("#percentage").text(percentageString);
-
-    d3.select("#explanation").style("visibility", "");
-
-    let sequenceArray = d.ancestors().reverse();
-    sequenceArray.shift(); // remove root node from the array
-    updateBreadcrumbs(sequenceArray, percentageString);
-
-    // Fade all the segments.
-    d3.selectAll("path").style("opacity", 0.3);
-
-    // Then highlight only those that are an ancestor of the current segment.
-    vis
-      .selectAll("path")
-      .filter((node) => sequenceArray.indexOf(node) >= 0)
-      .style("opacity", 1);
-  }
-
-  // Restore everything to full opacity when moving off the visualization.
-  function mouseleaveSunburst(d) {
-    // Hide the breadcrumb trail
-    d3.select("#trail").style("visibility", "hidden");
-
-    // Deactivate all segments during transition.
-    d3.selectAll("path").on("mouseover", null);
-
-    // Transition each segment to full opacity and then reactivate it.
-    d3.selectAll("path")
-      .transition()
-      .duration(1000)
-      .style("opacity", 1)
-      .on("end", function () {
-        d3.select(this).on("mouseover", mouseoverSunburst);
-      });
-
-    d3.select("#explanation").style("visibility", "hidden");
   }
 }
 

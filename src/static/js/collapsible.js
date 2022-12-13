@@ -88,10 +88,6 @@ function createVisualization(tsv) {
     simulation.force("link").links(links);
   }
 
-  function sizeContain(num) {
-    return Math.max(num, 1);
-  }
-
   function color(d) {
     return d._children
       ? "#51A1DC" // collapsed package
