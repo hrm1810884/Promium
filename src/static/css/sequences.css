@@ -98,8 +98,8 @@ body {
 
 .chart text,
 .legend text {
-  font-weight: 600;
-  fill: var(--header-height);
+  font-weight: 400;
+  fill: var(--color-font-normal);
 }
 
 .chart {

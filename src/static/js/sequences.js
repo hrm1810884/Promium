@@ -21,7 +21,7 @@ d3.tsv("./data/process_data.tsv").then(function (text) {
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
 
-  let statusArray = drawLegend(tsv);
+  drawLegend(tsv);
 
   drawChart(json);
   drawHierarchy(json);
@@ -42,6 +42,20 @@ function drawChart(json) {
     .sum((d) => d.cpu)
     .sort((a, b) => b.value - a.value);
   const transform = d3.zoomIdentity;
+
+  const countChildren = (hierarchy) =>
+    hierarchy.eachAfter((node) => {
+      let sum = 1;
+      if (node.children) {
+        const children = node.children;
+        for (const child of children) {
+          sum += child.value;
+        }
+      }
+      node.value = sum;
+    });
+
+  countChildren(root);
 
   let node;
   let link;
@@ -65,7 +79,17 @@ function drawChart(json) {
       "link",
       d3.forceLink().id((d) => d.id)
     )
-    .force("charge", d3.forceManyBody().strength(-15).distanceMax(300))
+    .force(
+      "collide",
+      d3.forceCollide().radius((d) => d.r)
+    )
+    .force(
+      "charge",
+      d3
+        .forceManyBody()
+        .strength((d) => Math.min(-5 * d.value, -30))
+        .distanceMax(200)
+    )
     .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 6))
     .on("tick", ticked);
 
@@ -98,7 +122,7 @@ function drawChart(json) {
       .attr("stroke", "#666")
       .attr("stroke-width", 0)
       .style("fill", color)
-      .style("opacity", 0.5)
+      .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
       .on("click", clicked)
       .call(
         d3
@@ -106,11 +130,16 @@ function drawChart(json) {
           .on("start", dragstarted)
           .on("drag", dragged)
           .on("end", dragended)
-      );
+      )
+      .sort((a, b) => {
+        return b.depth - a.depth;
+      });
 
     nodeEnter
       .append("circle")
-      .attr("r", (d) => Math.sqrt(d.data.cpu) * 15 || 5)
+      .attr("r", (d) => {
+        return d.data.command === "root" ? 50 : Math.sqrt(d.data.cpu) * 15 || 5;
+      })
       .style("text-anchor", (d) => (d.children ? "end" : "start"))
       .text((d) => d.data.command);
 
@@ -119,28 +148,10 @@ function drawChart(json) {
     simulation.force("link").links(links);
   }
 
-  function mouseleaveSunburst() {
-    d3.select("#trail").style("visibility", "hidden");
-    d3.select("#explanation").style("visibility", "hidden");
-
-    const clickedButtonExist = statusArray.some((d) => d.buttonClicked);
-    if (!clickedButtonExist) {
-      // ボタンがすべてoffなら通常表示に戻る
-      d3.selectAll("path").style("opacity", 1);
-      return;
-    }
-
-    const clickedStatus = statusArray.find((d) => d.buttonClicked).stat;
-    // onになっているボタンがあれば、ハイライト表示に戻る
-    d3.selectAll("path").style("opacity", (data) => {
-      if (!data.data || data.data.command === "root") {
-        return 1;
-      }
-      return data.data.stat[0] === clickedStatus ? 1 : 0.3;
-    });
-  }
-
   function color(d) {
+    if (d.data.command === "root") {
+      return "rga(5, 5, 5)";
+    }
     if (d._children) {
       return "#ccc";
     }
