@@ -290,23 +290,18 @@ function drawLegend(tsv) {
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
     .text((d) => {
-      if (d.stat === "R") {
-        return "runnable";
-      } else if (d.stat === "D") {
-        return "uninterruptible sleep";
-      } else if (d.stat === "T") {
-        return "stopped";
-      } else if (d.stat === "S") {
-        return "interruptible sleep";
-      } else if (d.stat === "Z") {
-        return "zombie";
-      } else if (d.stat === "I") {
-        return "process generating";
-      } else if (d.stat === "O") {
-        return "running";
-      } else {
-        return "unknown";
-      }
+      const statusAbbreviations = {
+        R: "runnable",
+        D: "ninterruptible sleep",
+        T: "stopped",
+        S: "interruptible sleep",
+        Z: "zombie",
+        I: "process generating",
+        O: "running",
+      };
+      return d.stat in statusAbbreviations
+        ? statusAbbreviations[d.stat]
+        : "unknown";
     });
 
   g.on("click", clickLegend);
