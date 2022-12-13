@@ -24,9 +24,10 @@
 
 - gitの扱いについてtakepにご教授頂いた。branchの仕組みについてある程度理解し、作業用branch(create_test_data)を作成した。
 - データ作成用に1個の親プロセスから大量の子プロセスを生成するプログラムを作成([manychild.py](https://github.com/InfovisHandsOn/B-Tohoken/commit/8342cc4b3509e59fde55f0bf4dfe7a6d44a94a90))
-- sunburstについて
-  - legendボタンにmouseoverするとデータをハイライト表示する機能を追加
-  - legendボタンをプロセスの状態に対応させた
+- sunburstのLegendボタンについて
+  - mouseoverするとデータをハイライト表示する機能を追加([コミット](https://github.com/InfovisHandsOn/B-Tohoken/commit/7d0b474728818a57a5879f0148641cdea893e181))
+  - プロセスの状態に対応させた([コミット](https://github.com/InfovisHandsOn/B-Tohoken/commit/aede949629d1c0240d2291b297503cccf15f9682))
+  - 各項目をわかりやすく変更([コミット](https://github.com/InfovisHandsOn/B-Tohoken/commit/ccc71b45be58f5a79224d715cb029e0d616244b7))
 
 ### takep
 

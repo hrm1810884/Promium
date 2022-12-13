@@ -25,6 +25,10 @@ d3.tsv("./data/process_data.tsv").then(function (text) {
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
 
+  // Basic setup of page elements.
+  initializeBreadcrumbTrail();
+  let statusArray = drawLegend(tsv);
+
   drawChart(json);
   drawHierarchy(json);
   d3.select("#togglelegend").on("click", () => {
@@ -119,6 +123,28 @@ function drawChart(json) {
     simulation.nodes(nodes);
     simulation.force("link").links(links);
   }
+  
+  // Restore everything to full opacity when moving off the visualization.
+  function mouseleaveSunburst() {
+    // Hide the breadcrumb trail
+    d3.select("#trail").style("visibility", "hidden");
+    d3.select("#explanation").style("visibility", "hidden");
+
+    const clickedButtonExist = statusArray.some((d) => d.buttonClicked);
+    if (!clickedButtonExist) {
+      // ボタンがすべてoffなら通常表示に戻る
+      d3.selectAll("path").style("opacity", 1);
+      return;
+    }
+
+    const clickedStatus = statusArray.find((d) => d.buttonClicked).stat;
+    // onになっているボタンがあれば、ハイライト表示に戻る
+    d3.selectAll("path").style("opacity", (data) => {
+      if (!data.data || data.data.command === "root") {
+        return 1;
+      }
+      return data.data.stat[0] === clickedStatus ? 1 : 0.3;
+    });
 
   function color(d) {
     return d._children
@@ -206,9 +232,14 @@ function drawLegend(tsv) {
   let statusId = 0;
   let statusDict = [];
   tsv.forEach((d) => {
-    if (statusDict.map((status) => status.stat).indexOf(d.STAT) === -1) {
-      statusDict.push({ stat: d.STAT, id: statusId });
-      statusId++;
+    const statLegend = d.STAT[0];
+    if (statusDict.map((status) => status.stat).indexOf(statLegend) === -1) {
+      statusDict.push({
+        stat: statLegend,
+        id: statusIndex,
+        buttonClicked: false,
+      });
+      statusIndex++;
     }
   });
 
@@ -250,29 +281,51 @@ function drawLegend(tsv) {
     .attr("y", DIM_LEGEND.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text((d) => d.stat);
-
-  g.on("mouseover", mouseoverLegend).on("mouseleave", mouseleaveLegend);
-
-  function mouseoverLegend(event, d) {
-    // mouseoverしたボタンを濃くする
-    d3.selectAll(".rect_" + d.id).style("opacity", 1);
-
-    // mouseoverした名前のデータをハイライト表示する
-    d3.selectAll("path").style("opacity", (data) => {
-      if (!data.data || data.data.command === "root") {
-        return 1;
-      }
-      return data.data.stat === d.stat ? 1 : 0.3;
+    .text((d) => {
+      const statusAbbreviations = {
+        R: "runnable",
+        D: "uninterruptible sleep",
+        T: "stopped",
+        S: "interruptible sleep",
+        Z: "zombie",
+        I: "process generating",
+        O: "running",
+      };
+      return d.stat in statusAbbreviations
+        ? statusAbbreviations[d.stat]
+        : "unknown";
     });
-  }
 
-  function mouseleaveLegend(event, d) {
-    // ボタンの色を薄く戻す
-    d3.selectAll("rect").style("opacity", 0.5);
+  g.on("click", clickLegend);
 
-    // ハイライト表示を戻す
-    d3.selectAll("path").style("opacity", 1);
+  // ボタンの情報を返す
+  return statusDict;
+
+  function clickLegend(event, d) {
+    if (d.buttonClicked) {
+      // ボタンが既に押されている時，ボタンをoffにし色を薄くする
+      d.buttonClicked = false;
+      d3.selectAll(".rect_" + d.id).style("opacity", 0.5);
+      d3.selectAll("path").style("opacity", 1);
+    } else {
+      // ボタンがまだ押されていない時，他のボタンをoffにし、一旦すべてのボタンの色を薄くする
+      statusDict.forEach((data) => {
+        data.buttonClicked = false;
+      });
+      d3.selectAll("rect").style("opacity", 0.5);
+
+      // ボタンをonにし色を濃くする
+      d.buttonClicked = true;
+      d3.selectAll(".rect_" + d.id).style("opacity", 1);
+
+      // 選択されたstatusのデータをハイライト表示する
+      d3.selectAll("path").style("opacity", (data) => {
+        if (!data.data || data.data.command === "root") {
+          return 1;
+        }
+        return data.data.stat[0] === d.stat ? 1 : 0.3;
+      });
+    }
   }
 }
 
