@@ -1,0 +1,19 @@
+body {
+    background-color: #E6E6E6;
+  }
+  
+  svg {
+    width: 100vw;
+    height: 100vh;
+  }
+  
+  .node {
+    pointer-events: all;
+    cursor: pointer;
+    z-index: 1000;
+  }
+  
+  .node text {
+    font: 8px sans-serif;
+  }
+  
