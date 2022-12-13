@@ -14,18 +14,13 @@ const statusInfomation = {
   U: { full: "unknown", color: "#777" },
 };
 
-// Total size of all segments; we set this later, after loading the data.
-let totalSize = 0;
-
 d3.tsv("./data/process_data.tsv").then(function (text) {
   createVisualization(text);
 });
 
-// Main function to draw and set up the visualization, once we have the data.
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
 
-  // Basic setup of page elements.
   let statusArray = drawLegend(tsv);
 
   drawChart(json);
@@ -124,9 +119,7 @@ function drawChart(json) {
     simulation.force("link").links(links);
   }
 
-  // Restore everything to full opacity when moving off the visualization.
   function mouseleaveSunburst() {
-    // Hide the breadcrumb trail
     d3.select("#trail").style("visibility", "hidden");
     d3.select("#explanation").style("visibility", "hidden");
 
@@ -228,7 +221,6 @@ function drawChart(json) {
 }
 
 function drawLegend(tsv) {
-  // Dimensions of legend item: width, height, spacing, radius of rounded rect.
   const DIM_LEGEND = {
     width: 250,
     height: 30,
@@ -560,10 +552,6 @@ function drawHierarchy(json) {
   }
 }
 
-// Take a 2-column tsv and transform it into a hierarchical structure suitable
-// for a partition layout. The first column is a sequence of step names, from
-// root to leaf, separated by hyphens. The second column is a count of how
-// often that sequence occurred.
 function buildHierarchy(tsv) {
   let root = { command: "root", children: [] };
   let parentNode = root;
