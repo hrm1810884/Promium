@@ -522,7 +522,8 @@ function drawHierarchy(json) {
       .append("text")
       .text((d) => d.data.command)
       .attr("transform", `translate(5, 15)`)
-      .attr("stroke", "ghostwhite");
+      .attr("fill", "ghostwhite")
+      .attr("stroke", "none");
 
     const nodeUpdate = nodeEnter.merge(node);
     nodeUpdate
@@ -531,7 +532,7 @@ function drawHierarchy(json) {
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     nodeUpdate
       .select("rect")
-      .style("fill", (d) => (d._children ? "lightsteelblue" : "#222"));
+      .style("fill", (d) => (d._children ? "#111188" : "#222"));
     nodeEnter.select("text").style("fill-opacity", 1);
 
     const nodeExit = node
