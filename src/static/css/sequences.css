@@ -1,56 +1,70 @@
+* {
+  margin: 0px;
+  padding: 0px;
+}
+
 body {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Avenir", "Open Sans", sans-serif;
   font-size: 12px;
-  font-weight: 400;
-  background-color: #fff;
-  width: 960px;
+  font-weight: normal;
+  background-color: #222;
+  color: ghostwhite;
+  width: 1200px;
   height: 700px;
-  margin-top: 10px;
 }
 
-#main {
+.container {
   float: left;
-  width: 750px;
+  width: 1200px;
+  display: flex;
+  flex-direction: row;
 }
 
-#sidebar {
+.header {
+  position: fixed;
+  width: 100%;
+  height: 45px;
+  background-color: ghostwhite;
+  color: #222;
+}
+
+.header h1 {
+  font-family: "Palatino", "Times New Roman", Times, serif;
+}
+
+.main {
+  flex-grow: 1;
+  display: flex;
+  margin-top: 45px;
+  padding: 10px;
+}
+
+.content {
+  float: left;
+  width: 1000px;
+  flex-direction: column;
+}
+
+.sidebar {
   float: right;
   width: 200px;
+  flex-grow: 1;
 }
 
-#sequence {
-  width: 600px;
-  height: 70px;
-}
-
-#legend {
+.legend {
   padding: 10px 0 0 3px;
 }
 
-#sequence text,
-#legend text {
+.chart text,
+.legend text {
   font-weight: 600;
   fill: #fff;
 }
 
-#chart {
+.chart {
   position: relative;
 }
 
-#chart path {
+.chart path {
   stroke: #fff;
-}
-
-#explanation {
-  position: absolute;
-  top: 260px;
-  left: 305px;
-  width: 140px;
-  text-align: center;
-  color: #666;
-  z-index: -1;
-}
-
-#percentage {
-  font-size: 2.5em;
 }

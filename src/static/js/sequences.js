@@ -541,7 +541,7 @@ function drawHierarchy(json) {
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     nodeUpdate
       .select("rect")
-      .style("fill", (d) => (d._children ? "lightsteelblue" : "#333"));
+      .style("fill", (d) => (d._children ? "lightsteelblue" : "#222"));
     nodeEnter.select("text").style("fill-opacity", 1);
 
     const nodeExit = node
