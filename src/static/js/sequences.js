@@ -1,6 +1,6 @@
 // Dimensions of sunburst.
-const WIDTH = 750;
-const HEIGHT = 600;
+const WIDTH = 1000;
+const HEIGHT = 2000;
 const RADIUS = Math.min(WIDTH, HEIGHT) / 2;
 
 // Breadcrumb dimensions: width, height, spacing, width of tip/tail.
@@ -50,17 +50,15 @@ function drawChart(json) {
   const svg = d3
     .select("#chart")
     .append("svg:svg")
-    .attr("width","750px")
-    .attr("height","750px")
+    .attr("width", WIDTH)
+    .attr("height", HEIGHT)
     .call(
       d3
         .zoom()
         .scaleExtent([1 / 2, 8])
         .on("zoom", zoomed)
     )
-    .append("g")
-    // .attr("transform", `translate(${WIDTH / 2}, ${HEIGHT / 2})`);
-    .attr("transform", "translate(100,0)");
+    .append("g");
 
   const simulation = d3
     .forceSimulation()
@@ -69,7 +67,7 @@ function drawChart(json) {
       d3.forceLink().id((d) => d.id)
     )
     .force("charge", d3.forceManyBody().strength(-15).distanceMax(300))
-    .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 4))
+    .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 6))
     .on("tick", ticked);
 
   update();
