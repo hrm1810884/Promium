@@ -3,6 +3,17 @@ const WIDTH = 1000;
 const HEIGHT = 2000;
 const RADIUS = Math.min(WIDTH, HEIGHT) / 2;
 
+const statusInfomation = {
+  R: { full: "runnable", color: "#1A85F1" },
+  D: { full: "uninterruptible sleep", color: "#F26523" },
+  T: { full: "stopped", color: "#ED1C24" },
+  S: { full: "interruptible sleep", color: "#FBF267" },
+  Z: { full: "zombie", color: "#7053CC" },
+  I: { full: "process generating", color: "#38B349" },
+  O: { full: "running", color: "#0218FF" },
+  U: { full: "unknown", color: "#777" },
+};
+
 // Total size of all segments; we set this later, after loading the data.
 let totalSize = 0;
 
@@ -90,9 +101,9 @@ function drawChart(json) {
       .append("g")
       .attr("class", "node")
       .attr("stroke", "#666")
-      .attr("stroke-width", 2)
+      .attr("stroke-width", 0)
       .style("fill", color)
-      .style("opacity", 1)
+      .style("opacity", 0.5)
       .on("click", clicked)
       .call(
         d3
@@ -104,7 +115,7 @@ function drawChart(json) {
 
     nodeEnter
       .append("circle")
-      .attr("r", (d) => Math.sqrt(d.data.cpu) * 10 || 4)
+      .attr("r", (d) => Math.sqrt(d.data.cpu) * 15 || 5)
       .style("text-anchor", (d) => (d.children ? "end" : "start"))
       .text((d) => d.data.command);
 
@@ -137,11 +148,17 @@ function drawChart(json) {
   }
 
   function color(d) {
-    return d._children
-      ? "#111188" // collapsed package
-      : d.children
-      ? "#111188" // expanded package
-      : "#770000"; // leaf node
+    if (d._children) {
+      return "ghostwhite";
+    }
+    if (d.children) {
+      return "ghostwhite";
+    }
+    if ("stat" in d.data) {
+      return statusInfomation[d.data.stat[0]].color;
+    } else {
+      return statusInfomation.U.color;
+    }
   }
 
   function ticked() {
@@ -213,7 +230,7 @@ function drawChart(json) {
 function drawLegend(tsv) {
   // Dimensions of legend item: width, height, spacing, radius of rounded rect.
   const DIM_LEGEND = {
-    width: 75,
+    width: 250,
     height: 30,
     spacing: 3,
     radius: 3,
@@ -262,7 +279,10 @@ function drawLegend(tsv) {
     .attr("ry", DIM_LEGEND.radius)
     .attr("width", DIM_LEGEND.width)
     .attr("height", DIM_LEGEND.height)
-    .style("fill", "black")
+    .style(
+      "fill",
+      (d) => statusInfomation[d.stat in statusInfomation ? d.stat : "U"].color
+    )
     .style("opacity", 0.5)
     .attr("class", (d) => "rect_" + d.id);
 
@@ -271,20 +291,9 @@ function drawLegend(tsv) {
     .attr("y", DIM_LEGEND.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text((d) => {
-      const statusAbbreviations = {
-        R: "runnable",
-        D: "uninterruptible sleep",
-        T: "stopped",
-        S: "interruptible sleep",
-        Z: "zombie",
-        I: "process generating",
-        O: "running",
-      };
-      return d.stat in statusAbbreviations
-        ? statusAbbreviations[d.stat]
-        : "unknown";
-    });
+    .text(
+      (d) => statusInfomation[d.stat in statusInfomation ? d.stat : "U"].full
+    );
 
   g.on("click", clickLegend);
 
