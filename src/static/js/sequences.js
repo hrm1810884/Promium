@@ -446,7 +446,7 @@ function drawHierarchy(json) {
       .append("path")
       .attr("class", "link")
       .attr("fill", "none")
-      .attr("stroke", "black")
+      .attr("stroke", "ghostwhite")
       .attr("d", (d) =>
         ` M ${source.xPrev}, ${source.yPrev + DIM_RECT.height / 2}
             L ${d.source.x + DIM_LINK.left},
@@ -502,12 +502,12 @@ function drawHierarchy(json) {
       .append("rect")
       .attr("width", DIM_RECT.width)
       .attr("height", DIM_RECT.height)
-      .attr("fill", "#fff")
-      .attr("stroke", "black");
+      .attr("stroke", "ghostwhite");
     nodeEnter
       .append("text")
       .text((d) => d.data.command)
-      .attr("transform", `translate(5, 15)`);
+      .attr("transform", `translate(5, 15)`)
+      .attr("stroke", "ghostwhite");
 
     const nodeUpdate = nodeEnter.merge(node);
     nodeUpdate
@@ -516,7 +516,7 @@ function drawHierarchy(json) {
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     nodeUpdate
       .select("rect")
-      .style("fill", (d) => (d._children ? "lightsteelblue" : "#fff"));
+      .style("fill", (d) => (d._children ? "lightsteelblue" : "#333"));
     nodeEnter.select("text").style("fill-opacity", 1);
 
     const nodeExit = node
