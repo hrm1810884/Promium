@@ -36,15 +36,16 @@ const arc = d3
   .outerRadius((d) => Math.sqrt(d.y1));
 
 d3.tsv("./data/process_data.tsv").then(function (text) {
-  const json = buildHierarchy(text);
-  createVisualization(json);
+  createVisualization(text);
 });
 
 // Main function to draw and set up the visualization, once we have the data.
-function createVisualization(json) {
+function createVisualization(tsv) {
+  const json = buildHierarchy(tsv);
+
   // Basic setup of page elements.
   initializeBreadcrumbTrail();
-  drawLegend();
+  drawLegend(tsv);
   d3.select("#togglelegend").on("click", toggleLegend);
   drawHierarchy(json);
 
@@ -221,7 +222,7 @@ function updateBreadcrumbs(nodeArray, percentageString) {
   d3.select("#trail").style("visibility", "");
 }
 
-function drawLegend() {
+function drawLegend(tsv) {
   // Dimensions of legend item: width, height, spacing, radius of rounded rect.
   const DIM_LEGEND = {
     width: 75,
@@ -230,18 +231,31 @@ function drawLegend() {
     radius: 3,
   };
 
+  let statusId = 0;
+  let statusDict = [];
+  tsv.forEach((d) => {
+    if (statusDict.map((status) => status.stat).indexOf(d.STAT) === -1) {
+      statusDict.push({ stat: d.STAT, id: statusId });
+      statusId++;
+    }
+  });
+
+  const sortedStatus = statusDict
+    .slice()
+    .sort((a, b) => d3.ascending(a.stat, b.stat));
+
   const legend = d3
     .select("#legend")
     .append("svg:svg")
     .attr("width", DIM_LEGEND.width)
     .attr(
       "height",
-      Object.keys(COLORS).length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
+      statusDict.length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
     );
 
   const g = legend
     .selectAll("g")
-    .data(Object.entries(COLORS))
+    .data(sortedStatus)
     .enter()
     .append("svg:g")
     .attr(
@@ -255,27 +269,30 @@ function drawLegend() {
     .attr("ry", DIM_LEGEND.radius)
     .attr("width", DIM_LEGEND.width)
     .attr("height", DIM_LEGEND.height)
-    .style("fill", (d) => d[1])
+    .style("fill", "black")
     .style("opacity", 0.5)
-    .attr("class", (d) => "rect_" + d[0]);
+    .attr("class", (d) => "rect_" + d.id);
 
   g.append("svg:text")
     .attr("x", DIM_LEGEND.width / 2)
     .attr("y", DIM_LEGEND.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text((d) => d[0]);
+    .text((d) => d.stat);
 
   g.on("mouseover", mouseoverLegend).on("mouseleave", mouseleaveLegend);
 
   function mouseoverLegend(event, d) {
     // mouseoverしたボタンを濃くする
-    d3.selectAll(".rect_" + d[0]).style("opacity", 1);
+    d3.selectAll(".rect_" + d.id).style("opacity", 1);
 
     // mouseoverした名前のデータをハイライト表示する
-    d3.selectAll("path").style("opacity", (data) =>
-      data.data.command == d[0] ? 1 : 0.3
-    );
+    d3.selectAll("path").style("opacity", (data) => {
+      if (!data.data || data.data.command === "root") {
+        return 1;
+      }
+      return data.data.stat === d.stat ? 1 : 0.3;
+    });
   }
 
   function mouseleaveLegend(event, d) {
