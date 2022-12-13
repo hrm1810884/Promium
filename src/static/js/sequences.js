@@ -50,6 +50,8 @@ function drawChart(json) {
   const svg = d3
     .select("#chart")
     .append("svg:svg")
+    .attr("width","750px")
+    .attr("height","750px")
     .call(
       d3
         .zoom()
@@ -57,7 +59,8 @@ function drawChart(json) {
         .on("zoom", zoomed)
     )
     .append("g")
-    .attr("transform", `translate(${WIDTH / 2}, ${HEIGHT / 2})`);
+    // .attr("transform", `translate(${WIDTH / 2}, ${HEIGHT / 2})`);
+    .attr("transform", "translate(100,0)");
 
   const simulation = d3
     .forceSimulation()
