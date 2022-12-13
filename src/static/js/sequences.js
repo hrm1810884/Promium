@@ -89,7 +89,7 @@ function drawChart(json) {
       .attr("class", "link")
       .style("stroke", "ghostwhite")
       .style("opacity", "0.2")
-      .style("stroke-width", 2);
+      .style("stroke-width", 3);
 
     link = linkEnter.merge(link);
 
