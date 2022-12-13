@@ -225,18 +225,19 @@ function updateBreadcrumbs(nodeArray, percentageString) {
 function drawLegend(tsv) {
   // Dimensions of legend item: width, height, spacing, radius of rounded rect.
   const DIM_LEGEND = {
-    width: 75,
+    width: 130,
     height: 30,
     spacing: 3,
     radius: 3,
   };
 
-  let statusId = 0;
+  let statusIndex = 0;
   let statusDict = [];
   tsv.forEach((d) => {
-    if (statusDict.map((status) => status.stat).indexOf(d.STAT) === -1) {
-      statusDict.push({ stat: d.STAT, id: statusId });
-      statusId++;
+    const statusLegend = d.STAT[0];
+    if (statusDict.map((status) => status.stat).indexOf(statusLegend) === -1) {
+      statusDict.push({ stat: statusLegend, id: statusIndex });
+      statusIndex++;
     }
   });
 
@@ -278,7 +279,20 @@ function drawLegend(tsv) {
     .attr("y", DIM_LEGEND.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text((d) => d.stat);
+    .text((d) => {
+      const statusAbbreviations = {
+        R: "runnable",
+        D: "ninterruptible sleep",
+        T: "stopped",
+        S: "interruptible sleep",
+        Z: "zombie",
+        I: "process generating",
+        O: "running",
+      };
+      return d.stat in statusAbbreviations
+        ? statusAbbreviations.d.stat
+        : "unknown";
+    });
 
   g.on("mouseover", mouseoverLegend).on("mouseleave", mouseleaveLegend);
 
@@ -291,7 +305,7 @@ function drawLegend(tsv) {
       if (!data.data || data.data.command === "root") {
         return 1;
       }
-      return data.data.stat === d.stat ? 1 : 0.3;
+      return data.data.stat[0] === d.stat ? 1 : 0.3;
     });
   }
 
