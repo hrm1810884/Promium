@@ -3,17 +3,6 @@ const WIDTH = 1000;
 const HEIGHT = 2000;
 const RADIUS = Math.min(WIDTH, HEIGHT) / 2;
 
-// Breadcrumb dimensions: width, height, spacing, width of tip/tail.
-const DIM_BREADCRUMB = {
-  width: 200,
-  height: 30,
-  spacing: 3,
-  tip: 10,
-};
-
-// Mapping of step commands to colors.
-const COLORS = d3.scaleOrdinal(d3.schemeCategory10);
-
 // Total size of all segments; we set this later, after loading the data.
 let totalSize = 0;
 
@@ -30,6 +19,7 @@ function createVisualization(tsv) {
 
   drawChart(json);
   drawHierarchy(json);
+
   d3.select("#togglelegend").on("click", () => {
     const legend = d3.select("#legend");
     if (legend.style("visibility") == "hidden") {
@@ -86,7 +76,7 @@ function drawChart(json) {
       .enter()
       .append("line")
       .attr("class", "link")
-      .style("stroke", "#000")
+      .style("stroke", "ghostwhite")
       .style("opacity", "0.2")
       .style("stroke-width", 2);
 
@@ -148,10 +138,10 @@ function drawChart(json) {
 
   function color(d) {
     return d._children
-      ? "#51A1DC" // collapsed package
+      ? "#111188" // collapsed package
       : d.children
-      ? "#51A1DC" // expanded package
-      : "#F94B4C"; // leaf node
+      ? "#111188" // expanded package
+      : "#770000"; // leaf node
   }
 
   function ticked() {
