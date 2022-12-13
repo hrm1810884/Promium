@@ -25,6 +25,9 @@ d3.tsv("./data/process_data.tsv").then(function (text) {
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
 
+  // Basic setup of page elements.
+  let statusArray = drawLegend(tsv);
+
   drawChart(json);
   drawHierarchy(json);
   d3.select("#togglelegend").on("click", () => {
@@ -120,6 +123,29 @@ function drawChart(json) {
     simulation.force("link").links(links);
   }
 
+  // Restore everything to full opacity when moving off the visualization.
+  function mouseleaveSunburst() {
+    // Hide the breadcrumb trail
+    d3.select("#trail").style("visibility", "hidden");
+    d3.select("#explanation").style("visibility", "hidden");
+
+    const clickedButtonExist = statusArray.some((d) => d.buttonClicked);
+    if (!clickedButtonExist) {
+      // ボタンがすべてoffなら通常表示に戻る
+      d3.selectAll("path").style("opacity", 1);
+      return;
+    }
+
+    const clickedStatus = statusArray.find((d) => d.buttonClicked).stat;
+    // onになっているボタンがあれば、ハイライト表示に戻る
+    d3.selectAll("path").style("opacity", (data) => {
+      if (!data.data || data.data.command === "root") {
+        return 1;
+      }
+      return data.data.stat[0] === clickedStatus ? 1 : 0.3;
+    });
+  }
+
   function color(d) {
     return d._children
       ? "#51A1DC" // collapsed package
@@ -194,89 +220,6 @@ function drawChart(json) {
   }
 }
 
-function initializeBreadcrumbTrail() {
-  // Add the svg area.
-  const trail = d3
-    .select("#sequence")
-    .append("svg:svg")
-    .attr("width", WIDTH)
-    .attr("height", 50)
-    .attr("id", "trail");
-  // Add the label at the end, for the percentage.
-  trail.append("svg:text").attr("id", "endlabel").style("fill", "#000");
-}
-
-// Generate a string that describes the points of a breadcrumb polygon.
-function breadcrumbPoints(d, i) {
-  let points = [];
-  points.push("0,0");
-  points.push(DIM_BREADCRUMB.width + ",0");
-  points.push(
-    DIM_BREADCRUMB.width + DIM_BREADCRUMB.tip + "," + DIM_BREADCRUMB.height / 2
-  );
-  points.push(DIM_BREADCRUMB.width + "," + DIM_BREADCRUMB.height);
-  points.push("0," + DIM_BREADCRUMB.height);
-  if (i > 0) {
-    // Leftmost breadcrumb; don't include 6th vertex.
-    points.push(DIM_BREADCRUMB.tip + "," + DIM_BREADCRUMB.height / 2);
-  }
-  return points.join(" ");
-}
-
-// Update the breadcrumb trail to show the current sequence and percentage.
-function updateBreadcrumbs(nodeArray, percentageString) {
-  // Data join; key function combines name and depth (= position in sequence).
-  let trail = d3
-    .select("#trail")
-    .selectAll("g")
-    .data(nodeArray, (d) => d.data.command + d.depth);
-
-  // Remove exiting nodes.
-  trail.exit().remove();
-
-  // Add breadcrumb and label for entering nodes.
-  let entering = trail.enter().append("svg:g");
-
-  entering
-    .append("svg:polygon")
-    .attr("points", breadcrumbPoints)
-    .style("fill", (d) => COLORS(d.data.command));
-
-  entering
-    .append("svg:text")
-    .attr("x", (DIM_BREADCRUMB.width + DIM_BREADCRUMB.tip) / 2)
-    .attr("y", DIM_BREADCRUMB.height / 2)
-    .attr("dy", "0.35em")
-    .attr("text-anchor", "middle")
-    .text((d) => d.data.command);
-
-  // Merge enter and update selections; set position for all nodes.
-  entering
-    .merge(trail)
-    .attr(
-      "transform",
-      (d, i) =>
-        "translate(" +
-        i * (DIM_BREADCRUMB.width + DIM_BREADCRUMB.spacing) +
-        ", 0)"
-    );
-
-  // Now move and update the percentage at the end.
-  d3.select("#trail")
-    .select("#endlabel")
-    .attr(
-      "x",
-      (nodeArray.length + 0.5) * (DIM_BREADCRUMB.width + DIM_BREADCRUMB.spacing)
-    )
-    .attr("y", DIM_BREADCRUMB.height / 2)
-    .attr("dy", "0.35em")
-    .attr("text-anchor", "middle")
-    .text(percentageString);
-
-  // Make the breadcrumb trail visible, if it's hidden.
-  d3.select("#trail").style("visibility", "");
-}
-
 function drawLegend(tsv) {
   // Dimensions of legend item: width, height, spacing, radius of rounded rect.
   const DIM_LEGEND = {
@@ -286,12 +229,17 @@ function drawLegend(tsv) {
     radius: 3,
   };
 
-  let statusId = 0;
+  let statusIndex = 0;
   let statusDict = [];
   tsv.forEach((d) => {
-    if (statusDict.map((status) => status.stat).indexOf(d.STAT) === -1) {
-      statusDict.push({ stat: d.STAT, id: statusId });
-      statusId++;
+    const statLegend = d.STAT[0];
+    if (statusDict.map((status) => status.stat).indexOf(statLegend) === -1) {
+      statusDict.push({
+        stat: statLegend,
+        id: statusIndex,
+        buttonClicked: false,
+      });
+      statusIndex++;
     }
   });
 
@@ -333,29 +281,51 @@ function drawLegend(tsv) {
     .attr("y", DIM_LEGEND.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text((d) => d.stat);
-
-  g.on("mouseover", mouseoverLegend).on("mouseleave", mouseleaveLegend);
-
-  function mouseoverLegend(event, d) {
-    // mouseoverしたボタンを濃くする
-    d3.selectAll(".rect_" + d.id).style("opacity", 1);
-
-    // mouseoverした名前のデータをハイライト表示する
-    d3.selectAll("path").style("opacity", (data) => {
-      if (!data.data || data.data.command === "root") {
-        return 1;
-      }
-      return data.data.stat === d.stat ? 1 : 0.3;
+    .text((d) => {
+      const statusAbbreviations = {
+        R: "runnable",
+        D: "uninterruptible sleep",
+        T: "stopped",
+        S: "interruptible sleep",
+        Z: "zombie",
+        I: "process generating",
+        O: "running",
+      };
+      return d.stat in statusAbbreviations
+        ? statusAbbreviations[d.stat]
+        : "unknown";
     });
-  }
 
-  function mouseleaveLegend(event, d) {
-    // ボタンの色を薄く戻す
-    d3.selectAll("rect").style("opacity", 0.5);
+  g.on("click", clickLegend);
 
-    // ハイライト表示を戻す
-    d3.selectAll("path").style("opacity", 1);
+  // ボタンの情報を返す
+  return statusDict;
+
+  function clickLegend(event, d) {
+    if (d.buttonClicked) {
+      // ボタンが既に押されている時，ボタンをoffにし色を薄くする
+      d.buttonClicked = false;
+      d3.selectAll(".rect_" + d.id).style("opacity", 0.5);
+      d3.selectAll("path").style("opacity", 1);
+    } else {
+      // ボタンがまだ押されていない時，他のボタンをoffにし、一旦すべてのボタンの色を薄くする
+      statusDict.forEach((data) => {
+        data.buttonClicked = false;
+      });
+      d3.selectAll("rect").style("opacity", 0.5);
+
+      // ボタンをonにし色を濃くする
+      d.buttonClicked = true;
+      d3.selectAll(".rect_" + d.id).style("opacity", 1);
+
+      // 選択されたstatusのデータをハイライト表示する
+      d3.selectAll("path").style("opacity", (data) => {
+        if (!data.data || data.data.command === "root") {
+          return 1;
+        }
+        return data.data.stat[0] === d.stat ? 1 : 0.3;
+      });
+    }
   }
 }
 
