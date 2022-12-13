@@ -3,19 +3,25 @@ const WIDTH = 1000;
 const HEIGHT = 2000;
 const RADIUS = Math.min(WIDTH, HEIGHT) / 2;
 
-// Total size of all segments; we set this later, after loading the data.
-let totalSize = 0;
+const statusInfomation = {
+  R: { full: "runnable", color: "#1A85F1" },
+  D: { full: "uninterruptible sleep", color: "#F26523" },
+  T: { full: "stopped", color: "#ED1C24" },
+  S: { full: "interruptible sleep", color: "#FBF267" },
+  Z: { full: "zombie", color: "#7053CC" },
+  I: { full: "process generating", color: "#38B349" },
+  O: { full: "running", color: "#0218FF" },
+  U: { full: "unknown", color: "#777" },
+};
 
 d3.tsv("./data/process_data.tsv").then(function (text) {
   createVisualization(text);
 });
 
-// Main function to draw and set up the visualization, once we have the data.
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
 
-  // Basic setup of page elements.
-  let statusArray = drawLegend(tsv);
+  drawLegend(tsv);
 
   drawChart(json);
   drawHierarchy(json);
@@ -36,6 +42,20 @@ function drawChart(json) {
     .sum((d) => d.cpu)
     .sort((a, b) => b.value - a.value);
   const transform = d3.zoomIdentity;
+
+  const countChildren = (hierarchy) =>
+    hierarchy.eachAfter((node) => {
+      let sum = 1;
+      if (node.children) {
+        const children = node.children;
+        for (const child of children) {
+          sum += child.value;
+        }
+      }
+      node.value = sum;
+    });
+
+  countChildren(root);
 
   let node;
   let link;
@@ -59,7 +79,17 @@ function drawChart(json) {
       "link",
       d3.forceLink().id((d) => d.id)
     )
-    .force("charge", d3.forceManyBody().strength(-15).distanceMax(300))
+    .force(
+      "collide",
+      d3.forceCollide().radius((d) => d.r)
+    )
+    .force(
+      "charge",
+      d3
+        .forceManyBody()
+        .strength((d) => Math.min(-5 * d.value, -30))
+        .distanceMax(200)
+    )
     .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 6))
     .on("tick", ticked);
 
@@ -76,9 +106,9 @@ function drawChart(json) {
       .enter()
       .append("line")
       .attr("class", "link")
-      .style("stroke", "ghostwhite")
+      .style("stroke", "#ccc")
       .style("opacity", "0.2")
-      .style("stroke-width", 2);
+      .style("stroke-width", 3);
 
     link = linkEnter.merge(link);
 
@@ -90,9 +120,9 @@ function drawChart(json) {
       .append("g")
       .attr("class", "node")
       .attr("stroke", "#666")
-      .attr("stroke-width", 2)
+      .attr("stroke-width", 0)
       .style("fill", color)
-      .style("opacity", 1)
+      .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
       .on("click", clicked)
       .call(
         d3
@@ -100,11 +130,16 @@ function drawChart(json) {
           .on("start", dragstarted)
           .on("drag", dragged)
           .on("end", dragended)
-      );
+      )
+      .sort((a, b) => {
+        return b.depth - a.depth;
+      });
 
     nodeEnter
       .append("circle")
-      .attr("r", (d) => Math.sqrt(d.data.cpu) * 10 || 4)
+      .attr("r", (d) => {
+        return d.data.command === "root" ? 50 : Math.sqrt(d.data.cpu) * 15 || 5;
+      })
       .style("text-anchor", (d) => (d.children ? "end" : "start"))
       .text((d) => d.data.command);
 
@@ -113,35 +148,21 @@ function drawChart(json) {
     simulation.force("link").links(links);
   }
 
-  // Restore everything to full opacity when moving off the visualization.
-  function mouseleaveSunburst() {
-    // Hide the breadcrumb trail
-    d3.select("#trail").style("visibility", "hidden");
-    d3.select("#explanation").style("visibility", "hidden");
-
-    const clickedButtonExist = statusArray.some((d) => d.buttonClicked);
-    if (!clickedButtonExist) {
-      // ボタンがすべてoffなら通常表示に戻る
-      d3.selectAll("path").style("opacity", 1);
-      return;
-    }
-
-    const clickedStatus = statusArray.find((d) => d.buttonClicked).stat;
-    // onになっているボタンがあれば、ハイライト表示に戻る
-    d3.selectAll("path").style("opacity", (data) => {
-      if (!data.data || data.data.command === "root") {
-        return 1;
-      }
-      return data.data.stat[0] === clickedStatus ? 1 : 0.3;
-    });
-  }
-
   function color(d) {
-    return d._children
-      ? "#111188" // collapsed package
-      : d.children
-      ? "#111188" // expanded package
-      : "#770000"; // leaf node
+    if (d.data.command === "root") {
+      return "rga(5, 5, 5)";
+    }
+    if (d._children) {
+      return "#ccc";
+    }
+    if (d.children) {
+      return "#ccc";
+    }
+    if ("stat" in d.data) {
+      return statusInfomation[d.data.stat[0]].color;
+    } else {
+      return statusInfomation.U.color;
+    }
   }
 
   function ticked() {
@@ -211,9 +232,8 @@ function drawChart(json) {
 }
 
 function drawLegend(tsv) {
-  // Dimensions of legend item: width, height, spacing, radius of rounded rect.
   const DIM_LEGEND = {
-    width: 75,
+    width: 250,
     height: 30,
     spacing: 3,
     radius: 3,
@@ -262,7 +282,10 @@ function drawLegend(tsv) {
     .attr("ry", DIM_LEGEND.radius)
     .attr("width", DIM_LEGEND.width)
     .attr("height", DIM_LEGEND.height)
-    .style("fill", "black")
+    .style(
+      "fill",
+      (d) => statusInfomation[d.stat in statusInfomation ? d.stat : "U"].color
+    )
     .style("opacity", 0.5)
     .attr("class", (d) => "rect_" + d.id);
 
@@ -271,20 +294,9 @@ function drawLegend(tsv) {
     .attr("y", DIM_LEGEND.height / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
-    .text((d) => {
-      const statusAbbreviations = {
-        R: "runnable",
-        D: "uninterruptible sleep",
-        T: "stopped",
-        S: "interruptible sleep",
-        Z: "zombie",
-        I: "process generating",
-        O: "running",
-      };
-      return d.stat in statusAbbreviations
-        ? statusAbbreviations[d.stat]
-        : "unknown";
-    });
+    .text(
+      (d) => statusInfomation[d.stat in statusInfomation ? d.stat : "U"].full
+    );
 
   g.on("click", clickLegend);
 
@@ -461,7 +473,7 @@ function drawHierarchy(json) {
       .append("path")
       .attr("class", "link")
       .attr("fill", "none")
-      .attr("stroke", "ghostwhite")
+      .attr("stroke", "#ccc")
       .attr("d", (d) =>
         ` M ${source.xPrev}, ${source.yPrev + DIM_RECT.height / 2}
             L ${d.source.x + DIM_LINK.left},
@@ -517,12 +529,12 @@ function drawHierarchy(json) {
       .append("rect")
       .attr("width", DIM_RECT.width)
       .attr("height", DIM_RECT.height)
-      .attr("stroke", "ghostwhite");
+      .attr("stroke", "#ccc");
     nodeEnter
       .append("text")
       .text((d) => d.data.command)
       .attr("transform", `translate(5, 15)`)
-      .attr("fill", "ghostwhite")
+      .attr("fill", "#ccc")
       .attr("stroke", "none");
 
     const nodeUpdate = nodeEnter.merge(node);
@@ -532,7 +544,7 @@ function drawHierarchy(json) {
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     nodeUpdate
       .select("rect")
-      .style("fill", (d) => (d._children ? "#111188" : "#222"));
+      .style("fill", (d) => (d._children ? "#444" : "#222"));
     nodeEnter.select("text").style("fill-opacity", 1);
 
     const nodeExit = node
@@ -551,10 +563,6 @@ function drawHierarchy(json) {
   }
 }
 
-// Take a 2-column tsv and transform it into a hierarchical structure suitable
-// for a partition layout. The first column is a sequence of step names, from
-// root to leaf, separated by hyphens. The second column is a count of how
-// often that sequence occurred.
 function buildHierarchy(tsv) {
   let root = { command: "root", children: [] };
   let parentNode = root;
