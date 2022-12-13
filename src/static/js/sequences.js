@@ -533,7 +533,7 @@ function drawHierarchy(json) {
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     nodeUpdate
       .select("rect")
-      .style("fill", (d) => (d._children ? "#111188" : "#222"));
+      .style("fill", (d) => (d._children ? "#444" : "#222"));
     nodeEnter.select("text").style("fill-opacity", 1);
 
     const nodeExit = node

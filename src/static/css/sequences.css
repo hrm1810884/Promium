@@ -3,14 +3,22 @@
   padding: 0px;
 }
 
+:root {
+  --color-bachground: #222;
+  --color-accent: #336601;
+  --color-font-normal: #ccc;
+  --color-font-accent: #54951f;
+}
+
 body {
   font-family: "Avenir", "Open Sans", sans-serif;
   font-size: 20px;
   font-weight: normal;
-  background-color: #222;
-  color: #ccc;
+  background-color: var(--color-bachground);
+  color: var(--color-font-normal);
   width: 1200px;
   height: 700px;
+  --header-height: 75px;
 }
 
 .container {
@@ -23,9 +31,9 @@ body {
 .header {
   position: fixed;
   width: 100%;
-  height: 75px;
+  height: var(--header-height);
   background-color: rgba(0, 0, 0, 0.4);
-  color: #ccc;
+  color: var(--color-font-normal);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -59,7 +67,7 @@ body {
 .main {
   flex-grow: 1;
   display: flex;
-  margin-top: 75px;
+  margin-top: var(--header-height);
   padding: 10px;
 }
 
@@ -71,7 +79,7 @@ body {
 
 .sidebar {
   float: right;
-  width: 200px;
+  width: 400px;
   flex-grow: 1;
 }
 
@@ -79,15 +87,19 @@ body {
   padding: 10px 0 0 3px;
 }
 
+.sidebar input[type="checkbox"] {
+  accent-color: var(--color-accent);
+}
+
 .sidebar .hierarchy {
   font-family: Courier, monospace;
-  color: #ccc;
+  color: var(--color-font-normal);
 }
 
 .chart text,
 .legend text {
   font-weight: 600;
-  fill: #ccc;
+  fill: var(--header-height);
 }
 
 .chart {
