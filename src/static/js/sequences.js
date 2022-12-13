@@ -45,7 +45,7 @@ function createVisualization(tsv) {
 
   // Basic setup of page elements.
   initializeBreadcrumbTrail();
-  let status = drawLegend(tsv);
+  let statusArray = drawLegend(tsv);
   d3.select("#togglelegend").on("click", toggleLegend);
   drawHierarchy(json);
 
@@ -122,30 +122,23 @@ function createVisualization(tsv) {
   function mouseleaveSunburst() {
     // Hide the breadcrumb trail
     d3.select("#trail").style("visibility", "hidden");
-
-    // onになっているボタンがないか探す
-    let onStat = "none";
-    status.forEach((d) => {
-      if (d.button == "on") {
-        onStat = d.stat;
-      }
-    })
-
-    // ボタンがすべてoffなら通常表示に戻る
-    if (onStat == "none") {
-      d3.selectAll("path").style("opacity", 1);
-    }
-    // onになっているボタンがあれば、ハイライト表示に戻る
-    else {
-      d3.selectAll("path").style("opacity", (data) => {
-        if (!data.data || data.data.command === "root") {
-          return 1;
-        }
-        return data.data.stat[0] === onStat ? 1 : 0.3;
-      });
-    }
-
     d3.select("#explanation").style("visibility", "hidden");
+
+    const clickedButtonExist = statusArray.some((d) => d.buttonClicked);
+    if (!clickedButtonExist) {
+      // ボタンがすべてoffなら通常表示に戻る
+      d3.selectAll("path").style("opacity", 1);
+      return;
+    }
+
+    const clickedStatus = statusArray.find((d) => d.buttonClicked).stat;
+    // onになっているボタンがあれば、ハイライト表示に戻る
+    d3.selectAll("path").style("opacity", (data) => {
+      if (!data.data || data.data.command === "root") {
+        return 1;
+      }
+      return data.data.stat[0] === clickedStatus ? 1 : 0.3;
+    });
   }
 }
 
@@ -241,13 +234,17 @@ function drawLegend(tsv) {
     radius: 3,
   };
 
-  let statusId = 0;
+  let statusIndex = 0;
   let statusDict = [];
   tsv.forEach((d) => {
-    let statLegend = d.STAT[0];
+    const statLegend = d.STAT[0];
     if (statusDict.map((status) => status.stat).indexOf(statLegend) === -1) {
-      statusDict.push({ stat: statLegend, id: statusId , button: "off"});
-      statusId++;
+      statusDict.push({
+        stat: statLegend,
+        id: statusIndex,
+        buttonClicked: false,
+      });
+      statusIndex++;
     }
   });
 
@@ -292,7 +289,7 @@ function drawLegend(tsv) {
     .text((d) => {
       const statusAbbreviations = {
         R: "runnable",
-        D: "ninterruptible sleep",
+        D: "uninterruptible sleep",
         T: "stopped",
         S: "interruptible sleep",
         Z: "zombie",
@@ -306,29 +303,26 @@ function drawLegend(tsv) {
 
   g.on("click", clickLegend);
 
-  function clickLegend(event, d) {
-    // ボタンが既に押されている時
-    if (d.button == "on") {
-      // ボタンをoffにし色を薄くする
-      d.button = "off"
-      d3.selectAll(".rect_" + d.id).style("opacity", 0.5);
+  // ボタンの情報を返す
+  return statusDict;
 
+  function clickLegend(event, d) {
+    if (d.buttonClicked) {
+      // ボタンが既に押されている時，ボタンをoffにし色を薄くする
+      d.buttonClicked = false;
+      d3.selectAll(".rect_" + d.id).style("opacity", 0.5);
       d3.selectAll("path").style("opacity", 1);
-    }
-    //ボタンがまだ押されていない時
-    else if (d.button == "off") {
-      // 他のボタンをoffにし、一旦すべてのボタンの色を薄くする
+    } else {
+      // ボタンがまだ押されていない時，他のボタンをoffにし、一旦すべてのボタンの色を薄くする
       statusDict.forEach((data) => {
-        if (data.button == "on") {
-          data.button = "off";
-        }
-      })
+        data.buttonClicked = false;
+      });
       d3.selectAll("rect").style("opacity", 0.5);
 
       // ボタンをonにし色を濃くする
-      d.button = "on"
+      d.buttonClicked = true;
       d3.selectAll(".rect_" + d.id).style("opacity", 1);
-      
+
       // 選択されたstatusのデータをハイライト表示する
       d3.selectAll("path").style("opacity", (data) => {
         if (!data.data || data.data.command === "root") {
@@ -338,8 +332,6 @@ function drawLegend(tsv) {
       });
     }
   }
-  // ボタンの情報を返す
-  return statusDict;
 }
 
 function drawHierarchy(json) {
