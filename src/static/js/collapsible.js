@@ -280,14 +280,15 @@ const data = {
   ],
 };
 
-const width = 1000,
-  height = 1000;
+const WIDTH = 1000;
+const HEIGHT = 1000;
 
-let i = 0;
+let index = 0;
 
 const root = d3.hierarchy(data);
 const transform = d3.zoomIdentity;
-let node, link;
+let node;
+let link;
 
 const svg = d3
   .select("body")
@@ -305,21 +306,17 @@ const simulation = d3
   .forceSimulation()
   .force(
     "link",
-    d3.forceLink().id(function (d) {
-      return d.id;
-    })
+    d3.forceLink().id((d) => d.id)
   )
   .force("charge", d3.forceManyBody().strength(-15).distanceMax(300))
-  .force("center", d3.forceCenter(width / 2, height / 4))
+  .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 4))
   .on("tick", ticked);
 
 function update() {
   const nodes = flatten(root);
   const links = root.links();
 
-  link = svg.selectAll(".link").data(links, function (d) {
-    return d.target.id;
-  });
+  link = svg.selectAll(".link").data(links, (d) => d.target.id);
 
   link.exit().remove();
 
@@ -333,9 +330,7 @@ function update() {
 
   link = linkEnter.merge(link);
 
-  node = svg.selectAll(".node").data(nodes, function (d) {
-    return d.id;
-  });
+  node = svg.selectAll(".node").data(nodes, (d) => d.id);
 
   node.exit().remove();
 
@@ -358,15 +353,9 @@ function update() {
 
   nodeEnter
     .append("circle")
-    .attr("r", function (d) {
-      return Math.sqrt(d.data.size) / 10 || 4.5;
-    })
-    .style("text-anchor", function (d) {
-      return d.children ? "end" : "start";
-    })
-    .text(function (d) {
-      return d.data.name;
-    });
+    .attr("r", (d) => Math.sqrt(d.data.size) / 10 || 4.5)
+    .style("text-anchor", (d) => (d.children ? "end" : "start"))
+    .text((d) => d.data.name);
 
   node = nodeEnter.merge(node);
   simulation.nodes(nodes);
@@ -375,8 +364,7 @@ function update() {
 
 function sizeContain(num) {
   num = num > 1000 ? num / 1000 : num / 100;
-  if (num < 4) num = 4;
-  return num;
+  return Math.max(num, 4);
 }
 
 function color(d) {
@@ -393,22 +381,12 @@ function radius(d) {
 
 function ticked() {
   link
-    .attr("x1", function (d) {
-      return d.source.x;
-    })
-    .attr("y1", function (d) {
-      return d.source.y;
-    })
-    .attr("x2", function (d) {
-      return d.target.x;
-    })
-    .attr("y2", function (d) {
-      return d.target.y;
-    });
+    .attr("x1", (d) => d.source.x)
+    .attr("y1", (d) => d.source.y)
+    .attr("x2", (d) => d.target.x)
+    .attr("y2", (d) => d.target.y);
 
-  node.attr("transform", function (d) {
-    return `translate(${d.x}, ${d.y})`;
-  });
+  node.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
 }
 
 function clicked(event, d) {
@@ -425,7 +403,9 @@ function clicked(event, d) {
 }
 
 function dragstarted(event, d) {
-  if (!event.active) simulation.alphaTarget(0.3).restart();
+  if (!event.active) {
+    simulation.alphaTarget(0.3).restart();
+  }
   d.fx = d.x;
   d.fy = d.y;
 }
@@ -436,7 +416,9 @@ function dragged(event, d) {
 }
 
 function dragended(event, d) {
-  if (!event.active) simulation.alphaTarget(0);
+  if (!event.active) {
+    simulation.alphaTarget(0);
+  }
   d.fx = null;
   d.fy = null;
 }
@@ -444,9 +426,14 @@ function dragended(event, d) {
 function flatten(root) {
   const nodes = [];
   function recurse(node) {
-    if (node.children) node.children.forEach(recurse);
-    if (!node.id) node.id = ++i;
-    else ++i;
+    if (node.children) {
+      node.children.forEach(recurse);
+    }
+    if (!node.id) {
+      node.id = ++index;
+    } else {
+      ++index;
+    }
     nodes.push(node);
   }
   recurse(root);
