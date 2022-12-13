@@ -87,7 +87,7 @@ function drawChart(json) {
       .enter()
       .append("line")
       .attr("class", "link")
-      .style("stroke", "ghostwhite")
+      .style("stroke", "#ccc")
       .style("opacity", "0.2")
       .style("stroke-width", 3);
 
@@ -149,10 +149,10 @@ function drawChart(json) {
 
   function color(d) {
     if (d._children) {
-      return "ghostwhite";
+      return "#ccc";
     }
     if (d.children) {
-      return "ghostwhite";
+      return "#ccc";
     }
     if ("stat" in d.data) {
       return statusInfomation[d.data.stat[0]].color;
@@ -470,7 +470,7 @@ function drawHierarchy(json) {
       .append("path")
       .attr("class", "link")
       .attr("fill", "none")
-      .attr("stroke", "ghostwhite")
+      .attr("stroke", "#ccc")
       .attr("d", (d) =>
         ` M ${source.xPrev}, ${source.yPrev + DIM_RECT.height / 2}
             L ${d.source.x + DIM_LINK.left},
@@ -526,12 +526,12 @@ function drawHierarchy(json) {
       .append("rect")
       .attr("width", DIM_RECT.width)
       .attr("height", DIM_RECT.height)
-      .attr("stroke", "ghostwhite");
+      .attr("stroke", "#ccc");
     nodeEnter
       .append("text")
       .text((d) => d.data.command)
       .attr("transform", `translate(5, 15)`)
-      .attr("fill", "ghostwhite")
+      .attr("fill", "#ccc")
       .attr("stroke", "none");
 
     const nodeUpdate = nodeEnter.merge(node);
