@@ -26,7 +26,6 @@ function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
 
   // Basic setup of page elements.
-  initializeBreadcrumbTrail();
   let statusArray = drawLegend(tsv);
 
   drawChart(json);
@@ -123,7 +122,7 @@ function drawChart(json) {
     simulation.nodes(nodes);
     simulation.force("link").links(links);
   }
-  
+
   // Restore everything to full opacity when moving off the visualization.
   function mouseleaveSunburst() {
     // Hide the breadcrumb trail
@@ -145,6 +144,7 @@ function drawChart(json) {
       }
       return data.data.stat[0] === clickedStatus ? 1 : 0.3;
     });
+  }
 
   function color(d) {
     return d._children
@@ -229,7 +229,7 @@ function drawLegend(tsv) {
     radius: 3,
   };
 
-  let statusId = 0;
+  let statusIndex = 0;
   let statusDict = [];
   tsv.forEach((d) => {
     const statLegend = d.STAT[0];
