@@ -1,6 +1,6 @@
 // Dimensions of sunburst.
-const WIDTH = 750;
-const HEIGHT = 600;
+const WIDTH = 1000;
+const HEIGHT = 2000;
 const RADIUS = Math.min(WIDTH, HEIGHT) / 2;
 
 // Breadcrumb dimensions: width, height, spacing, width of tip/tail.
@@ -17,24 +17,6 @@ const COLORS = d3.scaleOrdinal(d3.schemeCategory10);
 // Total size of all segments; we set this later, after loading the data.
 let totalSize = 0;
 
-const vis = d3
-  .select("#chart")
-  .append("svg:svg")
-  .attr("width", WIDTH)
-  .attr("height", HEIGHT)
-  .append("svg:g")
-  .attr("id", "container")
-  .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")");
-
-const partition = d3.partition().size([2 * Math.PI, RADIUS * RADIUS]);
-
-const arc = d3
-  .arc()
-  .startAngle((d) => d.x0)
-  .endAngle((d) => d.x1)
-  .innerRadius((d) => Math.sqrt(d.y0))
-  .outerRadius((d) => Math.sqrt(d.y1));
-
 d3.tsv("./data/process_data.tsv").then(function (text) {
   createVisualization(text);
 });
@@ -46,78 +28,102 @@ function createVisualization(tsv) {
   // Basic setup of page elements.
   initializeBreadcrumbTrail();
   let statusArray = drawLegend(tsv);
-  d3.select("#togglelegend").on("click", toggleLegend);
+
+  drawChart(json);
   drawHierarchy(json);
-
-  // Bounding circle underneath the sunburst, to make it easier to detect
-  // when the mouse leaves the parent g.
-  vis.append("svg:circle").attr("r", RADIUS).style("opacity", 0);
-
-  // Turn the data into a d3 hierarchy and calculate the sums.
-  const root = d3
-    .hierarchy(json)
-    .sum((d) => d.cpu)
-    .sort((a, b) => b.value - a.value);
-
-  // For efficiency, filter nodes to keep only those large enough to see.
-  const nodes = partition(root)
-    .descendants()
-    .filter((d) => d.x1 - d.x0 > 0.005);
-
-  const path = vis
-    .data([json])
-    .selectAll("path")
-    .data(nodes)
-    .enter()
-    .append("svg:path")
-    .attr("display", (d) => (d.depth ? null : "none"))
-    .attr("d", arc)
-    .attr("fill-rule", "evenodd")
-    .style("fill", (d) => COLORS(d.data.command))
-    .style("opacity", 1)
-    .on("mouseover", mouseoverSunburst);
-
-  // Add the mouseleave handler to the bounding circle.
-  d3.select("#container").on("mouseleave", mouseleaveSunburst);
-
-  // Get total size of the tree = value of root node from partition.
-  totalSize = path.datum().value;
-
-  function toggleLegend() {
+  d3.select("#togglelegend").on("click", () => {
     const legend = d3.select("#legend");
     if (legend.style("visibility") == "hidden") {
       legend.style("visibility", "");
     } else {
       legend.style("visibility", "hidden");
     }
+  });
+}
+
+function drawChart(json) {
+  const root = d3
+    .hierarchy(json)
+    .sum((d) => d.cpu)
+    .sort((a, b) => b.value - a.value);
+  const transform = d3.zoomIdentity;
+
+  let node;
+  let link;
+  let index = 0;
+  const svg = d3
+    .select("#chart")
+    .append("svg:svg")
+    .attr("width", WIDTH)
+    .attr("height", HEIGHT)
+    .call(
+      d3
+        .zoom()
+        .scaleExtent([1 / 2, 8])
+        .on("zoom", zoomed)
+    )
+    .append("g");
+
+  const simulation = d3
+    .forceSimulation()
+    .force(
+      "link",
+      d3.forceLink().id((d) => d.id)
+    )
+    .force("charge", d3.forceManyBody().strength(-15).distanceMax(300))
+    .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 6))
+    .on("tick", ticked);
+
+  update();
+
+  function update() {
+    const nodes = flatten(root);
+    const links = root.links();
+
+    link = svg.selectAll(".link").data(links, (d) => d.target.id);
+    link.exit().remove();
+
+    const linkEnter = link
+      .enter()
+      .append("line")
+      .attr("class", "link")
+      .style("stroke", "#000")
+      .style("opacity", "0.2")
+      .style("stroke-width", 2);
+
+    link = linkEnter.merge(link);
+
+    node = svg.selectAll(".node").data(nodes, (d) => d.id);
+    node.exit().remove();
+
+    const nodeEnter = node
+      .enter()
+      .append("g")
+      .attr("class", "node")
+      .attr("stroke", "#666")
+      .attr("stroke-width", 2)
+      .style("fill", color)
+      .style("opacity", 1)
+      .on("click", clicked)
+      .call(
+        d3
+          .drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended)
+      );
+
+    nodeEnter
+      .append("circle")
+      .attr("r", (d) => Math.sqrt(d.data.cpu) * 10 || 4)
+      .style("text-anchor", (d) => (d.children ? "end" : "start"))
+      .text((d) => d.data.command);
+
+    node = nodeEnter.merge(node);
+    simulation.nodes(nodes);
+    simulation.force("link").links(links);
   }
-
-  // Fade all but the current sequence, and show it in the breadcrumb trail.
-  function mouseoverSunburst(event, d) {
-    const percentage = ((100 * d.value) / totalSize).toPrecision(3);
-    const percentageString = percentage + "%";
-    if (percentage < 0.1) {
-      percentageString = "< 0.1%";
-    }
-
-    d3.select("#percentage").text(percentageString);
-
-    d3.select("#explanation").style("visibility", "");
-
-    let sequenceArray = d.ancestors().reverse();
-    sequenceArray.shift(); // remove root node from the array
-    updateBreadcrumbs(sequenceArray, percentageString);
-
-    // Fade all the segments.
-    d3.selectAll("path").style("opacity", 0.3);
-
-    // Then highlight only those that are an ancestor of the current segment.
-    vis
-      .selectAll("path")
-      .filter((node) => sequenceArray.indexOf(node) >= 0)
-      .style("opacity", 1);
-  }
-
+  
   // Restore everything to full opacity when moving off the visualization.
   function mouseleaveSunburst() {
     // Hide the breadcrumb trail
@@ -139,102 +145,91 @@ function createVisualization(tsv) {
       }
       return data.data.stat[0] === clickedStatus ? 1 : 0.3;
     });
+
+  function color(d) {
+    return d._children
+      ? "#51A1DC" // collapsed package
+      : d.children
+      ? "#51A1DC" // expanded package
+      : "#F94B4C"; // leaf node
   }
-}
 
-function initializeBreadcrumbTrail() {
-  // Add the svg area.
-  const trail = d3
-    .select("#sequence")
-    .append("svg:svg")
-    .attr("width", WIDTH)
-    .attr("height", 50)
-    .attr("id", "trail");
-  // Add the label at the end, for the percentage.
-  trail.append("svg:text").attr("id", "endlabel").style("fill", "#000");
-}
+  function ticked() {
+    link
+      .attr("x1", (d) => d.source.x)
+      .attr("y1", (d) => d.source.y)
+      .attr("x2", (d) => d.target.x)
+      .attr("y2", (d) => d.target.y);
 
-// Generate a string that describes the points of a breadcrumb polygon.
-function breadcrumbPoints(d, i) {
-  let points = [];
-  points.push("0,0");
-  points.push(DIM_BREADCRUMB.width + ",0");
-  points.push(
-    DIM_BREADCRUMB.width + DIM_BREADCRUMB.tip + "," + DIM_BREADCRUMB.height / 2
-  );
-  points.push(DIM_BREADCRUMB.width + "," + DIM_BREADCRUMB.height);
-  points.push("0," + DIM_BREADCRUMB.height);
-  if (i > 0) {
-    // Leftmost breadcrumb; don't include 6th vertex.
-    points.push(DIM_BREADCRUMB.tip + "," + DIM_BREADCRUMB.height / 2);
+    node.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
   }
-  return points.join(" ");
-}
 
-// Update the breadcrumb trail to show the current sequence and percentage.
-function updateBreadcrumbs(nodeArray, percentageString) {
-  // Data join; key function combines name and depth (= position in sequence).
-  let trail = d3
-    .select("#trail")
-    .selectAll("g")
-    .data(nodeArray, (d) => d.data.command + d.depth);
+  function clicked(event, d) {
+    if (!event.defaultPrevented) {
+      if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else {
+        d.children = d._children;
+        d._children = null;
+      }
+      update();
+    }
+  }
 
-  // Remove exiting nodes.
-  trail.exit().remove();
+  function dragstarted(event, d) {
+    if (!event.active) {
+      simulation.alphaTarget(0.3).restart();
+    }
+    d.fx = d.x;
+    d.fy = d.y;
+  }
 
-  // Add breadcrumb and label for entering nodes.
-  let entering = trail.enter().append("svg:g");
+  function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+  }
 
-  entering
-    .append("svg:polygon")
-    .attr("points", breadcrumbPoints)
-    .style("fill", (d) => COLORS(d.data.command));
+  function dragended(event, d) {
+    if (!event.active) {
+      simulation.alphaTarget(0);
+    }
+    d.fx = null;
+    d.fy = null;
+  }
 
-  entering
-    .append("svg:text")
-    .attr("x", (DIM_BREADCRUMB.width + DIM_BREADCRUMB.tip) / 2)
-    .attr("y", DIM_BREADCRUMB.height / 2)
-    .attr("dy", "0.35em")
-    .attr("text-anchor", "middle")
-    .text((d) => d.data.command);
+  function flatten(root) {
+    const nodes = [];
+    function recurse(node) {
+      if (node.children) {
+        node.children.forEach(recurse);
+      }
+      if (!node.id) {
+        node.id = ++index;
+      } else {
+        ++index;
+      }
+      nodes.push(node);
+    }
+    recurse(root);
+    return nodes;
+  }
 
-  // Merge enter and update selections; set position for all nodes.
-  entering
-    .merge(trail)
-    .attr(
-      "transform",
-      (d, i) =>
-        "translate(" +
-        i * (DIM_BREADCRUMB.width + DIM_BREADCRUMB.spacing) +
-        ", 0)"
-    );
-
-  // Now move and update the percentage at the end.
-  d3.select("#trail")
-    .select("#endlabel")
-    .attr(
-      "x",
-      (nodeArray.length + 0.5) * (DIM_BREADCRUMB.width + DIM_BREADCRUMB.spacing)
-    )
-    .attr("y", DIM_BREADCRUMB.height / 2)
-    .attr("dy", "0.35em")
-    .attr("text-anchor", "middle")
-    .text(percentageString);
-
-  // Make the breadcrumb trail visible, if it's hidden.
-  d3.select("#trail").style("visibility", "");
+  function zoomed(event) {
+    svg.attr("transform", event.transform);
+  }
 }
 
 function drawLegend(tsv) {
   // Dimensions of legend item: width, height, spacing, radius of rounded rect.
   const DIM_LEGEND = {
-    width: 130,
+    width: 75,
     height: 30,
     spacing: 3,
     radius: 3,
   };
 
-  let statusIndex = 0;
+  let statusId = 0;
   let statusDict = [];
   tsv.forEach((d) => {
     const statLegend = d.STAT[0];
@@ -476,7 +471,7 @@ function drawHierarchy(json) {
       .append("path")
       .attr("class", "link")
       .attr("fill", "none")
-      .attr("stroke", "black")
+      .attr("stroke", "ghostwhite")
       .attr("d", (d) =>
         ` M ${source.xPrev}, ${source.yPrev + DIM_RECT.height / 2}
             L ${d.source.x + DIM_LINK.left},
@@ -532,12 +527,12 @@ function drawHierarchy(json) {
       .append("rect")
       .attr("width", DIM_RECT.width)
       .attr("height", DIM_RECT.height)
-      .attr("fill", "#fff")
-      .attr("stroke", "black");
+      .attr("stroke", "ghostwhite");
     nodeEnter
       .append("text")
       .text((d) => d.data.command)
-      .attr("transform", `translate(5, 15)`);
+      .attr("transform", `translate(5, 15)`)
+      .attr("stroke", "ghostwhite");
 
     const nodeUpdate = nodeEnter.merge(node);
     nodeUpdate
@@ -546,7 +541,7 @@ function drawHierarchy(json) {
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     nodeUpdate
       .select("rect")
-      .style("fill", (d) => (d._children ? "lightsteelblue" : "#fff"));
+      .style("fill", (d) => (d._children ? "lightsteelblue" : "#333"));
     nodeEnter.select("text").style("fill-opacity", 1);
 
     const nodeExit = node
