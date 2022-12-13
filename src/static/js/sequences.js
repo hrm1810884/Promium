@@ -225,7 +225,7 @@ function updateBreadcrumbs(nodeArray, percentageString) {
 function drawLegend(tsv) {
   // Dimensions of legend item: width, height, spacing, radius of rounded rect.
   const DIM_LEGEND = {
-    width: 120,
+    width: 130,
     height: 30,
     spacing: 3,
     radius: 3,
