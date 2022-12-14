@@ -1,8 +1,48 @@
+const WIDTH = parseFloat(
+  window
+    .getComputedStyle(document.getElementById("chart"))
+    .width.replace("px", "")
+);
+const HEIGHT = 2000;
+
+function setElement() {
+  const svg = d3
+    .select("#chart")
+    .append("svg:svg")
+    .attr("width", WIDTH)
+    .attr("height", HEIGHT)
+    .call(
+      d3
+        .zoom()
+        .scaleExtent([1 / 2, 8])
+        .on("zoom", zoomed)
+    )
+    .append("g");
+
+  function zoomed(event) {
+    svg.attr("transform", event.transform);
+  }
+
+  const hierarchy = d3.select("#hierarchy").append("svg");
+
+  const legend = d3.select("#legend").append("svg:svg");
+
+  return [svg, hierarchy, legend];
+}
+
 d3.tsv("./data/process_data.tsv").then(function (text) {
-  createVisualization(text);
+  createVisualization(text, svg, hierarchy, legend);
 });
 
-function createVisualization(tsv) {
+async function readData(svg, hierarchy, legend) {
+  const text = await d3.tsv("./data/process_data.tsv");
+  createVisualization(text, svg, hierarchy, legend);
+}
+
+const [svg, hierarchy, legend] = setElement();
+setInterval(readData, 10000, svg, hierarchy, legend);
+
+function createVisualization(tsv, svg, hierarchy, legend) {
   const json = buildHierarchy(tsv);
   const nodeType = {
     root: {
@@ -58,14 +98,10 @@ function createVisualization(tsv) {
       },
     },
   };
-  const WIDTH = parseFloat(window.getComputedStyle(
-    document.getElementById("chart")
-  ).width.replace("px", ""));
-  const HEIGHT = 2000;
 
-  drawChart(json);
-  drawLegend(tsv);
-  drawHierarchy(json);
+  drawChart(json, svg);
+  drawLegend(tsv, legend);
+  drawHierarchy(json, hierarchy);
 
   d3.select("#buttonLegend").on("click", () => {
     const legend = d3.select("#legend");
@@ -75,7 +111,7 @@ function createVisualization(tsv) {
     );
   });
 
-  function drawChart(json) {
+  function drawChart(json, svg) {
     const root = d3
       .hierarchy(json)
       .sum((d) => d.cpu)
@@ -98,18 +134,6 @@ function createVisualization(tsv) {
     let node;
     let link;
     let index = 0;
-    const svg = d3
-      .select("#chart")
-      .append("svg:svg")
-      .attr("width", WIDTH)
-      .attr("height", HEIGHT)
-      .call(
-        d3
-          .zoom()
-          .scaleExtent([1 / 2, 8])
-          .on("zoom", zoomed)
-      )
-      .append("g");
 
     const defs = svg.append("defs");
     Object.keys(nodeType).forEach((keyNode) => {
@@ -172,9 +196,9 @@ function createVisualization(tsv) {
       .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 6))
       .on("tick", ticked);
 
-    update();
+    update(svg);
 
-    function update() {
+    function update(svg) {
       const nodes = flatten(root);
       const links = root.links();
 
@@ -261,7 +285,7 @@ function createVisualization(tsv) {
           d.children = d._children;
           d._children = null;
         }
-        update();
+        update(svg);
       }
     }
 
@@ -302,13 +326,9 @@ function createVisualization(tsv) {
       recurse(root);
       return nodes;
     }
-
-    function zoomed(event) {
-      svg.attr("transform", event.transform);
-    }
   }
 
-  function drawLegend(tsv) {
+  function drawLegend(tsv, legend) {
     const DIM_LEGEND = {
       width: 250,
       height: 30,
@@ -334,14 +354,14 @@ function createVisualization(tsv) {
       .slice()
       .sort((a, b) => d3.ascending(a.stat, b.stat));
 
-    const legend = d3
-      .select("#legend")
-      .append("svg:svg")
+    legend
       .attr("width", DIM_LEGEND.width)
       .attr(
         "height",
         statusDict.length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
       );
+
+    legend.selectAll("g").remove();
 
     const g = legend
       .selectAll("g")
@@ -408,7 +428,7 @@ function createVisualization(tsv) {
     }
   }
 
-  function drawHierarchy(json) {
+  function drawHierarchy(json, hierarchy) {
     // 参考：https://qiita.com/e_a_s_y/items/dd1f0f9366ce5d1d1e7c
     const DIM_RECT = {
       height: 20,
@@ -431,8 +451,8 @@ function createVisualization(tsv) {
     const tree = d3.tree();
     tree(root);
 
-    const countChildren = (hierarchy) =>
-      hierarchy.eachAfter((node) => {
+    const countChildren = (source) =>
+      source.eachAfter((node) => {
         let sum = 1;
         if (node.children) {
           const children = node.children;
@@ -460,14 +480,15 @@ function createVisualization(tsv) {
 
     const DIM_HIERARCHY = calcHierarchySize(root);
 
-    const hierarchy = d3
-      .select("#hierarchy")
-      .append("svg")
+    hierarchy
       .attr("width", DIM_HIERARCHY.width)
       .attr("height", DIM_HIERARCHY.height);
 
+    hierarchy.selectAll("g").remove();
     const g = hierarchy.append("g");
 
+    let link;
+    let node;
     let index = 0;
     updateTree(root);
 
@@ -546,7 +567,9 @@ function createVisualization(tsv) {
       tree(root);
       definePos(root, DIM_SPACE);
 
-      const link = g.selectAll(".link").data(root.links(), (d) => d.target.id);
+      link = g.selectAll(".link").data(root.links(), (d) => d.target.id);
+      link.exit().remove();
+
       const linkEnter = link
         .enter()
         .append("path")
@@ -592,9 +615,11 @@ function createVisualization(tsv) {
         )
         .remove();
 
-      const node = g
+      node = g
         .selectAll(".node")
         .data(root.descendants(), (d) => d.id || (d.id = ++index));
+      node.exit().remove();
+
       const nodeEnter = node
         .enter()
         .append("g")

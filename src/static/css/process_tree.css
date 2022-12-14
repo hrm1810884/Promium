@@ -108,9 +108,11 @@ h3 {
   accent-color: var(--color-accent);
 }
 
+
 .sidebar .hierarchy {
   font-family: var(--font-family-mono);
   color: var(--color-font-normal);
+  position: absolute;
 }
 
 .hint {
