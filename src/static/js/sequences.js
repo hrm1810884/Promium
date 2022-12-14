@@ -170,7 +170,7 @@ function drawChart(json, svg) {
       if (!node.parent) {
         node.fx = CENTER_X
         node.fy = CENTER_Y
-        fix2Gene(node)
+        fixAllGene(node)
       }
     })
     simulation.force("link").links(links);
@@ -192,6 +192,18 @@ function drawChart(json, svg) {
     parent.children.forEach((child) => {
       fixChildren(child)
     })
+  }
+
+  function fixAllGene(parent){
+    if (parent.children) {
+      const radius = 200
+      const length = parent.children.length
+      parent.children.forEach((child) => {
+        child.fx = parent.fx + radius * Math.cos(2 * Math.PI * child.index / length)
+        child.fy = parent.fy + radius * Math.sin(2 * Math.PI * child.index / length)
+        fixAllGene(child)
+      })
+    }
   }
 
   function color(d) {
