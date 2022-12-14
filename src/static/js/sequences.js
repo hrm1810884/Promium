@@ -14,17 +14,46 @@ const statusInfomation = {
   U: { full: "unknown", color: "#777" },
 };
 
-d3.tsv("./data/process_data.tsv").then(function (text) {
-  createVisualization(text);
-});
+function setElement() {
+  const svg = d3
+    .select("#chart")
+    .append("svg:svg")
+    .attr("width", WIDTH)
+    .attr("height", HEIGHT)
+    .call(
+      d3
+        .zoom()
+        .scaleExtent([1 / 2, 8])
+        .on("zoom", zoomed)
+    )
+    .append("g");
 
-function createVisualization(tsv) {
+  function zoomed(event) {
+    svg.attr("transform", event.transform);
+  }
+
+  const hierarchy = d3.select("#hierarchy").append("svg");
+
+  const legend = d3.select("#legend").append("svg:svg");
+
+  return [svg, hierarchy, legend];
+}
+
+async function readData(svg, hierarchy, legend) {
+  const text = await d3.tsv("./data/process_data.tsv");
+  createVisualization(text, svg, hierarchy, legend);
+}
+
+const [svg, hierarchy, legend] = setElement();
+setInterval(readData, 10000, svg, hierarchy, legend);
+
+function createVisualization(tsv, svg, hierarchy, legend) {
   const json = buildHierarchy(tsv);
 
-  drawLegend(tsv);
+  drawLegend(tsv, legend);
 
-  drawChart(json);
-  drawHierarchy(json);
+  drawChart(json, svg);
+  drawHierarchy(json, hierarchy);
 
   d3.select("#togglelegend").on("click", () => {
     const legend = d3.select("#legend");
@@ -36,7 +65,7 @@ function createVisualization(tsv) {
   });
 }
 
-function drawChart(json) {
+function drawChart(json, svg) {
   const root = d3
     .hierarchy(json)
     .sum((d) => d.cpu)
@@ -60,18 +89,6 @@ function drawChart(json) {
   let node;
   let link;
   let index = 0;
-  const svg = d3
-    .select("#chart")
-    .append("svg:svg")
-    .attr("width", WIDTH)
-    .attr("height", HEIGHT)
-    .call(
-      d3
-        .zoom()
-        .scaleExtent([1 / 2, 8])
-        .on("zoom", zoomed)
-    )
-    .append("g");
 
   const simulation = d3
     .forceSimulation()
@@ -93,9 +110,9 @@ function drawChart(json) {
     .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 6))
     .on("tick", ticked);
 
-  update();
+  update(svg);
 
-  function update() {
+  function update(svg) {
     const nodes = flatten(root);
     const links = root.links();
 
@@ -225,13 +242,9 @@ function drawChart(json) {
     recurse(root);
     return nodes;
   }
-
-  function zoomed(event) {
-    svg.attr("transform", event.transform);
-  }
 }
 
-function drawLegend(tsv) {
+function drawLegend(tsv, legend) {
   const DIM_LEGEND = {
     width: 250,
     height: 30,
@@ -257,15 +270,14 @@ function drawLegend(tsv) {
     .slice()
     .sort((a, b) => d3.ascending(a.stat, b.stat));
 
-  const legend = d3
-    .select("#legend")
-    .append("svg:svg")
+  legend
     .attr("width", DIM_LEGEND.width)
     .attr(
       "height",
       statusDict.length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
     );
 
+  legend.selectAll("g").remove();
   const g = legend
     .selectAll("g")
     .data(sortedStatus)
@@ -331,7 +343,7 @@ function drawLegend(tsv) {
   }
 }
 
-function drawHierarchy(json) {
+function drawHierarchy(json, hierarchy) {
   // 参考：https://qiita.com/e_a_s_y/items/dd1f0f9366ce5d1d1e7c
   const DIM_RECT = {
     height: 20,
@@ -382,15 +394,15 @@ function drawHierarchy(json) {
   };
 
   const DIM_HIERARCHY = calcHierarchySize(root);
-
-  const hierarchy = d3
-    .select("#hierarchy")
-    .append("svg")
+  hierarchy
     .attr("width", DIM_HIERARCHY.width)
     .attr("height", DIM_HIERARCHY.height);
 
+  hierarchy.selectAll("g").remove();
   const g = hierarchy.append("g");
 
+  let link;
+  let node;
   let index = 0;
   updateTree(root);
 
@@ -467,7 +479,9 @@ function drawHierarchy(json) {
     tree(root);
     definePos(root, DIM_SPACE);
 
-    const link = g.selectAll(".link").data(root.links(), (d) => d.target.id);
+    link = g.selectAll(".link").data(root.links(), (d) => d.target.id);
+    link.exit().remove();
+
     const linkEnter = link
       .enter()
       .append("path")
@@ -513,9 +527,11 @@ function drawHierarchy(json) {
       )
       .remove();
 
-    const node = g
+    node = g
       .selectAll(".node")
       .data(root.descendants(), (d) => d.id || (d.id = ++index));
+    node.exit().remove();
+
     const nodeEnter = node
       .enter()
       .append("g")

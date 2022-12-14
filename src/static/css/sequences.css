@@ -91,9 +91,11 @@ body {
   accent-color: var(--color-accent);
 }
 
+
 .sidebar .hierarchy {
   font-family: Courier, monospace;
   color: var(--color-font-normal);
+  position: absolute;
 }
 
 .chart text,
