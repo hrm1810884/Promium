@@ -14,7 +14,7 @@ const statusInfomation = {
   U: { full: "unknown", color: "#777" },
 };
 
-function setElement(){
+function setElement() {
   const svg = d3
     .select("#chart")
     .append("svg:svg")
@@ -32,32 +32,28 @@ function setElement(){
     svg.attr("transform", event.transform);
   }
 
-  const hierarchy = d3
-    .select("#hierarchy")
-    .append("svg");
+  const hierarchy = d3.select("#hierarchy").append("svg");
 
-  const legend = d3
-    .select("#legend")
-    .append("svg:svg")
+  const legend = d3.select("#legend").append("svg:svg");
 
-  return [svg, hierarchy, legend]
+  return [svg, hierarchy, legend];
 }
 
-async function readData(svg, hierarchy, legend){
-  text = await d3.tsv("./data/process_data.tsv");
-  createVisualization(text,svg,hierarchy,legend);
+async function readData(svg, hierarchy, legend) {
+  const text = await d3.tsv("./data/process_data.tsv");
+  createVisualization(text, svg, hierarchy, legend);
 }
 
 const [svg, hierarchy, legend] = setElement();
-setInterval(readData, 10000, svg, hierarchy, legend)
+setInterval(readData, 10000, svg, hierarchy, legend);
 
-function createVisualization(tsv,svg,hierarchy,legend) {
+function createVisualization(tsv, svg, hierarchy, legend) {
   const json = buildHierarchy(tsv);
 
-  drawLegend(tsv,legend);
+  drawLegend(tsv, legend);
 
-  drawChart(json,svg);
-  drawHierarchy(json,hierarchy);
+  drawChart(json, svg);
+  drawHierarchy(json, hierarchy);
 
   d3.select("#togglelegend").on("click", () => {
     const legend = d3.select("#legend");
@@ -69,7 +65,7 @@ function createVisualization(tsv,svg,hierarchy,legend) {
   });
 }
 
-function drawChart(json,svg) {
+function drawChart(json, svg) {
   const root = d3
     .hierarchy(json)
     .sum((d) => d.cpu)
@@ -78,7 +74,7 @@ function drawChart(json,svg) {
 
   const countChildren = (hierarchy) =>
     hierarchy.eachAfter((node) => {
-      let sum = 1;  
+      let sum = 1;
       if (node.children) {
         const children = node.children;
         for (const child of children) {
@@ -114,7 +110,7 @@ function drawChart(json,svg) {
     .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 6))
     .on("tick", ticked);
 
-    update(svg);
+  update(svg);
 
   function update(svg) {
     const nodes = flatten(root);
@@ -246,7 +242,6 @@ function drawChart(json,svg) {
     recurse(root);
     return nodes;
   }
-
 }
 
 function drawLegend(tsv, legend) {
@@ -281,9 +276,8 @@ function drawLegend(tsv, legend) {
       "height",
       statusDict.length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
     );
-  
-  legend.selectAll("g")
-      .remove()
+
+  legend.selectAll("g").remove();
   const g = legend
     .selectAll("g")
     .data(sortedStatus)
@@ -349,7 +343,7 @@ function drawLegend(tsv, legend) {
   }
 }
 
-function drawHierarchy(json,hierarchy) {
+function drawHierarchy(json, hierarchy) {
   // 参考：https://qiita.com/e_a_s_y/items/dd1f0f9366ce5d1d1e7c
   const DIM_RECT = {
     height: 20,
@@ -402,10 +396,10 @@ function drawHierarchy(json,hierarchy) {
   const DIM_HIERARCHY = calcHierarchySize(root);
   hierarchy
     .attr("width", DIM_HIERARCHY.width)
-    .attr("height", DIM_HIERARCHY.height)
+    .attr("height", DIM_HIERARCHY.height);
 
-  hierarchy.selectAll("g").remove()
-  const g = hierarchy.append("g")
+  hierarchy.selectAll("g").remove();
+  const g = hierarchy.append("g");
 
   let link;
   let node;
@@ -486,7 +480,7 @@ function drawHierarchy(json,hierarchy) {
     definePos(root, DIM_SPACE);
 
     link = g.selectAll(".link").data(root.links(), (d) => d.target.id);
-    link.exit().remove()
+    link.exit().remove();
 
     const linkEnter = link
       .enter()
@@ -536,8 +530,8 @@ function drawHierarchy(json,hierarchy) {
     node = g
       .selectAll(".node")
       .data(root.descendants(), (d) => d.id || (d.id = ++index));
-    node.exit().remove() 
-    
+    node.exit().remove();
+
     const nodeEnter = node
       .enter()
       .append("g")
