@@ -3,20 +3,64 @@ const WIDTH = 1000;
 const HEIGHT = 2000;
 const RADIUS = Math.min(WIDTH, HEIGHT) / 2;
 
-const statusInfomation = {
-  R: { full: "runnable", color: "#1A85F1" },
-  D: { full: "uninterruptible sleep", color: "#F26523" },
-  T: { full: "stopped", color: "#ED1C24" },
-  S: { full: "interruptible sleep", color: "#FBF267" },
-  Z: { full: "zombie", color: "#7053CC" },
-  I: { full: "process generating", color: "#38B349" },
-  O: { full: "running", color: "#0218FF" },
-  U: { full: "unknown", color: "#777" },
-};
-
 d3.tsv("./data/process_data.tsv").then(function (text) {
   createVisualization(text);
 });
+
+const nodeType = {
+  root: {
+    displayText: "root",
+    colorLight: "#444",
+    colorDark: "#222",
+  },
+  parent: {
+    displayText: "parent",
+    colorLight: "#888",
+    colorDark: "#444",
+  },
+  leaf: {
+    R: {
+      displayText: "runnable",
+      colorLight: "#1A85F1",
+      colorDark: "#082A4C",
+    },
+    D: {
+      displayText: "uninterruptible sleep",
+      colorLight: "#F26523",
+      colorDark: "#4C200B",
+    },
+    T: {
+      displayText: "stopped",
+      colorLight: "#ED1C24",
+      colorDark: "#4C090C",
+    },
+    S: {
+      displayText: "interruptible sleep",
+      colorLight: "#FBF267",
+      colorDark: "#4C4920",
+    },
+    Z: {
+      displayText: "zombie",
+      colorLight: "#7053CC",
+      colorDark: "#291F4C",
+    },
+    I: {
+      displayText: "process generating",
+      colorLight: "#38B349",
+      colorDark: "#184C1F",
+    },
+    O: {
+      displayText: "running",
+      colorLight: "#0218FF",
+      colorDark: "#00084C",
+    },
+    U: {
+      displayText: "unknown",
+      colorLight: "#777",
+      colorDark: "#777",
+    },
+  },
+};
 
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
@@ -72,6 +116,50 @@ function drawChart(json) {
         .on("zoom", zoomed)
     )
     .append("g");
+
+  const defs = svg.append("defs");
+  Object.keys(nodeType).forEach((keyNode) => {
+    const eachNode = nodeType[keyNode];
+    const capitalize = (string) => string[0].toUpperCase() + string.slice(1);
+    if (keyNode === "leaf") {
+      Object.keys(eachNode).forEach((keyStatus) => {
+        const eachStatus = eachNode[keyStatus];
+        const areaGradient = defs
+          .append("radialGradient")
+          .attr("id", `areaGradient${capitalize(keyNode)}${keyStatus}`)
+          .attr("cx", "0.5")
+          .attr("cy", "0.5")
+          .attr("fx", "0.3")
+          .attr("fy", "0.3")
+          .attr("r", "0.5");
+        areaGradient
+          .append("stop")
+          .attr("offset", "0%")
+          .attr("stop-color", eachStatus.colorLight);
+        areaGradient
+          .append("stop")
+          .attr("offset", "100%")
+          .attr("stop-color", eachStatus.colorDark);
+      });
+    } else {
+      areaGradient = defs
+        .append("radialGradient")
+        .attr("id", `areaGradient${capitalize(keyNode)}`)
+        .attr("cx", "0.5")
+        .attr("cy", "0.5")
+        .attr("fx", "0.3")
+        .attr("fy", "0.3")
+        .attr("r", "0.5");
+      areaGradient
+        .append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", eachNode.colorLight);
+      areaGradient
+        .append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", eachNode.colorDark);
+    }
+  });
 
   const simulation = d3
     .forceSimulation()
@@ -137,9 +225,9 @@ function drawChart(json) {
 
     nodeEnter
       .append("circle")
-      .attr("r", (d) => {
-        return d.data.command === "root" ? 50 : Math.sqrt(d.data.cpu) * 15 || 5;
-      })
+      .attr("r", (d) =>
+        d.data.command === "root" ? 50 : Math.max(Math.sqrt(d.data.cpu) * 15, 5)
+      )
       .style("text-anchor", (d) => (d.children ? "end" : "start"))
       .text((d) => d.data.command);
 
@@ -150,19 +238,15 @@ function drawChart(json) {
 
   function color(d) {
     if (d.data.command === "root") {
-      return "rga(5, 5, 5)";
+      return "url(#areaGradientRoot)";
     }
-    if (d._children) {
-      return "#ccc";
-    }
-    if (d.children) {
-      return "#ccc";
+    if (d._children || d.children) {
+      return "url(#areaGradientParent)";
     }
     if ("stat" in d.data) {
-      return statusInfomation[d.data.stat[0]].color;
-    } else {
-      return statusInfomation.U.color;
+      return `url(#${"areaGradientLeaf" + d.data.stat[0]})`;
     }
+    return "url(#areaGradientLeafU}";
   }
 
   function ticked() {
@@ -284,7 +368,7 @@ function drawLegend(tsv) {
     .attr("height", DIM_LEGEND.height)
     .style(
       "fill",
-      (d) => statusInfomation[d.stat in statusInfomation ? d.stat : "U"].color
+      (d) => nodeType.leaf[d.stat in nodeType.leaf ? d.stat : "U"].colorLight
     )
     .style("opacity", 0.5)
     .attr("class", (d) => "rect_" + d.id);
@@ -295,7 +379,7 @@ function drawLegend(tsv) {
     .attr("dy", "0.35em")
     .attr("text-anchor", "middle")
     .text(
-      (d) => statusInfomation[d.stat in statusInfomation ? d.stat : "U"].full
+      (d) => nodeType.leaf[d.stat in nodeType.leaf ? d.stat : "U"].displayText
     );
 
   g.on("click", clickLegend);
