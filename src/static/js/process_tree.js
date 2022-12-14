@@ -58,8 +58,9 @@ function createVisualization(tsv) {
       },
     },
   };
-
-  const WIDTH = 1000;
+  const WIDTH = parseFloat(window.getComputedStyle(
+    document.getElementById("chart")
+  ).width.replace("px", ""));
   const HEIGHT = 2000;
 
   drawChart(json);
