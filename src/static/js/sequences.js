@@ -68,11 +68,10 @@ function createVisualization(tsv) {
 
   d3.select("#togglelegend").on("click", () => {
     const legend = d3.select("#legend");
-    if (legend.style("visibility") === "hidden") {
-      legend.style("visibility", "");
-    } else {
-      legend.style("visibility", "hidden");
-    }
+    legend.style(
+      "visibility",
+      legend.style("visibility") === "hidden" ? "" : "hidden"
+    );
   });
 
   function drawChart(json) {
@@ -80,7 +79,6 @@ function createVisualization(tsv) {
       .hierarchy(json)
       .sum((d) => d.cpu)
       .sort((a, b) => b.value - a.value);
-    const transform = d3.zoomIdentity;
 
     const countChildren = (hierarchy) =>
       hierarchy.eachAfter((node) => {
