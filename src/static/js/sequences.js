@@ -14,6 +14,7 @@ const statusInfomation = {
   U: { full: "unknown", color: "#777" },
 };
 
+
 var svg = d3
   .select("#chart")
   .append("svg:svg")
@@ -34,6 +35,7 @@ function zoomed(event) {
 var hierarchy = d3
   .select("#hierarchy")
   .append("svg");
+
 
 var legend = d3
   .select("#legend")
@@ -242,7 +244,6 @@ function drawChart(json, svg) {
     recurse(root);
     return nodes;
   }
-
 }
 
 function drawLegend(tsv, legend) {
@@ -277,6 +278,7 @@ function drawLegend(tsv, legend) {
       "height",
       statusDict.length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
     );
+
 
   legend.selectAll("g")
     .remove()
@@ -344,6 +346,7 @@ function drawLegend(tsv, legend) {
     }
   }
 }
+
 
 function showRealtime() {
   d3.selectAll("#togglelive").on("click", () => {
@@ -415,10 +418,10 @@ function drawHierarchy(json, hierarchy) {
   const DIM_HIERARCHY = calcHierarchySize(root);
   hierarchy
     .attr("width", DIM_HIERARCHY.width)
-    .attr("height", DIM_HIERARCHY.height)
+    .attr("height", DIM_HIERARCHY.height);
 
-  hierarchy.selectAll("g").remove()
-  const g = hierarchy.append("g")
+  hierarchy.selectAll("g").remove();
+  const g = hierarchy.append("g");
 
   let link;
   let node;
@@ -499,7 +502,7 @@ function drawHierarchy(json, hierarchy) {
     definePos(root, DIM_SPACE);
 
     link = g.selectAll(".link").data(root.links(), (d) => d.target.id);
-    link.exit().remove()
+    link.exit().remove();
 
     const linkEnter = link
       .enter()
@@ -549,6 +552,7 @@ function drawHierarchy(json, hierarchy) {
     node = g
       .selectAll(".node")
       .data(root.descendants(), (d) => d.id || (d.id = ++index));
+
     node.exit().remove()
 
     const nodeEnter = node
