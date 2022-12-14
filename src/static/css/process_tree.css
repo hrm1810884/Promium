@@ -8,11 +8,12 @@
   --color-accent: #336601;
   --color-font-normal: #ccc;
   --color-font-accent: #54951f;
+  --font-family-serif: "EB Garamond", "Times New Roman", Times, serif;
+  --font-family-sans: "Avenir", sans-serif;
+  --font-family-mono: "Source Code Pro", monospace;
 }
 
 body {
-  font-family: "Avenir", sans-serif;
-  font-size: 20px;
   font-weight: normal;
   background-color: var(--color-bachground);
   color: var(--color-font-normal);
@@ -41,16 +42,28 @@ body {
 }
 
 h1 {
-  font-family: "EB Garamond", "Times New Roman", Times, serif;
+  font-size: 48px;
+}
+
+h2 {
+  font-size: 32px;
+}
+
+h3 {
+  font-size: 18px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .header .title {
+  font-family: var(--font-family-serif);
   float: left;
 }
 
 .header .navigation {
   flex-grow: 1;
   padding-right: 100px;
+  font-family: var(--font-family-sans);
 }
 
 .header .navigation ul {
@@ -72,15 +85,16 @@ h1 {
   margin-top: var(--header-height);
   width: 100%;
   padding: 10px;
+  font-family: var(--font-family-serif);
 }
 
 .chart {
-  flex-basis: 60%;
+  width: 40%;
 }
 
 .sidebar {
   float: right;
-  width: 25%;
+  width: 0%;
   flex-grow: 1;
 }
 
@@ -93,12 +107,34 @@ h1 {
 }
 
 .sidebar .hierarchy {
-  font-family: Courier, monospace;
+  font-family: var(--font-family-mono);
   color: var(--color-font-normal);
 }
 
 .hint {
-  width: 15%;
+  width: 60%;
+}
+
+.process-description-container {
+  display: grid;
+  grid-template-columns: 30% 30% 30%;
+}
+
+.process-description-item {
+  margin: 5px;
+  padding: 10px;
+  width: 92%;
+  box-shadow: 0 0 5px var(--color-accent);
+}
+
+.process-header h3 {
+  font-family: var(--font-family-mono);
+  font-weight: 300;
+  padding-bottom: 5px;
+}
+
+.process-info {
+  font-family: var(--font-family-sans);
 }
 
 .chart text,

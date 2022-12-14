@@ -67,7 +67,7 @@ function createVisualization(tsv) {
   drawLegend(tsv);
   drawHierarchy(json);
 
-  d3.select("#togglelegend").on("click", () => {
+  d3.select("#buttonLegend").on("click", () => {
     const legend = d3.select("#legend");
     legend.style(
       "visibility",

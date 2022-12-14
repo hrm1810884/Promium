@@ -8,6 +8,46 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css?family=EB+Garamond"
     />
+    <link
+      href="https://fonts.googleapis.com/css?family=Noto+Serif+JP"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function (d) {
+        var config = {
+            kitId: "hxi0hcu",
+            scriptTimeout: 3000,
+            async: true,
+          },
+          h = d.documentElement,
+          t = setTimeout(function () {
+            h.className =
+              h.className.replace(/\bwf-loading\b/g, "") + " wf-inactive";
+          }, config.scriptTimeout),
+          tk = d.createElement("script"),
+          f = false,
+          s = d.getElementsByTagName("script")[0],
+          a;
+        h.className += " wf-loading";
+        tk.src = "https://use.typekit.net/" + config.kitId + ".js";
+        tk.async = true;
+        tk.onload = tk.onreadystatechange = function () {
+          a = this.readyState;
+          if (f || (a && a != "complete" && a != "loaded")) return;
+          f = true;
+          clearTimeout(t);
+          try {
+            Typekit.load(config);
+          } catch (e) {}
+        };
+        s.parentNode.insertBefore(tk, s);
+      })(document);
+    </script>
+
     <link rel="stylesheet" type="text/css" href="./css/process_tree.css" />
   </head>
 
@@ -25,19 +65,94 @@
       </div>
       <div class="main">
         <div class="chart" id="chart"></div>
-        <div class="sidebar">
+        <div class="sidebar" style="visibility: hidden">
           <div class="setting">
-            <input type="checkbox" id="togglelive" checked="checked" />
+            <input type="checkbox" id="buttonLive" checked="checked" />
             Show realtime process<br />
-            <input type="checkbox" id="togglelegend" autocomplete="off" />
+            <input type="checkbox" id="buttonLegend" autocomplete="off" />
             Legend<br />
             <div class="legend" id="legend" style="visibility: hidden"></div>
           </div>
-          <h1>Hierarchy</h1>
+          <h2>Hierarchy</h2>
           <div class="hierarchy" id="hierarchy"></div>
         </div>
         <div class="hint">
-          <h1>Hint</h1>
+          <h2>How to use</h2>
+          <h3>各プロセスの説明</h3>
+          <div class="process-description-container">
+            <div
+              class="process-description-item"
+              style="grid-row: 1; grid-column: 1"
+            >
+              <div class="process-header" style="color: #3f52ff">
+                <h3>Running</h3>
+              </div>
+              <div class="process-info">現在実行中のプロセスです</div>
+            </div>
+            <div
+              class="process-description-item"
+              style="grid-row: 1; grid-column: 2"
+            >
+              <div class="process-header" style="color: #1a85f1">
+                <h3>Runnable</h3>
+              </div>
+              <div class="process-info">実行可能なプロセスです</div>
+            </div>
+            <div
+              class="process-description-item"
+              style="grid-row: 1; grid-column: 3"
+            >
+              <div class="process-header" style="color: #38b349">
+                <h3>Generating</h3>
+              </div>
+              <div class="process-info">生成中のプロセスです</div>
+            </div>
+            <div
+              class="process-description-item"
+              style="grid-row: 2; grid-column: 1"
+            >
+              <div class="process-header" style="color: #f26523">
+                <h3>Uninterruptible Sleep</h3>
+              </div>
+              <div class="process-info">割り込み不可能な休眠中プロセスです</div>
+            </div>
+            <div
+              class="process-description-item"
+              style="grid-row: 2; grid-column: 2"
+            >
+              <div class="process-header" style="color: #fbf267">
+                <h3>Interruptible Sleep</h3>
+              </div>
+              <div class="process-info">割り込み可能な休眠中プロセスです</div>
+            </div>
+            <div
+              class="process-description-item"
+              style="grid-row: 2; grid-column: 3"
+            >
+              <div class="process-header" style="color: #ed1c24">
+                <h3>Stopped</h3>
+              </div>
+              <div class="process-info">停止したプロセスです</div>
+            </div>
+            <div
+              class="process-description-item"
+              style="grid-row: 3; grid-column: 1"
+            >
+              <div class="process-header" style="color: #7053cc">
+                <h3>Zombie</h3>
+              </div>
+              <div class="process-info">ゾンビ状態のプロセスです</div>
+            </div>
+            <div
+              class="process-description-item"
+              style="grid-row: 3; grid-column: 2"
+            >
+              <div class="process-header" style="color: #777">
+                <h3>Unknown</h3>
+              </div>
+              <div class="process-info">よくわからないプロセスです</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
