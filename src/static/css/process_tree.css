@@ -135,7 +135,7 @@ h3 {
   text-align: center;
 }
 
-.process-header h3 {
+.process-header {
   font-family: var(--font-family-mono);
   font-weight: 300;
   padding-bottom: 5px;
