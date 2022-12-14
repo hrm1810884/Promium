@@ -5,6 +5,16 @@ const WIDTH = parseFloat(
 );
 const HEIGHT = 2000;
 
+const helpButton = document.getElementById("helpButton");
+helpButton.addEventListener("change", () => {
+  const helpContentContainer = document.getElementById("helpContent");
+  if (helpButton.checked) {
+    helpContentContainer.style.visibility = "visible";
+  } else {
+    helpContentContainer.style.visibility = "hidden";
+  }
+});
+
 const initializeSvgElement = () => {
   const chartElement = d3
     .select("#chart")
@@ -36,7 +46,7 @@ async function readData(svg, hierarchy, legend) {
   createVisualization(text, svg, hierarchy, legend);
 }
 
-setInterval(readData, 10000, chartSvg, hierarchySvg, legendSvg);
+setInterval(readData, 10000000, chartSvg, hierarchySvg, legendSvg);
 
 function createVisualization(tsv, svg, hierarchy, legend) {
   const json = buildHierarchy(tsv);
