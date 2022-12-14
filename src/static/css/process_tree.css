@@ -6,7 +6,7 @@
 :root {
   --color-bachground: #222;
   --color-accent: #336601;
-  --color-font-normal: #ccc;
+  --color-font-normal: #bbb;
   --color-font-accent: #54951f;
   --font-family-serif: "EB Garamond", "Times New Roman", Times, serif;
   --font-family-sans: "Avenir", sans-serif;
@@ -125,6 +125,7 @@ h3 {
   padding: 10px;
   width: 92%;
   box-shadow: 0 0 5px var(--color-accent);
+  text-align: center;
 }
 
 .process-header h3 {
