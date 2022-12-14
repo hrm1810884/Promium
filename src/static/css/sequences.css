@@ -41,8 +41,11 @@ body {
   padding-left: 50px;
 }
 
+h1 {
+  font-family: "EB Garamond", "Times New Roman", Times, serif;
+}
+
 .header .title {
-  font-family: "Palatino", "Times New Roman", Times, serif;
   float: left;
 }
 
