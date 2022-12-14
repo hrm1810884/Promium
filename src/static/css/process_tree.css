@@ -117,13 +117,13 @@ h3 {
 
 .process-description-container {
   display: grid;
-  grid-template-columns: 30% 30% 30%;
+  grid-template-columns: 27% 27% 27%;
 }
 
 .process-description-item {
   margin: 5px;
   padding: 10px;
-  width: 92%;
+  width: 90%;
   box-shadow: 0 0 5px var(--color-accent);
   text-align: center;
 }
