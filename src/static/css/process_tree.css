@@ -112,12 +112,12 @@ h3 {
 }
 
 .hint {
-  width: 60%;
+  width: 50%;
 }
 
 .process-description-container {
   display: grid;
-  grid-template-columns: 27% 27% 27%;
+  grid-template-columns: 32% 32% 32%;
 }
 
 .process-description-item {
