@@ -2,6 +2,8 @@
 const WIDTH = 1000;
 const HEIGHT = 2000;
 const RADIUS = Math.min(WIDTH, HEIGHT) / 2;
+const CENTER_X = WIDTH / 2;
+const CENTER_Y = HEIGHT / 5;
 
 const statusInfomation = {
   R: { full: "runnable", color: "#1A85F1" },
@@ -164,7 +166,32 @@ function drawChart(json, svg) {
 
     node = nodeEnter.merge(node);
     simulation.nodes(nodes);
+    simulation.nodes().forEach((node) => {
+      if (!node.parent) {
+        node.fx = CENTER_X
+        node.fy = CENTER_Y
+        fix2Gene(node)
+      }
+    })
     simulation.force("link").links(links);
+  }
+
+  function fixChildren(parent) {
+    if (parent.children) {
+      const radius = 200
+      const length = parent.children.length
+      parent.children.forEach((child) => {
+        child.fx = parent.fx + radius * Math.cos(2 * Math.PI * child.index / length)
+        child.fy = parent.fy + radius * Math.sin(2 * Math.PI * child.index / length)
+      })
+    }
+  }
+
+  function fix2Gene(parent) {
+    fixChildren(parent)
+    parent.children.forEach((child) => {
+      fixChildren(child)
+    })
   }
 
   function color(d) {
@@ -350,9 +377,9 @@ function drawLegend(tsv, legend) {
 
 function showRealtime() {
   d3.selectAll("#togglelive").on("click", () => {
-    if(realtime){
+    if (realtime) {
       realtime = false
-    }else{
+    } else {
       realtime = true
     }
     if (realtime) { //timerIdLoad
