@@ -5,8 +5,8 @@ const WIDTH = parseFloat(
 );
 const HEIGHT = 2000;
 
-function setElement() {
-  const svg = d3
+const initializeSvgElement = () => {
+  const chartElement = d3
     .select("#chart")
     .append("svg:svg")
     .attr("width", WIDTH)
@@ -15,23 +15,20 @@ function setElement() {
       d3
         .zoom()
         .scaleExtent([1 / 2, 8])
-        .on("zoom", zoomed)
+        .on("zoom", (event) => {
+          chartElement.attr("transform", event.transform);
+        })
     )
     .append("g");
+  const legendElement = d3.select("#legend").append("svg:svg");
+  const hierarchyElement = d3.select("#hierarchy").append("svg");
+  return [chartElement, hierarchyElement, legendElement];
+};
 
-  function zoomed(event) {
-    svg.attr("transform", event.transform);
-  }
-
-  const hierarchy = d3.select("#hierarchy").append("svg");
-
-  const legend = d3.select("#legend").append("svg:svg");
-
-  return [svg, hierarchy, legend];
-}
+const [chartSvg, hierarchySvg, legendSvg] = initializeSvgElement();
 
 d3.tsv("./data/process_data.tsv").then(function (text) {
-  createVisualization(text, svg, hierarchy, legend);
+  createVisualization(text, chartSvg, hierarchySvg, legendSvg);
 });
 
 async function readData(svg, hierarchy, legend) {
@@ -39,8 +36,7 @@ async function readData(svg, hierarchy, legend) {
   createVisualization(text, svg, hierarchy, legend);
 }
 
-const [svg, hierarchy, legend] = setElement();
-setInterval(readData, 10000, svg, hierarchy, legend);
+setInterval(readData, 10000, chartSvg, hierarchySvg, legendSvg);
 
 function createVisualization(tsv, svg, hierarchy, legend) {
   const json = buildHierarchy(tsv);
