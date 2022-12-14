@@ -119,32 +119,11 @@ function drawChart(json) {
 
   const defs = svg.append("defs");
   Object.keys(nodeType).forEach((keyNode) => {
-    const eachNode = nodeType[keyNode];
     const capitalize = (string) => string[0].toUpperCase() + string.slice(1);
-    if (keyNode === "leaf") {
-      Object.keys(eachNode).forEach((keyStatus) => {
-        const eachStatus = eachNode[keyStatus];
-        const areaGradient = defs
-          .append("radialGradient")
-          .attr("id", `areaGradient${capitalize(keyNode)}${keyStatus}`)
-          .attr("cx", "0.5")
-          .attr("cy", "0.5")
-          .attr("fx", "0.3")
-          .attr("fy", "0.3")
-          .attr("r", "0.5");
-        areaGradient
-          .append("stop")
-          .attr("offset", "0%")
-          .attr("stop-color", eachStatus.colorLight);
-        areaGradient
-          .append("stop")
-          .attr("offset", "100%")
-          .attr("stop-color", eachStatus.colorDark);
-      });
-    } else {
-      areaGradient = defs
+    const setGradient = (idString, colorLight, colorDark) => {
+      const areaGradient = defs
         .append("radialGradient")
-        .attr("id", `areaGradient${capitalize(keyNode)}`)
+        .attr("id", `areaGradient${idString}`)
         .attr("cx", "0.5")
         .attr("cy", "0.5")
         .attr("fx", "0.3")
@@ -153,11 +132,25 @@ function drawChart(json) {
       areaGradient
         .append("stop")
         .attr("offset", "0%")
-        .attr("stop-color", eachNode.colorLight);
+        .attr("stop-color", colorLight);
       areaGradient
         .append("stop")
         .attr("offset", "100%")
-        .attr("stop-color", eachNode.colorDark);
+        .attr("stop-color", colorDark);
+    };
+
+    const eachNode = nodeType[keyNode];
+    if (keyNode === "leaf") {
+      Object.keys(eachNode).forEach((keyStatus) => {
+        const eachStatus = eachNode[keyStatus];
+        setGradient(
+          capitalize(keyNode) + keyStatus,
+          eachStatus.colorLight,
+          eachStatus.colorDark
+        );
+      });
+    } else {
+      setGradient(capitalize(keyNode), eachNode.colorLight, eachNode.colorDark);
     }
   });
 
