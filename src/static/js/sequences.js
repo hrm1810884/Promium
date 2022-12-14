@@ -14,53 +14,49 @@ const statusInfomation = {
   U: { full: "unknown", color: "#777" },
 };
 
-function setElement(){
-  const svg = d3
-    .select("#chart")
-    .append("svg:svg")
-    .attr("width", WIDTH)
-    .attr("height", HEIGHT)
-    .call(
-      d3
-        .zoom()
-        .scaleExtent([1 / 2, 8])
-        .on("zoom", zoomed)
-    )
-    .append("g");
+var svg = d3
+  .select("#chart")
+  .append("svg:svg")
+  .attr("width", WIDTH)
+  .attr("height", HEIGHT)
+  .call(
+    d3
+      .zoom()
+      .scaleExtent([1 / 2, 8])
+      .on("zoom", zoomed)
+  )
+  .append("g");
 
-  function zoomed(event) {
-    svg.attr("transform", event.transform);
-  }
-
-  const hierarchy = d3
-    .select("#hierarchy")
-    .append("svg");
-
-  const legend = d3
-    .select("#legend")
-    .append("svg:svg")
-
-  return [svg, hierarchy, legend]
+function zoomed(event) {
+  svg.attr("transform", event.transform);
 }
 
-async function readData(svg, hierarchy, legend){
-  text = await d3.tsv("./data/process_data.tsv");
-  createVisualization(text,svg,hierarchy,legend);
+var hierarchy = d3
+  .select("#hierarchy")
+  .append("svg");
+
+var legend = d3
+  .select("#legend")
+  .append("svg:svg")
+
+var realtime = true
+var timerId;
+
+async function Load() {
+  json = await d3.tsv("./data/process_data.tsv");
+  createVisualization(json);
 }
 
-const [svg, hierarchy, legend] = setElement();
-setInterval(readData, 10000, svg, hierarchy, legend)
-
-function createVisualization(tsv,svg,hierarchy,legend) {
+function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
 
-  drawLegend(tsv,legend);
+  drawLegend(tsv, legend);
+  showRealtime();
 
-  drawChart(json,svg);
-  drawHierarchy(json,hierarchy);
+  drawChart(json, svg);
+  drawHierarchy(json, hierarchy);
 
   d3.select("#togglelegend").on("click", () => {
-    const legend = d3.select("#legend");
     if (legend.style("visibility") == "hidden") {
       legend.style("visibility", "");
     } else {
@@ -69,7 +65,7 @@ function createVisualization(tsv,svg,hierarchy,legend) {
   });
 }
 
-function drawChart(json,svg) {
+function drawChart(json, svg) {
   const root = d3
     .hierarchy(json)
     .sum((d) => d.cpu)
@@ -78,7 +74,7 @@ function drawChart(json,svg) {
 
   const countChildren = (hierarchy) =>
     hierarchy.eachAfter((node) => {
-      let sum = 1;  
+      let sum = 1;
       if (node.children) {
         const children = node.children;
         for (const child of children) {
@@ -114,7 +110,7 @@ function drawChart(json,svg) {
     .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 6))
     .on("tick", ticked);
 
-    update(svg);
+  update(svg);
 
   function update(svg) {
     const nodes = flatten(root);
@@ -281,9 +277,9 @@ function drawLegend(tsv, legend) {
       "height",
       statusDict.length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
     );
-  
+
   legend.selectAll("g")
-      .remove()
+    .remove()
   const g = legend
     .selectAll("g")
     .data(sortedStatus)
@@ -349,7 +345,24 @@ function drawLegend(tsv, legend) {
   }
 }
 
-function drawHierarchy(json,hierarchy) {
+function showRealtime() {
+  d3.selectAll("#togglelive").on("click", () => {
+    if(realtime){
+      realtime = false
+    }else{
+      realtime = true
+    }
+    if (realtime) { //timerIdLoad
+      timerId = setInterval(Load, 5000)
+    } else { //Load
+      clearInterval(timerId);
+      Load()
+    }
+  });
+
+}
+
+function drawHierarchy(json, hierarchy) {
   // 参考：https://qiita.com/e_a_s_y/items/dd1f0f9366ce5d1d1e7c
   const DIM_RECT = {
     height: 20,
@@ -536,8 +549,8 @@ function drawHierarchy(json,hierarchy) {
     node = g
       .selectAll(".node")
       .data(root.descendants(), (d) => d.id || (d.id = ++index));
-    node.exit().remove() 
-    
+    node.exit().remove()
+
     const nodeEnter = node
       .enter()
       .append("g")
@@ -646,3 +659,5 @@ function buildHierarchy(tsv) {
   }
   return root;
 }
+
+timerId = setInterval(Load, 1000)
