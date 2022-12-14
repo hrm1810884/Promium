@@ -7,11 +7,14 @@ const HEIGHT = 2000;
 
 const helpButton = document.getElementById("helpButton");
 helpButton.addEventListener("change", () => {
+  const sidebarContainer = document.getElementById("sidebar");
   const helpContentContainer = document.getElementById("helpContent");
   if (helpButton.checked) {
+    sidebarContainer.style.visibility = "hidden";
     helpContentContainer.style.visibility = "visible";
   } else {
     helpContentContainer.style.visibility = "hidden";
+    sidebarContainer.style.visibility = "visible";
   }
 });
 
@@ -46,7 +49,7 @@ async function readData(svg, hierarchy, legend) {
   createVisualization(text, svg, hierarchy, legend);
 }
 
-setInterval(readData, 10000000, chartSvg, hierarchySvg, legendSvg);
+setInterval(readData, 10000, chartSvg, hierarchySvg, legendSvg);
 
 function createVisualization(tsv, svg, hierarchy, legend) {
   const json = buildHierarchy(tsv);
