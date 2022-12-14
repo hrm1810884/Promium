@@ -28,7 +28,13 @@
         </div>
         <div class="navigation">
           <ul>
-            <li id="help">Help</li>
+            <li>
+              <input
+                type="checkbox"
+                id="helpButton"
+                class="help-button"
+              /><label for="helpButton" class="help-button-label">Help</label>
+            </li>
           </ul>
         </div>
       </div>
@@ -44,12 +50,10 @@
         <h2>Hierarchy</h2>
         <div class="hierarchy" id="hierarchy"></div>
       </div>
-      <div class="hint">
+      <div class="help-content" id="helpContent">
         <h2>How to use</h2>
         <h3>使い方</h3>
-        <div class="how-to-use">
-          ここに使い方を書きます
-        </div>
+        <div class="how-to-use">ここに使い方を書きます</div>
         <h3>プロセスのステータスの説明</h3>
         <div class="process-description-container">
           <div

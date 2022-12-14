@@ -82,6 +82,21 @@ h3 {
   font-size: 18px;
 }
 
+.help-button {
+  display: none;
+}
+
+.help-button-label {
+  width: 150px;
+  padding: 10px 30px;
+  box-shadow: 0 0 5px var(--color-font-accent);
+  user-select: none;
+}
+
+.help-button:checked + .help-button-label {
+  background-color: var(--color-accent);
+}
+
 .main {
   margin-top: var(--header-height);
   width: 100%;
@@ -108,17 +123,17 @@ h3 {
   accent-color: var(--color-accent);
 }
 
-
 .sidebar .hierarchy {
   font-family: var(--font-family-mono);
   color: var(--color-font-normal);
   position: absolute;
 }
 
-.hint {
+.help-content {
   grid-row: 2;
   grid-column: 3;
   font-family: var(--font-family-serif);
+  border: 5px solid var(--color-font-accent);
 }
 
 .process-description-container {
