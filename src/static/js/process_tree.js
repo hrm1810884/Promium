@@ -37,6 +37,8 @@ const DIM_HIERARCHY = {
   },
 };
 
+let cpuModeOn = true;
+
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("helpButton").addEventListener("change", function () {
     const sidebarContainer = document.getElementById("sidebar");
@@ -58,6 +60,16 @@ document.addEventListener("DOMContentLoaded", () => {
         ? "visible"
         : "hidden";
     });
+
+  const inputTabs = document.querySelectorAll("input[name=tab_name]");
+  for (const inputTab of inputTabs) {
+    inputTab.addEventListener("change", function () {
+      if (this.checked) {
+        cpuModeOn = this.id === "cpuTab";
+        readData();
+      }
+    });
+  }
 });
 
 const initializeSvgElement = () => {
@@ -190,7 +202,7 @@ function createVisualization(tsv) {
   function drawChart(json) {
     const root = d3
       .hierarchy(json)
-      .sum((d) => d.cpu)
+      .sum((d) => (cpuModeOn ? d.cpu : d.rss))
       .sort((a, b) => b.value - a.value);
 
     const countChildren = (hierarchy) =>
@@ -316,16 +328,14 @@ function createVisualization(tsv) {
             .on("drag", dragged)
             .on("end", dragended)
         )
-        .sort((a, b) => {
-          return b.depth - a.depth;
-        });
+        .sort((a, b) => (b.depth - a.depth));
 
       nodeEnter
         .append("circle")
         .attr("r", (d) =>
           d.data.command === "root"
             ? 50
-            : Math.max(Math.sqrt(d.data.cpu) * 15, 5)
+            : Math.max(Math.sqrt(cpuModeOn ? d.data.cpu : d.data.rss) * 15, 5)
         )
         .style("text-anchor", (d) => (d.children ? "end" : "start"))
         .text((d) => d.data.command);

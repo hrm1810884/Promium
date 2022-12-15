@@ -39,7 +39,12 @@
           </ul>
         </div>
       </div>
-      <div class="chart" id="chart"></div>
+      <div class="chart" id="chart">
+        <input type="radio" name="tab_name" id="cpuTab" checked="checked" />
+        <label class="tab_class" for="cpuTab">CPU usage</label>
+        <input type="radio" name="tab_name" id="memoryTab" autocomplete="off" />
+        <label class="tab_class" for="memoryTab">Memory usage</label>
+      </div>
       <div class="sidebar" id="sidebar" style="visibility: visible">
         <div class="setting">
           <input type="checkbox" id="liveButton" checked="checked" />
@@ -70,7 +75,6 @@
                 <span>Running</span>
               </div>
               <div class="process-info">現在実行中のプロセスです</div>
-            </div>
             <div
               class="process-description-item"
               style="grid-row: 1; grid-column: 2"

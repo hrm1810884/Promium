@@ -110,6 +110,39 @@ h3 {
   height: 95%;
   margin: 10px;
   box-shadow: 0 0 5px var(--color-font-accent);
+  flex-wrap: wrap;
+  display: flex;
+}
+
+.tab_class {
+  width: calc(100%/5);
+  height: 30px;
+  background-color: var(--color-bachground);
+  line-height: 30px;
+  font-family: var(--font-family-mono);
+  font-size: 15px;
+  text-align: center;
+  display: block;
+  float: left;
+  order: -1;
+}
+
+input[name="tab_name"]{
+  display: none;
+}
+
+input:checked + .tab_class {
+  background-color: var(--color-accent);
+  color: aliceblue;
+}
+
+.content_class {
+  display: none;
+  width: 100%;
+}
+
+input:checked + .tab_class + .content_class {
+  display: block;
 }
 
 .sidebar {
