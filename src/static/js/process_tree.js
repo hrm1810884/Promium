@@ -44,12 +44,13 @@ const [chartSvg, hierarchySvg, legendSvg] = initializeSvgElement();
 var realtime = true;
 var timerId;
 
+readData()
+timerId = setInterval(readData, 5000)
+
 async function readData() {
   const text = await d3.tsv("./data/process_data.tsv");
   createVisualization(text);
 }
-
-timerId = setInterval(readData, 10000, chartSvg, hierarchySvg, legendSvg);
 
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
