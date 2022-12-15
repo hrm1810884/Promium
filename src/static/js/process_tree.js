@@ -4,6 +4,8 @@ const WIDTH = parseFloat(
     .width.replace("px", "")
 );
 const HEIGHT = 2000;
+const CENTER_X = WIDTH / 2;
+const CENTER_Y = HEIGHT / 5;
 
 const helpButton = document.getElementById("helpButton");
 helpButton.addEventListener("change", () => {
@@ -39,19 +41,26 @@ const initializeSvgElement = () => {
 };
 
 const [chartSvg, hierarchySvg, legendSvg] = initializeSvgElement();
+let liveModeOn = true;
+let timerIdGeneral = setInterval(readData, 5000);
 
-d3.tsv("./data/process_data.tsv").then(function (text) {
-  createVisualization(text, chartSvg, hierarchySvg, legendSvg);
+readData();
+
+document.getElementById("togglelive").addEventListener("change", function () {
+  if (this.checked) {
+    timerIdGeneral = setInterval(readData, 5000);
+  } else {
+    clearInterval(timerIdGeneral);
+    readData();
+  }
 });
 
-async function readData(svg, hierarchy, legend) {
+async function readData() {
   const text = await d3.tsv("./data/process_data.tsv");
-  createVisualization(text, svg, hierarchy, legend);
+  createVisualization(text);
 }
 
-setInterval(readData, 10000, chartSvg, hierarchySvg, legendSvg);
-
-function createVisualization(tsv, svg, hierarchy, legend) {
+function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
   const nodeType = {
     root: {
@@ -108,11 +117,11 @@ function createVisualization(tsv, svg, hierarchy, legend) {
     },
   };
 
-  drawChart(json, svg);
-  drawLegend(tsv, legend);
-  drawHierarchy(json, hierarchy);
+  drawChart(json);
+  drawLegend(tsv, legendSvg);
+  drawHierarchy(json, hierarchySvg);
 
-  d3.select("#buttonLegend").on("click", () => {
+  d3.select("#togglelegend").on("click", () => {
     const legend = d3.select("#legend");
     legend.style(
       "visibility",
@@ -120,7 +129,7 @@ function createVisualization(tsv, svg, hierarchy, legend) {
     );
   });
 
-  function drawChart(json, svg) {
+  function drawChart(json) {
     const root = d3
       .hierarchy(json)
       .sum((d) => d.cpu)
@@ -144,7 +153,7 @@ function createVisualization(tsv, svg, hierarchy, legend) {
     let link;
     let index = 0;
 
-    const defs = svg.append("defs");
+    const defs = chartSvg.append("defs");
     Object.keys(nodeType).forEach((keyNode) => {
       const capitalize = (string) => string[0].toUpperCase() + string.slice(1);
       const setGradient = (idString, colorLight, colorDark) => {
@@ -205,13 +214,13 @@ function createVisualization(tsv, svg, hierarchy, legend) {
       .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 6))
       .on("tick", ticked);
 
-    update(svg);
+    update();
 
-    function update(svg) {
+    function update() {
       const nodes = flatten(root);
       const links = root.links();
 
-      link = svg.selectAll(".link").data(links, (d) => d.target.id);
+      link = chartSvg.selectAll(".link").data(links, (d) => d.target.id);
       link.exit().remove();
 
       const linkEnter = link
@@ -224,7 +233,7 @@ function createVisualization(tsv, svg, hierarchy, legend) {
 
       link = linkEnter.merge(link);
 
-      node = svg.selectAll(".node").data(nodes, (d) => d.id);
+      node = chartSvg.selectAll(".node").data(nodes, (d) => d.id);
       node.exit().remove();
 
       const nodeEnter = node
@@ -259,7 +268,45 @@ function createVisualization(tsv, svg, hierarchy, legend) {
 
       node = nodeEnter.merge(node);
       simulation.nodes(nodes);
+      simulation.nodes().forEach((node) => {
+        if (!node.parent) {
+          node.fx = CENTER_X;
+          node.fy = CENTER_Y;
+          fixAllGene(node);
+        }
+      });
       simulation.force("link").links(links);
+    }
+
+    function fixChildren(parentNode) {
+      if (parentNode.children) {
+        const radius = 200;
+        const numChild = parentNode.children.length;
+        parentNode.children.forEach((child) => {
+          child.fx =
+            parentNode.fx +
+            radius * Math.cos((2 * Math.PI * child.index) / numChild);
+          child.fy =
+            parentNode.fy +
+            radius * Math.sin((2 * Math.PI * child.index) / numChild);
+        });
+      }
+    }
+
+    function fix2Gene(parentNode) {
+      fixChildren(parentNode);
+      parentNode.children.forEach((child) => {
+        fixChildren(child);
+      });
+    }
+
+    function fixAllGene(parentNode) {
+      if (parentNode.children) {
+        fixChildren(parentNode);
+        parentNode.children.forEach((child) => {
+          fixAllGene(child);
+        });
+      }
     }
 
     function color(d) {
@@ -294,7 +341,7 @@ function createVisualization(tsv, svg, hierarchy, legend) {
           d.children = d._children;
           d._children = null;
         }
-        update(svg);
+        update();
       }
     }
 
@@ -337,7 +384,7 @@ function createVisualization(tsv, svg, hierarchy, legend) {
     }
   }
 
-  function drawLegend(tsv, legend) {
+  function drawLegend(tsv) {
     const DIM_LEGEND = {
       width: 250,
       height: 30,
@@ -363,16 +410,16 @@ function createVisualization(tsv, svg, hierarchy, legend) {
       .slice()
       .sort((a, b) => d3.ascending(a.stat, b.stat));
 
-    legend
+    legendSvg
       .attr("width", DIM_LEGEND.width)
       .attr(
         "height",
         statusDict.length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
       );
 
-    legend.selectAll("g").remove();
+    legendSvg.selectAll("g").remove();
 
-    const g = legend
+    const g = legendSvg
       .selectAll("g")
       .data(sortedStatus)
       .enter()
@@ -437,7 +484,7 @@ function createVisualization(tsv, svg, hierarchy, legend) {
     }
   }
 
-  function drawHierarchy(json, hierarchy) {
+  function drawHierarchy(json) {
     // 参考：https://qiita.com/e_a_s_y/items/dd1f0f9366ce5d1d1e7c
     const DIM_RECT = {
       height: 20,
@@ -489,12 +536,12 @@ function createVisualization(tsv, svg, hierarchy, legend) {
 
     const DIM_HIERARCHY = calcHierarchySize(root);
 
-    hierarchy
+    hierarchySvg
       .attr("width", DIM_HIERARCHY.width)
       .attr("height", DIM_HIERARCHY.height);
 
-    hierarchy.selectAll("g").remove();
-    const g = hierarchy.append("g");
+    hierarchySvg.selectAll("g").remove();
+    const g = hierarchySvg.append("g");
 
     let link;
     let node;
