@@ -78,14 +78,15 @@ const initializeSvgElement = () => {
 };
 
 const [chartSvg, legendSvg, hierarchySvg] = initializeSvgElement();
+const intervalTime = 1000000;
 let liveModeOn = true;
-let timerIdGeneral = setInterval(readData, 1000000);
+let timerIdGeneral = setInterval(readData, intervalTime);
 
 readData();
 
 document.getElementById("liveButton").addEventListener("change", function () {
   if (this.checked) {
-    timerIdGeneral = setInterval(readData, 1000000);
+    timerIdGeneral = setInterval(readData, intervalTime);
   } else {
     clearInterval(timerIdGeneral);
     readData();
