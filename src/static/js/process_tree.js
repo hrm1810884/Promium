@@ -7,6 +7,8 @@ const HEIGHT = 2000;
 const CENTER_X = WIDTH / 2;
 const CENTER_Y = HEIGHT / 5;
 
+let cpuModeOn = true;
+
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("helpButton").addEventListener("change", function () {
     const sidebarContainer = document.getElementById("sidebar");
@@ -28,6 +30,16 @@ document.addEventListener("DOMContentLoaded", () => {
         ? "visible"
         : "hidden";
     });
+
+  let inputTabs = document.querySelectorAll("input[name=tab_name]");
+  for(let element of inputTabs) {
+    element.addEventListener("change",function () {
+      if (this.checked) {
+        cpuModeOn = (this.id == "cpuTab" ? true : false);
+        readData();
+      }
+    })
+  }
 });
 
 const initializeSvgElement = () => {
@@ -134,7 +146,7 @@ function createVisualization(tsv) {
   function drawChart(json) {
     const root = d3
       .hierarchy(json)
-      .sum((d) => d.cpu)
+      .sum( (d) => (cpuModeOn ? d.cpu : d.rss))
       .sort((a, b) => b.value - a.value);
 
     const countChildren = (hierarchy) =>
@@ -263,7 +275,7 @@ function createVisualization(tsv) {
         .attr("r", (d) =>
           d.data.command === "root"
             ? 50
-            : Math.max(Math.sqrt(d.data.cpu) * 15, 5)
+            : Math.max(Math.sqrt(cpuModeOn ? d.data.cpu : d.data.rss) * 15, 5)
         )
         .style("text-anchor", (d) => (d.children ? "end" : "start"))
         .text((d) => d.data.command);
