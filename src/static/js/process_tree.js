@@ -5,17 +5,27 @@ const WIDTH = parseFloat(
 );
 const HEIGHT = 2000;
 
-const helpButton = document.getElementById("helpButton");
-helpButton.addEventListener("change", () => {
-  const sidebarContainer = document.getElementById("sidebar");
-  const helpContentContainer = document.getElementById("helpContent");
-  if (helpButton.checked) {
-    sidebarContainer.style.visibility = "hidden";
-    helpContentContainer.style.visibility = "visible";
-  } else {
-    helpContentContainer.style.visibility = "hidden";
-    sidebarContainer.style.visibility = "visible";
-  }
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("helpButton").addEventListener("change", function () {
+    const sidebarContainer = document.getElementById("sidebar");
+    const helpContentContainer = document.getElementById("helpContent");
+    if (this.checked) {
+      sidebarContainer.style.visibility = "hidden";
+      helpContentContainer.style.visibility = "visible";
+    } else {
+      helpContentContainer.style.visibility = "hidden";
+      sidebarContainer.style.visibility = "visible";
+    }
+  });
+
+  document
+    .getElementById("legendButton")
+    .addEventListener("change", function () {
+      const legendContentContainer = document.getElementById("legendContent");
+      legendContentContainer.style.visibility = this.checked
+        ? "visible"
+        : "hidden";
+    });
 });
 
 const initializeSvgElement = () => {
@@ -33,7 +43,7 @@ const initializeSvgElement = () => {
         })
     )
     .append("g");
-  const legendElement = d3.select("#legend").append("svg:svg");
+  const legendElement = d3.select("#legendContent").append("svg:svg");
   const hierarchyElement = d3.select("#hierarchy").append("svg");
   return [chartElement, hierarchyElement, legendElement];
 };
@@ -111,14 +121,6 @@ function createVisualization(tsv, svg, hierarchy, legend) {
   drawChart(json, svg);
   drawLegend(tsv, legend);
   drawHierarchy(json, hierarchy);
-
-  d3.select("#buttonLegend").on("click", () => {
-    const legend = d3.select("#legend");
-    legend.style(
-      "visibility",
-      legend.style("visibility") === "hidden" ? "" : "hidden"
-    );
-  });
 
   function drawChart(json, svg) {
     const root = d3
