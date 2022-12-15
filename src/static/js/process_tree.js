@@ -1,11 +1,23 @@
-const WIDTH = parseFloat(
-  window
-    .getComputedStyle(document.getElementById("chart"))
-    .width.replace("px", "")
-);
-const HEIGHT = 2000;
-const CENTER_X = WIDTH / 2;
-const CENTER_Y = HEIGHT / 5;
+const DIM_CHART = {
+  container: {
+    width: -1,
+    height: -1,
+    centerX: -1,
+    centerY: -1,
+  },
+};
+const DIM_LEGEND = {
+  container: {
+    width: -1,
+    height: -1,
+  },
+  each: {
+    width: 250,
+    height: 30,
+    spacing: 3,
+    radius: 3,
+  },
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("helpButton").addEventListener("change", function () {
@@ -30,12 +42,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+const initializeDimention = () => {
+  DIM_CHART.container.width = parseFloat(
+    window
+      .getComputedStyle(document.getElementById("chart"))
+      .width.replace("px", "")
+  );
+  DIM_CHART.container.height = 2000;
+  DIM_CHART.container.centerX = DIM_CHART.container.width / 2;
+  DIM_CHART.container.centerY = DIM_CHART.container.height / 5;
+  DIM_LEGEND.container.width = DIM_LEGEND.each.width;
+  DIM_LEGEND.container.height =
+    8 * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing);
+};
+
+initializeDimention();
+
 const initializeSvgElement = () => {
   const chartElement = d3
     .select("#chart")
     .append("svg:svg")
-    .attr("width", WIDTH)
-    .attr("height", HEIGHT)
+    .attr("width", DIM_CHART.container.width)
+    .attr("height", DIM_CHART.container.height)
     .call(
       d3
         .zoom()
@@ -56,7 +84,7 @@ let timerIdGeneral = setInterval(readData, 5000);
 
 readData();
 
-document.getElementById("togglelive").addEventListener("change", function () {
+document.getElementById("liveButton").addEventListener("change", function () {
   if (this.checked) {
     timerIdGeneral = setInterval(readData, 5000);
   } else {
@@ -213,7 +241,13 @@ function createVisualization(tsv) {
           .strength((d) => Math.min(-5 * d.value, -30))
           .distanceMax(200)
       )
-      .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 6))
+      .force(
+        "center",
+        d3.forceCenter(
+          DIM_CHART.container.width / 2,
+          DIM_CHART.container.height / 6
+        )
+      )
       .on("tick", ticked);
 
     update();
@@ -272,8 +306,8 @@ function createVisualization(tsv) {
       simulation.nodes(nodes);
       simulation.nodes().forEach((node) => {
         if (!node.parent) {
-          node.fx = CENTER_X;
-          node.fy = CENTER_Y;
+          node.fx = DIM_CHART.container.centerX;
+          node.fy = DIM_CHART.container.centerY;
           fixAllGene(node);
         }
       });
@@ -387,13 +421,6 @@ function createVisualization(tsv) {
   }
 
   function drawLegend(tsv) {
-    const DIM_LEGEND = {
-      width: 250,
-      height: 30,
-      spacing: 3,
-      radius: 3,
-    };
-
     let statusIndex = 0;
     let statusDict = [];
     tsv.forEach((d) => {
@@ -413,11 +440,8 @@ function createVisualization(tsv) {
       .sort((a, b) => d3.ascending(a.stat, b.stat));
 
     legendSvg
-      .attr("width", DIM_LEGEND.width)
-      .attr(
-        "height",
-        statusDict.length * (DIM_LEGEND.height + DIM_LEGEND.spacing)
-      );
+      .attr("width", DIM_LEGEND.container.width)
+      .attr("height", DIM_LEGEND.container.height);
 
     legendSvg.selectAll("g").remove();
 
@@ -429,14 +453,16 @@ function createVisualization(tsv) {
       .attr(
         "transform",
         (d, i) =>
-          "translate(0," + i * (DIM_LEGEND.height + DIM_LEGEND.spacing) + ")"
+          "translate(0," +
+          i * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
+          ")"
       );
 
     g.append("svg:rect")
-      .attr("rx", DIM_LEGEND.radius)
-      .attr("ry", DIM_LEGEND.radius)
-      .attr("width", DIM_LEGEND.width)
-      .attr("height", DIM_LEGEND.height)
+      .attr("rx", DIM_LEGEND.each.radius)
+      .attr("ry", DIM_LEGEND.each.radius)
+      .attr("width", DIM_LEGEND.each.width)
+      .attr("height", DIM_LEGEND.each.height)
       .style(
         "fill",
         (d) => nodeType.leaf[d.stat in nodeType.leaf ? d.stat : "U"].colorLight
@@ -445,8 +471,8 @@ function createVisualization(tsv) {
       .attr("class", (d) => "rect_" + d.id);
 
     g.append("svg:text")
-      .attr("x", DIM_LEGEND.width / 2)
-      .attr("y", DIM_LEGEND.height / 2)
+      .attr("x", DIM_LEGEND.each.width / 2)
+      .attr("y", DIM_LEGEND.each.height / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "middle")
       .text(
