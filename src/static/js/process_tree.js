@@ -42,23 +42,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-const initializeDimention = () => {
-  DIM_CHART.container.width = parseFloat(
-    window
-      .getComputedStyle(document.getElementById("chart"))
-      .width.replace("px", "")
-  );
-  DIM_CHART.container.height = 2000;
-  DIM_CHART.container.centerX = DIM_CHART.container.width / 2;
-  DIM_CHART.container.centerY = DIM_CHART.container.height / 5;
-  DIM_LEGEND.container.width = DIM_LEGEND.each.width;
-  DIM_LEGEND.container.height =
-    8 * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing);
-};
-
-initializeDimention();
-
 const initializeSvgElement = () => {
+  const initializeDimention = (() => {
+    DIM_CHART.container.width = parseFloat(
+      window
+        .getComputedStyle(document.getElementById("chart"))
+        .width.replace("px", "")
+    );
+    DIM_CHART.container.height = 2000;
+    DIM_CHART.container.centerX = DIM_CHART.container.width / 2;
+    DIM_CHART.container.centerY = DIM_CHART.container.height / 5;
+    DIM_LEGEND.container.width = DIM_LEGEND.each.width;
+    DIM_LEGEND.container.height =
+      8 * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing);
+  })();
+
   const chartElement = d3
     .select("#chart")
     .append("svg:svg")
