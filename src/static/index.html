@@ -6,10 +6,18 @@
     <script src="./lib/d3.js"></script>
     <link
       rel="stylesheet"
-      type="text/css"
-      href="https://fonts.googleapis.com/css?family=Open+Sans:400,600"
+      href="https://fonts.googleapis.com/css?family=EB+Garamond"
     />
-    <link rel="stylesheet" type="text/css" href="./css/sequences.css" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Noto+Serif+JP"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" type="text/css" href="./css/process_tree.css" />
   </head>
 
   <body>
@@ -20,29 +28,112 @@
         </div>
         <div class="navigation">
           <ul>
-            <li id="help">Help</li>
+            <li>
+              <input
+                type="checkbox"
+                id="helpButton"
+                class="help-button"
+                autocomplete="off"
+              /><label for="helpButton" class="help-button-label">Help</label>
+            </li>
           </ul>
         </div>
       </div>
-      <div class="main">
-        <div class="content">
-          <div class="chart" id="chart"></div>
-        </div>
-        <div class="sidebar">
-          <div class="setting">
+      <div class="chart" id="chart"></div>
+      <div class="sidebar" id="sidebar" style="visibility: visible">
+        <div class="setting">
             <input type="checkbox" id="togglelive" checked="checked" />
-            Stop Loading<br />
+            Show live process <br/>
             <input type="checkbox" id="togglelegend" autocomplete="off" />
             Legend<br />
             <div class="legend" id="legend" style="visibility: hidden"></div>
           </div>
-          <h1>Hierarchy</h1>
-          <div class="hierarchy" id="hierarchy"></div>
+        <h2>Hierarchy</h2>
+        <div class="hierarchy" id="hierarchy"></div>
+      </div>
+      <div class="help-content" id="helpContent" style="visibility: hidden;">
+        <h2>How to use</h2>
+        <h3>使い方</h3>
+        <div class="how-to-use">ここに使い方を書きます</div>
+        <h3>プロセスのステータスの説明</h3>
+        <div class="process-description-container">
+          <div
+            class="process-description-item"
+            style="grid-row: 1; grid-column: 1"
+          >
+            <div class="process-header" style="color: #3f52ff">
+              <span>Running</span>
+            </div>
+            <div class="process-info">現在実行中のプロセスです</div>
+          </div>
+          <div
+            class="process-description-item"
+            style="grid-row: 1; grid-column: 2"
+          >
+            <div class="process-header" style="color: #1a85f1">
+              <span>Runnable</span>
+            </div>
+            <div class="process-info">実行可能なプロセスです</div>
+          </div>
+          <div
+            class="process-description-item"
+            style="grid-row: 1; grid-column: 3"
+          >
+            <div class="process-header" style="color: #38b349">
+              <span>Generating</span>
+            </div>
+            <div class="process-info">生成中のプロセスです</div>
+          </div>
+          <div
+            class="process-description-item"
+            style="grid-row: 2; grid-column: 1"
+          >
+            <div class="process-header" style="color: #f26523">
+              <span>Uninterruptible Sleep</span>
+            </div>
+            <div class="process-info">割り込み不可能な休眠中プロセスです</div>
+          </div>
+          <div
+            class="process-description-item"
+            style="grid-row: 2; grid-column: 2"
+          >
+            <div class="process-header" style="color: #fbf267">
+              <span>Interruptible Sleep</span>
+            </div>
+            <div class="process-info">割り込み可能な休眠中プロセスです</div>
+          </div>
+          <div
+            class="process-description-item"
+            style="grid-row: 2; grid-column: 3"
+          >
+            <div class="process-header" style="color: #ed1c24">
+              <span>Stopped</span>
+            </div>
+            <div class="process-info">停止したプロセスです</div>
+          </div>
+          <div
+            class="process-description-item"
+            style="grid-row: 3; grid-column: 1"
+          >
+            <div class="process-header" style="color: #7053cc">
+              <span>Zombie</span>
+            </div>
+            <div class="process-info">ゾンビ状態のプロセスです</div>
+          </div>
+          <div
+            class="process-description-item"
+            style="grid-row: 3; grid-column: 2"
+          >
+            <div class="process-header" style="color: #777">
+              <span>Unknown</span>
+            </div>
+            <div class="process-info">よくわからないプロセスです</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <script type="text/javascript" src="./js/sequences.js"></script>
+    <script type="text/javascript" src="./js/process_tree.js"></script>
     <script type="text/javascript">
       // Hack to make this example display correctly in an iframe on bl.ocks.org
       d3.select(self.frameElement).style("height", "700px");

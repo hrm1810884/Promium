@@ -47,9 +47,11 @@ var realtime = true
 var timerId;
 
 async function Load() {
-  json = await d3.tsv("./data/process_data.tsv");
-  createVisualization(json);
+  const text = await d3.tsv("./data/process_data.tsv");
+  createVisualization(text);
 }
+
+timerId = setInterval(Load, 1000)
 
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
@@ -702,5 +704,3 @@ function buildHierarchy(tsv) {
   }
   return root;
 }
-
-timerId = setInterval(Load, 1000)
