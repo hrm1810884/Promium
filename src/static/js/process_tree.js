@@ -18,6 +18,24 @@ const DIM_LEGEND = {
     radius: 3,
   },
 };
+const DIM_HIERARCHY = {
+  container: {
+    width: -1,
+    height: -1,
+  },
+  rect: {
+    height: 20,
+    width: 80,
+  },
+  space: {
+    padding: 30,
+    height: 50,
+    width: 120,
+  },
+  link: {
+    left: 20,
+  },
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("helpButton").addEventListener("change", function () {
@@ -47,6 +65,9 @@ const initializeSvgElement = () => {
     const chartStyle = window.getComputedStyle(
       document.getElementById("chart")
     );
+    const hierarchyStyle = window.getComputedStyle(
+      document.getElementById("hierarchy")
+    );
     DIM_CHART.container.width = parseFloat(chartStyle.width.replace("px", ""));
     DIM_CHART.container.height = parseFloat(
       chartStyle.height.replace("px", "")
@@ -56,6 +77,12 @@ const initializeSvgElement = () => {
     DIM_LEGEND.container.width = DIM_LEGEND.each.width;
     DIM_LEGEND.container.height =
       8 * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing);
+    DIM_HIERARCHY.container.width = parseFloat(
+      hierarchyStyle.width.replace("px", "")
+    );
+    DIM_HIERARCHY.container.height = parseFloat(
+      hierarchyStyle.height.replace("px", "")
+    );
   })();
 
   const chartElement = d3
@@ -76,6 +103,7 @@ const initializeSvgElement = () => {
   const hierarchyElement = d3.select("#hierarchy").append("svg");
   return [chartElement, legendElement, hierarchyElement];
 };
+
 
 const [chartSvg, legendSvg, hierarchySvg] = initializeSvgElement();
 const intervalTime = 1000000;
@@ -514,21 +542,6 @@ function createVisualization(tsv) {
 
   function drawHierarchy(json) {
     // 参考：https://qiita.com/e_a_s_y/items/dd1f0f9366ce5d1d1e7c
-    const DIM_RECT = {
-      height: 20,
-      width: 80,
-    };
-
-    const DIM_SPACE = {
-      padding: 30,
-      height: 50,
-      width: 120,
-    };
-
-    const DIM_LINK = {
-      left: 20,
-    };
-
     const DURATION = 500;
 
     const root = d3.hierarchy(json);
@@ -549,24 +562,9 @@ function createVisualization(tsv) {
 
     countChildren(root);
 
-    const calcHierarchySize = (source) => {
-      return {
-        height:
-          source.value * DIM_RECT.height +
-          (source.value - 1) * (DIM_SPACE.height - DIM_RECT.height) +
-          DIM_SPACE.padding * 2,
-        width:
-          (source.height + 1) * DIM_RECT.width +
-          source.height * (DIM_SPACE.width - DIM_RECT.width) +
-          DIM_SPACE.padding * 2,
-      };
-    };
-
-    const DIM_HIERARCHY = calcHierarchySize(root);
-
     hierarchySvg
-      .attr("width", DIM_HIERARCHY.width)
-      .attr("height", DIM_HIERARCHY.height);
+      .attr("width", DIM_HIERARCHY.container.width)
+      .attr("height", DIM_HIERARCHY.container.height);
 
     hierarchySvg.selectAll("g").remove();
     const g = hierarchySvg.append("g");
@@ -588,9 +586,6 @@ function createVisualization(tsv) {
 
     function updateTree(source) {
       countChildren(root);
-      DIM_HIERARCHY.height,
-        (DIM_HIERARCHY.width = calcHierarchySize(root).height),
-        calcHierarchySize(root).width;
 
       const seekParent = (currentData, command) => {
         const currentHierarchy = currentData.parent.children;
@@ -622,7 +617,7 @@ function createVisualization(tsv) {
 
       const defineY = (data) => {
         if (data.data.command === "root") {
-          return DIM_SPACE.padding;
+          return DIM_HIERARCHY.space.padding;
         }
         const ancestorValues = data
           .ancestors()
@@ -636,20 +631,24 @@ function createVisualization(tsv) {
           0
         );
 
-        return (data.depth + sumLeaves) * DIM_SPACE.height + DIM_SPACE.padding;
+        return (
+          (data.depth + sumLeaves) * DIM_HIERARCHY.space.height +
+          DIM_HIERARCHY.space.padding
+        );
       };
 
       const definePos = (treeData) => {
         treeData.each((d) => {
-          d.x = d.depth * 2 * DIM_LINK.left + DIM_SPACE.padding;
+          d.x =
+            d.depth * 2 * DIM_HIERARCHY.link.left + DIM_HIERARCHY.space.padding;
           d.y = defineY(d);
         });
       };
 
-      definePos(root, DIM_SPACE);
+      definePos(root, DIM_HIERARCHY.space);
 
       tree(root);
-      definePos(root, DIM_SPACE);
+      definePos(root, DIM_HIERARCHY.space);
 
       link = g.selectAll(".link").data(root.links(), (d) => d.target.id);
       link.exit().remove();
@@ -661,11 +660,11 @@ function createVisualization(tsv) {
         .attr("fill", "none")
         .attr("stroke", "#ccc")
         .attr("d", (d) =>
-          ` M ${source.xPrev}, ${source.yPrev + DIM_RECT.height / 2}
-              L ${d.source.x + DIM_LINK.left},
-                ${source.yPrev + DIM_RECT.height / 2}
-              L ${d.source.x + DIM_LINK.left},
-                ${d.source.y + DIM_RECT.height}`
+          ` M ${source.xPrev}, ${source.yPrev + DIM_HIERARCHY.rect.height / 2}
+              L ${d.source.x + DIM_HIERARCHY.link.left},
+                ${source.yPrev + DIM_HIERARCHY.rect.height / 2}
+              L ${d.source.x + DIM_HIERARCHY.link.left},
+                ${d.source.y + DIM_HIERARCHY.rect.height}`
             .replace(/\r?\n/g, "")
             .replace(/\s+/g, " ")
         );
@@ -675,11 +674,11 @@ function createVisualization(tsv) {
         .transition()
         .duration(DURATION)
         .attr("d", (d) =>
-          ` M ${d.target.x}, ${d.target.y + DIM_RECT.height / 2}
-              L ${d.source.x + DIM_LINK.left}, 
-                ${d.target.y + DIM_RECT.height / 2}
-              L ${d.source.x + DIM_LINK.left},
-                ${d.source.y + DIM_RECT.height}`
+          ` M ${d.target.x}, ${d.target.y + DIM_HIERARCHY.rect.height / 2}
+              L ${d.source.x + DIM_HIERARCHY.link.left}, 
+                ${d.target.y + DIM_HIERARCHY.rect.height / 2}
+              L ${d.source.x + DIM_HIERARCHY.link.left},
+                ${d.source.y + DIM_HIERARCHY.rect.height}`
             .replace(/\r?\n/g, "")
             .replace(/\s+/g, " ")
         );
@@ -689,11 +688,11 @@ function createVisualization(tsv) {
         .transition()
         .duration(DURATION)
         .attr("d", (d) =>
-          ` M ${source.x}, ${source.y + DIM_RECT.height / 2}
-          L ${d.source.x + DIM_LINK.left}, 
-            ${source.y + DIM_RECT.height / 2}
-          L ${d.source.x + DIM_LINK.left},
-            ${d.source.y + DIM_RECT.height}`
+          ` M ${source.x}, ${source.y + DIM_HIERARCHY.rect.height / 2}
+          L ${d.source.x + DIM_HIERARCHY.link.left}, 
+            ${source.y + DIM_HIERARCHY.rect.height / 2}
+          L ${d.source.x + DIM_HIERARCHY.link.left},
+            ${d.source.y + DIM_HIERARCHY.rect.height}`
             .replace(/\r?\n/g, "")
             .replace(/\s+/g, " ")
         )
@@ -715,8 +714,8 @@ function createVisualization(tsv) {
         });
       nodeEnter
         .append("rect")
-        .attr("width", DIM_RECT.width)
-        .attr("height", DIM_RECT.height)
+        .attr("width", DIM_HIERARCHY.rect.width)
+        .attr("height", DIM_HIERARCHY.rect.height)
         .attr("stroke", "#ccc");
       nodeEnter
         .append("text")
