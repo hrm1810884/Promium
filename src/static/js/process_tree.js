@@ -31,14 +31,14 @@ document.addEventListener("DOMContentLoaded", () => {
         : "hidden";
     });
 
-  let inputTabs = document.querySelectorAll("input[name=tab_name]");
-  for(let element of inputTabs) {
-    element.addEventListener("change",function () {
+  const inputTabs = document.querySelectorAll("input[name=tab_name]");
+  for (const inputTab of inputTabs) {
+    inputTab.addEventListener("change", function () {
       if (this.checked) {
-        cpuModeOn = (this.id == "cpuTab" ? true : false);
+        cpuModeOn = this.id === "cpuTab";
         readData();
       }
-    })
+    });
   }
 });
 
@@ -146,7 +146,7 @@ function createVisualization(tsv) {
   function drawChart(json) {
     const root = d3
       .hierarchy(json)
-      .sum( (d) => (cpuModeOn ? d.cpu : d.rss))
+      .sum((d) => (cpuModeOn ? d.cpu : d.rss))
       .sort((a, b) => b.value - a.value);
 
     const countChildren = (hierarchy) =>
@@ -266,9 +266,7 @@ function createVisualization(tsv) {
             .on("drag", dragged)
             .on("end", dragended)
         )
-        .sort((a, b) => {
-          return b.depth - a.depth;
-        });
+        .sort((a, b) => (b.depth - a.depth));
 
       nodeEnter
         .append("circle")

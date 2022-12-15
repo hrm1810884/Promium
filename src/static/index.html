@@ -40,9 +40,9 @@
         </div>
       </div>
       <div class="chart" id="chart">
-        <input type="radio" name="tab_name" id="cpuTab" checked>
+        <input type="radio" name="tab_name" id="cpuTab" checked="checked" />
         <label class="tab_class" for="cpuTab">CPU usage</label>
-        <input type="radio" name="tab_name" id="memoryTab" >
+        <input type="radio" name="tab_name" id="memoryTab" autocomplete="off" />
         <label class="tab_class" for="memoryTab">Memory usage</label>
       </div>
       <div class="sidebar" id="sidebar" style="visibility: visible">
@@ -51,12 +51,16 @@
           Show realtime process<br />
           <input type="checkbox" id="legendButton" autocomplete="off" />
           Legend<br />
-          <div class="legend" id="legendContent" style="visibility: hidden"></div>
+          <div
+            class="legend"
+            id="legendContent"
+            style="visibility: hidden"
+          ></div>
         </div>
         <h2>Hierarchy</h2>
         <div class="hierarchy" id="hierarchy"></div>
       </div>
-      <div class="help-content" id="helpContent" style="visibility: hidden;">
+      <div class="help-content" id="helpContent" style="visibility: hidden">
         <h2>How to use</h2>
         <h3>使い方</h3>
         <div class="how-to-use">ここに使い方を書きます</div>

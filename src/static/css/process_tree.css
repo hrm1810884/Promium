@@ -134,6 +134,15 @@ input:checked + .tab_class {
   color: aliceblue;
 }
 
+.content_class {
+  display: none;
+  width: 100%;
+}
+
+input:checked + .tab_class + .content_class {
+  display: block;
+}
+
 .sidebar {
   float: right;
   grid-row: 2;
