@@ -39,7 +39,18 @@
           </ul>
         </div>
       </div>
-      <div class="chart" id="chart"></div>
+      <div class="chart" id="chart">
+        <input type="radio" name="tab_name" id="cpuTab" checked>
+        <label class="tab_class" for="cpuTab">CPU usage</label>
+        <div class="content_class">
+          <p></p>
+        </div>
+        <input type="radio" name="tab_name" id="memoryTab" >
+        <label class="tab_class" for="memoryTab">Memory usage</label>
+        <div class="content_class">
+          <p></p>
+        </div>
+      </div>
       <div class="sidebar" id="sidebar" style="visibility: visible">
         <div class="setting">
           <input type="checkbox" id="liveButton" checked="checked" />
