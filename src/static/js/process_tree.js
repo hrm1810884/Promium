@@ -41,11 +41,19 @@ const initializeSvgElement = () => {
 };
 
 const [chartSvg, hierarchySvg, legendSvg] = initializeSvgElement();
-var realtime = true;
-var timerId;
+let liveModeOn = true;
+let timerIdGeneral = setInterval(readData, 5000);
 
-readData()
-timerId = setInterval(readData, 5000)
+readData();
+
+document.getElementById("togglelive").addEventListener("change", function () {
+  if (this.checked) {
+    timerIdGeneral = setInterval(readData, 5000);
+  } else {
+    clearInterval(timerIdGeneral);
+    readData();
+  }
+});
 
 async function readData() {
   const text = await d3.tsv("./data/process_data.tsv");
@@ -108,8 +116,6 @@ function createVisualization(tsv) {
       },
     },
   };
-
-  showRealtime();
 
   drawChart(json);
   drawLegend(tsv, legendSvg);
@@ -264,45 +270,44 @@ function createVisualization(tsv) {
       simulation.nodes(nodes);
       simulation.nodes().forEach((node) => {
         if (!node.parent) {
-          node.fx = CENTER_X
-          node.fy = CENTER_Y
-          fixAllGene(node)
+          node.fx = CENTER_X;
+          node.fy = CENTER_Y;
+          fixAllGene(node);
         }
-      })
+      });
       simulation.force("link").links(links);
     }
 
-    function fixChildren(parent) {
-      if (parent.children) {
-        const radius = 200
-        const length = parent.children.length
-        parent.children.forEach((child) => {
-          child.fx = parent.fx + radius * Math.cos(2 * Math.PI * child.index / length)
-          child.fy = parent.fy + radius * Math.sin(2 * Math.PI * child.index / length)
-        })
+    function fixChildren(parentNode) {
+      if (parentNode.children) {
+        const radius = 200;
+        const numChild = parentNode.children.length;
+        parentNode.children.forEach((child) => {
+          child.fx =
+            parentNode.fx +
+            radius * Math.cos((2 * Math.PI * child.index) / numChild);
+          child.fy =
+            parentNode.fy +
+            radius * Math.sin((2 * Math.PI * child.index) / numChild);
+        });
       }
     }
 
-    function fix2Gene(parent) {
-      fixChildren(parent)
-      parent.children.forEach((child) => {
-        fixChildren(child)
-      })
+    function fix2Gene(parentNode) {
+      fixChildren(parentNode);
+      parentNode.children.forEach((child) => {
+        fixChildren(child);
+      });
     }
 
-    function fixAllGene(parent) {
-      if (parent.children) {
-        const radius = 200
-        const length = parent.children.length
-        parent.children.forEach((child) => {
-          child.fx = parent.fx + radius * Math.cos(2 * Math.PI * child.index / length)
-          child.fy = parent.fy + radius * Math.sin(2 * Math.PI * child.index / length)
-          fixAllGene(child)
-        })
+    function fixAllGene(parentNode) {
+      if (parentNode.children) {
+        fixChildren(parentNode);
+        parentNode.children.forEach((child) => {
+          fixAllGene(child);
+        });
       }
     }
-
-
 
     function color(d) {
       if (d.data.command === "root") {
@@ -336,7 +341,7 @@ function createVisualization(tsv) {
           d.children = d._children;
           d._children = null;
         }
-        update(chartSvg);
+        update();
       }
     }
 
@@ -778,18 +783,5 @@ function createVisualization(tsv) {
       }
     }
     return root;
-  }
-
-  function showRealtime() {
-    d3.selectAll("#togglelive").on("click", () => {
-      realtime = !realtime;
-      if (realtime) { //timerIdLoad
-        timerId = setInterval(readData, 5000)
-      } else { //Load
-        clearInterval(timerId);
-        readData()
-      }
-    });
-
   }
 }
