@@ -28,6 +28,10 @@
   - mouseoverするとデータをハイライト表示する機能を追加([コミット](https://github.com/InfovisHandsOn/B-Tohoken/commit/7d0b474728818a57a5879f0148641cdea893e181))
   - プロセスの状態に対応させた([コミット](https://github.com/InfovisHandsOn/B-Tohoken/commit/aede949629d1c0240d2291b297503cccf15f9682))
   - 各項目をわかりやすく変更([コミット](https://github.com/InfovisHandsOn/B-Tohoken/commit/ccc71b45be58f5a79224d715cb029e0d616244b7))
+  - ([機能を拡張した](https://github.com/InfovisHandsOn/B-Tohoken/commit/aa6bc86a89e54bcb96a9eeb9b79c64ad5d388cb7))
+
+  が、sunburstを使わないことになった
+- タブでCPU使用率のグラフとメモリ使用率のグラフを切り替えられるようにした
 
 ### takep
 
