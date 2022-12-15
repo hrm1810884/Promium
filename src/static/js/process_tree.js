@@ -44,14 +44,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const initializeSvgElement = () => {
   const initializeDimention = (() => {
-    DIM_CHART.container.width = parseFloat(
-      window
-        .getComputedStyle(document.getElementById("chart"))
-        .width.replace("px", "")
+    const chartStyle = window.getComputedStyle(
+      document.getElementById("chart")
     );
-    DIM_CHART.container.height = 2000;
+    DIM_CHART.container.width = parseFloat(chartStyle.width.replace("px", ""));
+    DIM_CHART.container.height = parseFloat(
+      chartStyle.height.replace("px", "")
+    );
     DIM_CHART.container.centerX = DIM_CHART.container.width / 2;
-    DIM_CHART.container.centerY = DIM_CHART.container.height / 5;
+    DIM_CHART.container.centerY = DIM_CHART.container.height / 2;
+    console.log(DIM_CHART);
     DIM_LEGEND.container.width = DIM_LEGEND.each.width;
     DIM_LEGEND.container.height =
       8 * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing);
@@ -78,13 +80,13 @@ const initializeSvgElement = () => {
 
 const [chartSvg, legendSvg, hierarchySvg] = initializeSvgElement();
 let liveModeOn = true;
-let timerIdGeneral = setInterval(readData, 5000);
+let timerIdGeneral = setInterval(readData, 1000000);
 
 readData();
 
 document.getElementById("liveButton").addEventListener("change", function () {
   if (this.checked) {
-    timerIdGeneral = setInterval(readData, 5000);
+    timerIdGeneral = setInterval(readData, 1000000);
   } else {
     clearInterval(timerIdGeneral);
     readData();
