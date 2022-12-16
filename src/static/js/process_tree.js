@@ -116,7 +116,6 @@ const initializeSvgElement = () => {
   return [chartElement, legendElement, hierarchyElement];
 };
 
-
 const [chartSvg, legendSvg, hierarchySvg] = initializeSvgElement();
 const intervalTime = 1000000;
 let liveModeOn = true;
@@ -320,7 +319,7 @@ function createVisualization(tsv) {
         .attr("stroke-width", 0)
         .style("fill", color)
         .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
-        .on("click", clicked)
+        .on("click", nodeClicked)
         .call(
           d3
             .drag()
@@ -328,7 +327,7 @@ function createVisualization(tsv) {
             .on("drag", dragged)
             .on("end", dragended)
         )
-        .sort((a, b) => (b.depth - a.depth));
+        .sort((a, b) => b.depth - a.depth);
 
       nodeEnter
         .append("circle")
@@ -406,17 +405,20 @@ function createVisualization(tsv) {
       node.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     }
 
-    function clicked(event, d) {
-      if (!event.defaultPrevented) {
-        if (d.children) {
-          d._children = d.children;
-          d.children = null;
-        } else {
-          d.children = d._children;
-          d._children = null;
-        }
-        update();
-      }
+    function nodeClicked(event, d) {
+      node
+        .filter((data) => data.id !== d.id)
+        .attr("stroke", "#666")
+        .attr("stroke-width", 0);
+
+      node
+        .filter((data) => data.id === d.id)
+        .attr("stroke", (d) =>
+          d3.select(this).attr("stroke") == "#666" ? "red" : "#666"
+        )
+        .attr("stroke-width", (d) =>
+          d3.select(this).attr("stroke-width") === 0 ? 3 : 0
+        );
     }
 
     function dragstarted(event, d) {
