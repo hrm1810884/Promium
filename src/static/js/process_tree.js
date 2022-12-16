@@ -66,7 +66,8 @@ function initializeDimention() {
   const chartDim = {};
   const legendDim = {};
   const hierarchyDim = {};
-  // DIM_CHART の初期化
+
+  // chartDim の初期化
   const chartStyle = window.getComputedStyle(document.getElementById("chart"));
   chartDim.container = {
     width: parseFloat(chartStyle.width.replace("px", "")),
@@ -75,7 +76,7 @@ function initializeDimention() {
   chartDim.container.centerX = chartDim.container.width / 2;
   chartDim.container.centerY = chartDim.container.height / 2;
 
-  // DIM_LEGEND の初期化
+  // legendDim の初期化
   legendDim.each = {
     width: 250,
     height: 30,
@@ -89,7 +90,7 @@ function initializeDimention() {
       (legendDim.each.height + legendDim.each.spacing),
   };
 
-  // DIM_HIERARCHY の初期化
+  // hierarchyDim の初期化
   const hierarchyStyle = window.getComputedStyle(
     document.getElementById("hierarchyContainer")
   );
@@ -133,14 +134,18 @@ function initializeSvgElement() {
     )
     .append("g");
   const legendElement = d3.select("#legendContent").append("svg:svg");
-  const hierarchyElement = d3.select("#hierarchy").append("svg");
+  const hierarchyElement = d3
+    .select("#hierarchy")
+    .append("svg")
+    .attr("width", DIM_HIERARCHY.container.width)
+    .attr("height", DIM_HIERARCHY.container.height);
   return [chartElement, legendElement, hierarchyElement];
 }
 
 /* 挙動と状態変数をセットする */
 let isLiveModeOn = true; // リアルタイムで更新するか
 let isCpuModeOn = true; // 表示するものが CPU なら true，メモリなら false
-let timerIdGeneral = setInterval(readAndVisualizeData, INTERVAL_TIME); // リアルタイムモードを司るタイマー id
+let timerIdLiveMode = setInterval(readAndVisualizeData, INTERVAL_TIME); // リアルタイムモードを司るタイマー id
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("helpButton").addEventListener("change", function () {
@@ -157,9 +162,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("liveButton").addEventListener("change", function () {
     if (this.checked) {
-      timerIdGeneral = setInterval(readAndVisualizeData, INTERVAL_TIME);
+      timerIdLiveMode = setInterval(readAndVisualizeData, INTERVAL_TIME);
     } else {
-      clearInterval(timerIdGeneral);
+      clearInterval(timerIdLiveMode);
       readAndVisualizeData();
     }
   });
@@ -173,9 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
         : "hidden";
     });
 
-  const inputTabs = document.getElementsByClassName("chart-tab");
-  for (const inputTab of inputTabs) {
-    inputTab.addEventListener("change", function () {
+  for (const chartTab of document.getElementsByClassName("chart-tab")) {
+    chartTab.addEventListener("change", function () {
       if (this.checked) {
         isCpuModeOn = this.id === "cpuTab";
         readAndVisualizeData();
@@ -191,8 +195,8 @@ readAndVisualizeData();
  */
 function readAndVisualizeData() {
   const DATA_FILENAME = "./data/process_data.tsv";
-  d3.tsv(DATA_FILENAME).then((text) => {
-    createVisualization(text);
+  d3.tsv(DATA_FILENAME).then((tsv) => {
+    createVisualization(tsv);
   });
 }
 
@@ -217,34 +221,21 @@ function createVisualization(tsv) {
       .sum((d) => (isCpuModeOn ? d.cpu : d.rss))
       .sort((a, b) => b.value - a.value);
 
-    /**
-     * 階層構造から，自分と自分の子の人数の合計を value にセットする
-     * @param {Object} hierarchy 階層構造
-     */
-    const countChildren = (hierarchy) => {
-      hierarchy.eachAfter((node) => {
-        let sum = 1;
-        if (node.children) {
-          const children = node.children;
-          for (const child of children) {
-            sum += child.value;
-          }
-        }
-        node.value = sum;
-      });
-    };
-
     countChildren(root);
 
     let nodeChart;
     let linkChart;
-    let indexChart = 0;
 
     const defs = chartSvg.append("defs");
-    Object.keys(NODE_TYPE).forEach((keyNode) => {
+
+    /**
+     * NODE_TYPE からグラデーションを定義する
+     * @param {Object} defElement 定義を入れる SVG 要素
+     */
+    const defineGradient = (defElement) => {
       const capitalize = (string) => string[0].toUpperCase() + string.slice(1);
       const setGradient = (idString, colorLight, colorDark) => {
-        const areaGradient = defs
+        const areaGradient = defElement
           .append("radialGradient")
           .attr("id", `areaGradient${idString}`)
           .attr("cx", "0.5")
@@ -262,24 +253,28 @@ function createVisualization(tsv) {
           .attr("stop-color", colorDark);
       };
 
-      const eachNode = NODE_TYPE[keyNode];
-      if (keyNode === "leaf") {
-        Object.keys(eachNode).forEach((keyStatus) => {
-          const eachStatus = eachNode[keyStatus];
+      Object.keys(NODE_TYPE).forEach((keyNode) => {
+        const eachNode = NODE_TYPE[keyNode];
+        if (keyNode === "leaf") {
+          Object.keys(eachNode).forEach((keyStatus) => {
+            const eachStatus = eachNode[keyStatus];
+            setGradient(
+              capitalize(keyNode) + keyStatus,
+              eachStatus.colorLight,
+              eachStatus.colorDark
+            );
+          });
+        } else {
           setGradient(
-            capitalize(keyNode) + keyStatus,
-            eachStatus.colorLight,
-            eachStatus.colorDark
+            capitalize(keyNode),
+            eachNode.colorLight,
+            eachNode.colorDark
           );
-        });
-      } else {
-        setGradient(
-          capitalize(keyNode),
-          eachNode.colorLight,
-          eachNode.colorDark
-        );
-      }
-    });
+        }
+      });
+    };
+
+    defineGradient(defs);
 
     const simulation = d3
       .forceSimulation()
@@ -307,12 +302,44 @@ function createVisualization(tsv) {
       )
       .on("tick", ticked);
 
-    update();
+    updateChart();
 
     /**
      * chart の表示を更新する
      */
-    function update() {
+    function updateChart() {
+      /* ノードとリンクを SVG にセットする */
+
+      /**
+       * 階層構造を配列にする
+       * @param {Object} source 配列にしたい階層構造
+       * @returns source に ID を振って配列に放り込んだもの
+       *
+       * 名前が flattern なのは入れ子になっているオブジェクトをユニークな ID を振って配列に放り込むことで
+       * 平坦にしているからだと思う．誰がわかるか
+       */
+      const flatten = (source) => {
+        let indexChart = 0;
+        const nodes = [];
+        recurse(source);
+
+        /**
+         * ノードにユニークな ID を振る
+         * @param {Object} node ID を振り始めるノード
+         */
+        function recurse(node) {
+          if (node.children) {
+            node.children.forEach(recurse);
+          }
+          ++indexChart;
+          if (!node.id) {
+            node.id = indexChart;
+          }
+          nodes.push(node);
+        }
+        return nodes;
+      };
+
       const nodes = flatten(root);
       const links = root.links();
 
@@ -338,15 +365,15 @@ function createVisualization(tsv) {
         .attr("class", "node")
         .attr("stroke", "#666")
         .attr("stroke-width", 0)
-        .style("fill", color)
+        .style("fill", selectColorForData)
         .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
-        .on("click", nodeClicked)
+        .on("click", chartNodeClicked)
         .call(
           d3
             .drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended)
+            .on("start", chartNodeDragStarted)
+            .on("drag", chartNodeDragged)
+            .on("end", chartNodeDragEnded)
         )
         .sort((a, b) => b.depth - a.depth);
 
@@ -361,12 +388,13 @@ function createVisualization(tsv) {
         .text((d) => d.data.command);
 
       nodeChart = nodeEnter.merge(nodeChart);
+
+      /* simulation にノードとリンクをセットする */
       simulation.nodes(nodes);
       simulation.nodes().forEach((node) => {
         if (!node.parent) {
           node.fx = DIM_CHART.container.centerX;
           node.fy = DIM_CHART.container.centerY;
-          fixAllGene(node);
         }
       });
       simulation.force("link").links(links);
@@ -409,7 +437,7 @@ function createVisualization(tsv) {
      * @param {Object} d データ
      * @returns データの階層・内容に応じた色
      */
-    function color(d) {
+    function selectColorForData(d) {
       if (d.data.command === "root") {
         return "url(#areaGradientRoot)";
       }
@@ -435,43 +463,58 @@ function createVisualization(tsv) {
       nodeChart.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     }
 
-    function nodeClicked(event, d) {
-      node
-        .filter((data) => data.id !== d.id)
-        .attr("stroke", "#666")
-        .attr("stroke-width", 0);
-
-      node
-        .filter((data) => data.id === d.id)
-        .attr("stroke", (d) =>
-          d3.select(this).attr("stroke") === "#666" ? "red" : "#666"
-        )
-        .attr("stroke-width", (d) => {
-          parseInt(d3.select(this).attr("stroke-width")) === 0 ? 3 : 0;
+    /**
+     * ノードがクリックされた時に実行される関数
+     * @param {Object} event イベントオブジェクト
+     * @param {Object} clickedNodeData クリックされたデータ
+     */
+    function chartNodeClicked(event, clickedNodeData) {
+      const selectedColor = "red";
+      const notSelectedColor = "#666";
+      const selectedStrokeWidth = "3";
+      const notSelectedStrokeWidth = "0";
+      nodeChart
+        .attr("stroke", (eachNodeData) => {
+          if (eachNodeData.id === clickedNodeData.id) {
+            return d3.select(this).attr("stroke") === selectedColor
+              ? notSelectedColor
+              : selectedColor;
+          } else {
+            return notSelectedColor;
+          }
+        })
+        .attr("stroke-width", (eachNodeData) => {
+          if (eachNodeData.id === clickedNodeData.id) {
+            return d3.select(this).attr("stroke") === selectedStrokeWidth
+              ? notSelectedStrokeWidth
+              : selectedStrokeWidth;
+          } else {
+            return notSelectedStrokeWidth;
+          }
         });
     }
 
     /**
      * ノードのドラッグ開始時に呼ばれる関数
      * @param {Object} event イベントオブジェクト
-     * @param {Object} d ドラッグされたノードのデータ
+     * @param {Object} draggedNodeData ドラッグされたノードのデータ
      */
-    function dragstarted(event, d) {
+    function chartNodeDragStarted(event, draggedNodeData) {
       if (!event.active) {
         simulation.alphaTarget(0.3).restart();
       }
-      d.fx = d.x;
-      d.fy = d.y;
+      draggedNodeData.fx = draggedNodeData.x;
+      draggedNodeData.fy = draggedNodeData.y;
     }
 
     /**
      * ノードのドラッグ中に呼ばれる関数
      * @param {Object} event イベントオブジェクト
-     * @param {Object} d ドラッグされたノードのデータ
+     * @param {Object} draggedNodeData ドラッグされたノードのデータ
      */
-    function dragged(event, d) {
-      d.fx = event.x;
-      d.fy = event.y;
+    function chartNodeDragged(event, draggedNodeData) {
+      draggedNodeData.fx = event.x;
+      draggedNodeData.fy = event.y;
     }
 
     /**
@@ -479,53 +522,48 @@ function createVisualization(tsv) {
      * @param {Object} event イベントオブジェクト
      * @param {Object} d ドラッグされたノードのデータ
      */
-    function dragended(event, d) {
+    function chartNodeDragEnded(event, d) {
       if (!event.active) {
         simulation.alphaTarget(0);
       }
       d.fx = null;
       d.fy = null;
     }
-
-    /**
-     * ルートオブジェクトに id を追加して返す
-     * @param {Object} source ルートオブジェクト
-     * @returns ルートオブジェクトに id を追加したもの
-     */
-    function flatten(source) {
-      const nodes = [];
-      function recurse(node) {
-        if (node.children) {
-          node.children.forEach(recurse);
-        }
-        if (!node.id) {
-          node.id = ++indexChart;
-        } else {
-          ++indexChart;
-        }
-        nodes.push(node);
-      }
-      recurse(source);
-      return nodes;
-    }
   }
 
+  /**
+   * legend を描画する
+   * @param {Object} tsv 読み込んだ TSV ファイルの内容
+   */
   function drawLegend(tsv) {
-    let statusIndex = 0;
-    let statusDict = [];
-    tsv.forEach((d) => {
-      const statLegend = d.STAT[0];
-      if (statusDict.map((status) => status.stat).indexOf(statLegend) === -1) {
-        statusDict.push({
-          stat: statLegend,
-          id: statusIndex,
-          buttonClicked: false,
-        });
-        statusIndex++;
-      }
-    });
+    /**
+     * プロセス一覧からユニークな要素を取得する
+     * @param {Object} statusData プロセスの一覧
+     * @returns ユニークなプロセスの配列
+     */
+    const selectUniqueStatus = (statusData) => {
+      let statusIndex = 0;
+      let uniqueStatusList = [];
+      statusData.forEach((status) => {
+        const statFirstLetter = status.STAT[0];
+        if (
+          uniqueStatusList
+            .map((uniqueStatus) => uniqueStatus.stat)
+            .indexOf(statFirstLetter) === -1
+        ) {
+          uniqueStatusList.push({
+            stat: statFirstLetter,
+            id: statusIndex,
+            buttonClicked: false,
+          });
+          ++statusIndex;
+        }
+      });
+      return uniqueStatusList;
+    };
+    const statusList = selectUniqueStatus(tsv);
 
-    const sortedStatus = statusDict
+    const sortedStatus = statusList
       .slice()
       .sort((a, b) => d3.ascending(a.stat, b.stat));
 
@@ -535,7 +573,7 @@ function createVisualization(tsv) {
 
     legendSvg.selectAll("g").remove();
 
-    const g = legendSvg
+    const legendGroup = legendSvg
       .selectAll("g")
       .data(sortedStatus)
       .enter()
@@ -548,7 +586,8 @@ function createVisualization(tsv) {
           ")"
       );
 
-    g.append("svg:rect")
+    legendGroup
+      .append("svg:rect")
       .attr("rx", DIM_LEGEND.each.radius)
       .attr("ry", DIM_LEGEND.each.radius)
       .attr("width", DIM_LEGEND.each.width)
@@ -561,7 +600,8 @@ function createVisualization(tsv) {
       .style("opacity", 0.5)
       .attr("class", (d) => "rect_" + d.id);
 
-    g.append("svg:text")
+    legendGroup
+      .append("svg:text")
       .attr("x", DIM_LEGEND.each.width / 2)
       .attr("y", DIM_LEGEND.each.height / 2)
       .attr("dy", "0.35em")
@@ -571,34 +611,36 @@ function createVisualization(tsv) {
           NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].displayText
       );
 
-    g.on("click", clickLegend);
+    legendGroup.on("click", legendRectClicked);
 
-    // ボタンの情報を返す
-    return statusDict;
-
-    function clickLegend(event, d) {
-      if (d.buttonClicked) {
+    /**
+     * 四角形クリック時に呼ばれる関数
+     * @param {Object} event イベントオブジェクト
+     * @param {Object} clickedRectData クリックされた四角形のデータ
+     */
+    function legendRectClicked(event, clickedRectData) {
+      if (clickedRectData.buttonClicked) {
         // ボタンが既に押されている時，ボタンをoffにし色を薄くする
-        d.buttonClicked = false;
-        d3.selectAll(".rect_" + d.id).style("opacity", 0.5);
+        clickedRectData.buttonClicked = false;
+        d3.selectAll(".rect_" + clickedRectData.id).style("opacity", 0.5);
         d3.selectAll("path").style("opacity", 1);
       } else {
         // ボタンがまだ押されていない時，他のボタンをoffにし、一旦すべてのボタンの色を薄くする
-        statusDict.forEach((data) => {
+        statusList.forEach((data) => {
           data.buttonClicked = false;
         });
         d3.selectAll("rect").style("opacity", 0.5);
 
         // ボタンをonにし色を濃くする
-        d.buttonClicked = true;
-        d3.selectAll(".rect_" + d.id).style("opacity", 1);
+        clickedRectData.buttonClicked = true;
+        d3.selectAll(".rect_" + clickedRectData.id).style("opacity", 1);
 
         // 選択されたstatusのデータをハイライト表示する
         d3.selectAll("path").style("opacity", (data) => {
           if (!data.data || data.data.command === "root") {
             return 1;
           }
-          return data.data.stat[0] === d.stat ? 1 : 0.3;
+          return data.data.stat[0] === clickedRectData.stat ? 1 : 0.3;
         });
       }
     }
@@ -612,33 +654,17 @@ function createVisualization(tsv) {
     const tree = d3.tree();
     tree(root);
 
-    const countChildren = (source) =>
-      source.eachAfter((node) => {
-        let sum = 1;
-        if (node.children) {
-          const children = node.children;
-          for (const child of children) {
-            sum += child.value;
-          }
-        }
-        node.value = sum;
-      });
-
     countChildren(root);
 
-    hierarchySvg
-      .attr("width", DIM_HIERARCHY.container.width)
-      .attr("height", DIM_HIERARCHY.container.height);
-
     hierarchySvg.selectAll("g").remove();
-    const g = hierarchySvg.append("g");
+    const hierarchyGroup = hierarchySvg.append("g");
 
-    let link;
-    let node;
-    let index = 0;
-    updateTree(root);
+    let linkHierarchy;
+    let nodeHierarchy;
+    let indexHierarchy = 0;
+    updateHierarchy(root);
 
-    function toggle(d) {
+    function toggleHierarchy(d) {
       if (d.children) {
         d._children = d.children;
         d.children = null;
@@ -648,76 +674,108 @@ function createVisualization(tsv) {
       }
     }
 
-    function updateTree(source) {
+    function updateHierarchy(source) {
       countChildren(root);
 
-      const seekParent = (currentData, command) => {
-        const currentHierarchy = currentData.parent.children;
-        const targetFound = currentHierarchy.find(
-          (contents) => contents.data.command === command
-        );
-        return targetFound
-          ? { command: command, hierarchy: currentHierarchy }
-          : seekParent(currentData.parent, command);
-      };
-
-      const calcLeaves = (commands, currentData) => {
-        const eachHierarchies = commands.map((command) =>
-          seekParent(currentData, command)
-        );
-        const eachIdxes = eachHierarchies.map((item) =>
-          item.hierarchy.findIndex(
-            (contents) => contents.data.command === item.command
-          )
-        );
-        const filteredHierarchies = eachHierarchies.map((item, idx) =>
-          item.hierarchy.slice(0, eachIdxes[idx])
-        );
-        const values = filteredHierarchies.map((hierarchy) =>
-          hierarchy.map((item) => item.value)
-        );
-        return values.flat();
-      };
-
-      const defineY = (data) => {
-        if (data.data.command === "root") {
-          return DIM_HIERARCHY.space.padding;
-        }
-        const ancestorValues = data
-          .ancestors()
-          .map((item) => item.data.command);
-        const leaves = calcLeaves(
-          ancestorValues.slice(0, ancestorValues.length - 1),
-          data
-        );
-        const sumLeaves = leaves.reduce(
-          (previous, current) => previous + current,
-          0
-        );
-
-        return (
-          (data.depth + sumLeaves) * DIM_HIERARCHY.space.height +
-          DIM_HIERARCHY.space.padding
-        );
-      };
-
+      /**
+       * ツリーの内容から各ノードの位置を計算する
+       * @param {Object} treeData ツリーのデータ
+       */
       const definePos = (treeData) => {
+        /**
+         * command が含まれる階層を親に向かって探索する
+         * @param {Object} currentData 探索するノード
+         * @param {String} command 探索するコマンド
+         * @returns 探索するコマンドとそれが含まれる階層のノード
+         */
+        const seekParent = (currentData, command) => {
+          const currentHierarchy = currentData.parent.children;
+          const targetFound = currentHierarchy.find(
+            (contents) => contents.data.command === command
+          );
+          return targetFound
+            ? { command: command, hierarchy: currentHierarchy }
+            : seekParent(currentData.parent, command);
+        };
+
+        /**
+         * コマンドの配列に対して下にあるノードの数を計算する
+         * @param {Object} commands 探索するコマンドの配列
+         * @param {Object} currentData 探索ノード
+         * @returns 各コマンドの下にあるノードの数の配列
+         */
+        const calcLeaves = (commands, currentData) => {
+          const eachHierarchies = commands.map((command) =>
+            seekParent(currentData, command)
+          );
+          const eachIdxes = eachHierarchies.map((item) =>
+            item.hierarchy.findIndex(
+              (contents) => contents.data.command === item.command
+            )
+          );
+          const filteredHierarchies = eachHierarchies.map((item, idx) =>
+            item.hierarchy.slice(0, eachIdxes[idx])
+          );
+          const values = filteredHierarchies.map((hierarchy) =>
+            hierarchy.map((item) => item.value)
+          );
+          return values.flat();
+        };
+
+        /**
+         * ノードの左からの位置を計算する
+         * @param {Object} data ノードのデータ
+         * @returns ノードの左からの位置
+         */
+        const defineX = (data) => {
+          return (
+            data.depth * 2 * DIM_HIERARCHY.link.left +
+            DIM_HIERARCHY.space.padding
+          );
+        };
+
+        /**
+         * ノードの上からの位置を計算する
+         * @param {Object} data ノードのデータ
+         * @returns ノードの上からの位置
+         */
+        const defineY = (data) => {
+          if (data.data.command === "root") {
+            return DIM_HIERARCHY.space.padding;
+          }
+          const ancestorValues = data
+            .ancestors()
+            .map((item) => item.data.command);
+          const leaves = calcLeaves(
+            ancestorValues.slice(0, ancestorValues.length - 1),
+            data
+          );
+          const sumLeaves = leaves.reduce(
+            (previous, current) => previous + current,
+            0
+          );
+
+          return (
+            (data.depth + sumLeaves) * DIM_HIERARCHY.space.height +
+            DIM_HIERARCHY.space.padding
+          );
+        };
+
         treeData.each((d) => {
-          d.x =
-            d.depth * 2 * DIM_HIERARCHY.link.left + DIM_HIERARCHY.space.padding;
+          d.x = defineX(d);
           d.y = defineY(d);
         });
       };
 
-      definePos(root, DIM_HIERARCHY.space);
-
       tree(root);
       definePos(root, DIM_HIERARCHY.space);
 
-      link = g.selectAll(".link").data(root.links(), (d) => d.target.id);
-      link.exit().remove();
+      linkHierarchy = hierarchyGroup
+        .selectAll(".link")
+        .data(root.links(), (d) => d.target.id);
+      linkHierarchy.exit().remove();
 
-      const linkEnter = link
+      const linkEnter = linkHierarchy
         .enter()
         .append("path")
         .attr("class", "link")
@@ -733,7 +791,7 @@ function createVisualization(tsv) {
             .replace(/\s+/g, " ")
         );
 
-      const linkUpdate = linkEnter.merge(link);
+      const linkUpdate = linkEnter.merge(linkHierarchy);
       linkUpdate
         .transition()
         .duration(DURATION)
@@ -747,7 +805,7 @@ function createVisualization(tsv) {
             .replace(/\s+/g, " ")
         );
 
-      link
+      linkHierarchy
         .exit()
         .transition()
         .duration(DURATION)
@@ -762,19 +820,19 @@ function createVisualization(tsv) {
         )
         .remove();
 
-      node = g
+      nodeHierarchy = hierarchyGroup
         .selectAll(".node")
-        .data(root.descendants(), (d) => d.id || (d.id = ++index));
-      node.exit().remove();
+        .data(root.descendants(), (d) => d.id || (d.id = ++indexHierarchy));
+      nodeHierarchy.exit().remove();
 
-      const nodeEnter = node
+      const nodeEnter = nodeHierarchy
         .enter()
         .append("g")
         .attr("class", "node")
         .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
         .on("click", (event, d) => {
-          toggle(d);
-          updateTree(d);
+          toggleHierarchy(d);
+          updateHierarchy(d);
         });
       nodeEnter
         .append("rect")
@@ -788,7 +846,7 @@ function createVisualization(tsv) {
         .attr("fill", "#ccc")
         .attr("stroke", "none");
 
-      const nodeUpdate = nodeEnter.merge(node);
+      const nodeUpdate = nodeEnter.merge(nodeHierarchy);
       nodeUpdate
         .transition()
         .duration(DURATION)
@@ -798,7 +856,7 @@ function createVisualization(tsv) {
         .style("fill", (d) => (d._children ? "#444" : "#222"));
       nodeEnter.select("text").style("fill-opacity", 1);
 
-      const nodeExit = node
+      const nodeExit = nodeHierarchy
         .exit()
         .transition()
         .duration(DURATION)
@@ -807,13 +865,34 @@ function createVisualization(tsv) {
       nodeExit.select("rect").attr("height", 0).attr("width", 0);
       nodeExit.select("text").style("fill-opacity", 1e-6);
 
-      node.each((d) => {
+      nodeHierarchy.each((d) => {
         d.xPrev = d.x;
         d.yPrev = d.y;
       });
     }
   }
 
+  /**
+   * 階層構造の全てのノードについて，自分と自分の子の人数の合計を value にセットする
+   * @param {Object} source 根ノード
+   */
+  function countChildren(source) {
+    source.eachAfter((node) => {
+      let childrenSum = 1;
+      if (node.children) {
+        for (const child of node.children) {
+          childrenSum += child.value;
+        }
+      }
+      node.value = childrenSum;
+    });
+  }
+
+  /**
+   * tsv ファイルの内容から親子関係を表す Object を返す
+   * @param {Object} tsv 読み込んだ tsv ファイル
+   * @returns tsv ファイルから生成した親子関係を表す Object
+   */
   function buildHierarchy(tsv) {
     let root = { command: "root", children: [] };
     let parentNode = root;
@@ -873,6 +952,7 @@ function createVisualization(tsv) {
         }
       }
     }
+
     return root;
   }
 }
