@@ -232,11 +232,32 @@ function createVisualization(tsv) {
       return cpuSum;
     };
 
+    const convertHexToRgb = (hexString) => {
+      if (hexString.slice(0, 1) == "#") {
+        hexString = hexString.slice(1);
+      }
+      if (hexString.length == 3) {
+        hexString =
+          hexString.slice(0, 1) +
+          hexString.slice(0, 1) +
+          hexString.slice(1, 2) +
+          hexString.slice(1, 2) +
+          hexString.slice(2, 3) +
+          hexString.slice(2, 3);
+      }
+      return [
+        hexString.slice(0, 2),
+        hexString.slice(2, 4),
+        hexString.slice(4, 6),
+      ].map((str) => parseInt(str, 16));
+    };
+
     const cpuPercentageSum = sumUpCpuPercentage(json);
     document.getElementById(
       "chart"
-    ).style.backgroundColor = `rgba(237, 28, 36, ${cpuPercentageSum / 200})`;
-
+    ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${
+      cpuPercentageSum / 200
+    })`;
     const root = d3.hierarchy(json).sort((a, b) => b.value - a.value);
 
     countChildren(root);
