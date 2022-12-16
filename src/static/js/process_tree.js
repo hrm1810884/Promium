@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : "hidden";
     });
 
-  const inputTabs = document.querySelectorAll("input[name=tab_name]");
+  const inputTabs = document.getElementsByClassName("chart-tab");
   for (const inputTab of inputTabs) {
     inputTab.addEventListener("change", function () {
       if (this.checked) {
@@ -186,8 +186,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/* 処理 */
 readAndVisualizeData();
+
+document.getElementById("liveButton").addEventListener("change", function () {
+  if (this.checked) {
+    timerIdGeneral = setInterval(readData, intervalTime);
+  } else {
+    clearInterval(timerIdGeneral);
+    readAndVisualizeData();
+  }
+});
 
 /**
  * プロセスのデータを読み込んで chart，legend，hierarchy をセットする
@@ -343,7 +351,7 @@ function createVisualization(tsv) {
         .attr("stroke-width", 0)
         .style("fill", color)
         .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
-        .on("click", clicked)
+        .on("click", nodeClicked)
         .call(
           d3
             .drag()
@@ -438,18 +446,20 @@ function createVisualization(tsv) {
       nodeChart.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     }
 
-    function clicked(event, d) {
-      if (event.defaultPrevented) {
-        return;
-      }
-      if (d.children) {
-        d._children = d.children;
-        d.children = null;
-      } else {
-        d.children = d._children;
-        d._children = null;
-      }
-      update();
+    function nodeClicked(event, d) {
+      node
+        .filter((data) => data.id !== d.id)
+        .attr("stroke", "#666")
+        .attr("stroke-width", 0);
+
+      node
+        .filter((data) => data.id === d.id)
+        .attr("stroke", (d) =>
+          d3.select(this).attr("stroke") === "#666" ? "red" : "#666"
+        )
+        .attr("stroke-width", (d) => {
+          parseInt(d3.select(this).attr("stroke-width")) === 0 ? 3 : 0;
+        });
     }
 
     /**
