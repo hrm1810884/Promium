@@ -1,10 +1,5 @@
-/* 定数の初期化・設定 */
-const DIM_CHART = {};
-const DIM_LEGEND = {};
-const DIM_HIERARCHY = {};
-
-const INTERVAL_TIME = 1000000;
 const NODE_TYPE = {
+  // チャートのノードの種類
   root: {
     displayText: "root",
     colorLight: "#444",
@@ -59,56 +54,70 @@ const NODE_TYPE = {
   },
 };
 
+const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
 const [chartSvg, legendSvg, hierarchySvg] = initializeSvgElement();
-function initializeSvgElement() {
-  const initializeDimention = () => {
-    // DIM_CHART の初期化
-    const chartStyle = window.getComputedStyle(
-      document.getElementById("chart")
-    );
-    DIM_CHART.container = {
-      width: parseFloat(chartStyle.width.replace("px", "")),
-      height: parseFloat(chartStyle.height.replace("px", "")),
-    };
-    DIM_CHART.container.centerX = DIM_CHART.container.width / 2;
-    DIM_CHART.container.centerY = DIM_CHART.container.height / 2;
+const INTERVAL_TIME = 1000000; // live モードの更新頻度 [ms]
 
-    // DIM_LEGEND の初期化
-    DIM_LEGEND.each = {
-      width: 250,
-      height: 30,
-      spacing: 3,
-      radius: 3,
-    };
-    DIM_LEGEND.container = {
-      width: DIM_LEGEND.each.width,
-      height:
-        Object.keys(NODE_TYPE.leaf).length *
-        (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing),
-    };
+/**
+ * DIM_CHART, DIM_LEGEND, DIM_HIERARCHY を初期化する
+ * @returns [chart のサイズ, legend のサイズ, hierarychy のサイズ]
+ */
+function initializeDimention() {
+  const chartDim = {};
+  const legendDim = {};
+  const hierarchyDim = {};
+  // DIM_CHART の初期化
+  const chartStyle = window.getComputedStyle(document.getElementById("chart"));
+  chartDim.container = {
+    width: parseFloat(chartStyle.width.replace("px", "")),
+    height: parseFloat(chartStyle.height.replace("px", "")),
+  };
+  chartDim.container.centerX = chartDim.container.width / 2;
+  chartDim.container.centerY = chartDim.container.height / 2;
 
-    // DIM_HIERARCHY の初期化
-    const hierarchyStyle = window.getComputedStyle(
-      document.getElementById("hierarchy")
-    );
-    DIM_HIERARCHY.rect = {
-      height: 20,
-      width: 80,
-    };
-    DIM_HIERARCHY.space = {
-      padding: 30,
-      height: 50,
-      width: 120,
-    };
-    DIM_HIERARCHY.link = {
-      left: 20,
-    };
-    DIM_HIERARCHY.container = {
-      width: parseFloat(hierarchyStyle.width.replace("px", "")),
-      height: parseFloat(hierarchyStyle.height.replace("px", "")),
-    };
+  // DIM_LEGEND の初期化
+  legendDim.each = {
+    width: 250,
+    height: 30,
+    spacing: 3,
+    radius: 3,
+  };
+  legendDim.container = {
+    width: legendDim.each.width,
+    height:
+      Object.keys(NODE_TYPE.leaf).length *
+      (legendDim.each.height + legendDim.each.spacing),
   };
 
+  // DIM_HIERARCHY の初期化
+  const hierarchyStyle = window.getComputedStyle(
+    document.getElementById("hierarchy")
+  );
+  hierarchyDim.rect = {
+    height: 20,
+    width: 80,
+  };
+  hierarchyDim.space = {
+    padding: 30,
+    height: 50,
+    width: 120,
+  };
+  hierarchyDim.link = {
+    left: 20,
+  };
+  hierarchyDim.container = {
+    width: parseFloat(hierarchyStyle.width.replace("px", "")),
+    height: parseFloat(hierarchyStyle.height.replace("px", "")),
+  };
+
+  return [chartDim, legendDim, hierarchyDim];
+}
+
+/**
+ * SVG の要素を初期化する
+ * @returns [svg for chart, svg for legend, svg for hierarchy]
+ */
+function initializeSvgElement() {
   initializeDimention();
 
   const chartElement = d3
@@ -131,9 +140,9 @@ function initializeSvgElement() {
 }
 
 /* 挙動と状態変数をセットする */
-let liveModeOn = true;
-let cpuModeOn = true;
-let timerIdGeneral = setInterval(readData, INTERVAL_TIME);
+let isLiveModeOn = true; // リアルタイムで更新するか
+let isCpuModeOn = true; // 表示するものが CPU なら true，メモリなら false
+let timerIdGeneral = setInterval(readAndVisualizeData, INTERVAL_TIME); // リアルタイムモードを司るタイマー id
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("helpButton").addEventListener("change", function () {
@@ -150,10 +159,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("liveButton").addEventListener("change", function () {
     if (this.checked) {
-      timerIdGeneral = setInterval(readData, INTERVAL_TIME);
+      timerIdGeneral = setInterval(readAndVisualizeData, INTERVAL_TIME);
     } else {
       clearInterval(timerIdGeneral);
-      readData();
+      readAndVisualizeData();
     }
   });
 
@@ -170,21 +179,30 @@ document.addEventListener("DOMContentLoaded", () => {
   for (const inputTab of inputTabs) {
     inputTab.addEventListener("change", function () {
       if (this.checked) {
-        cpuModeOn = this.id === "cpuTab";
-        readData();
+        isCpuModeOn = this.id === "cpuTab";
+        readAndVisualizeData();
       }
     });
   }
 });
 
 /* 処理 */
-readData();
-function readData() {
-  d3.tsv("./data/process_data.tsv").then((text) => {
+readAndVisualizeData();
+
+/**
+ * プロセスのデータを読み込んで chart，legend，hierarchy をセットする
+ */
+function readAndVisualizeData() {
+  const DATA_FILENAME = "./data/process_data.tsv";
+  d3.tsv(DATA_FILENAME).then((text) => {
     createVisualization(text);
   });
 }
 
+/**
+ * プロセスの TSV ファイルから chart，kegend，hierarchy をセットする
+ * @param {Object} tsv 読み込んだ TSV ファイルの内容
+ */
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
 
@@ -192,13 +210,21 @@ function createVisualization(tsv) {
   drawLegend(tsv);
   drawHierarchy(json);
 
+  /**
+   * JSON ファイルから chart をセットする
+   * @param {Object} json TSV から作った JSON ファイル
+   */
   function drawChart(json) {
     const root = d3
       .hierarchy(json)
-      .sum((d) => (cpuModeOn ? d.cpu : d.rss))
+      .sum((d) => (isCpuModeOn ? d.cpu : d.rss))
       .sort((a, b) => b.value - a.value);
 
-    const countChildren = (hierarchy) =>
+    /**
+     * 階層構造から，自分と自分の子の人数の合計を value にセットする
+     * @param {Object} hierarchy 階層構造
+     */
+    const countChildren = (hierarchy) => {
       hierarchy.eachAfter((node) => {
         let sum = 1;
         if (node.children) {
@@ -209,12 +235,13 @@ function createVisualization(tsv) {
         }
         node.value = sum;
       });
+    };
 
     countChildren(root);
 
-    let node;
-    let link;
-    let index = 0;
+    let nodeChart;
+    let linkChart;
+    let indexChart = 0;
 
     const defs = chartSvg.append("defs");
     Object.keys(NODE_TYPE).forEach((keyNode) => {
@@ -285,14 +312,17 @@ function createVisualization(tsv) {
 
     update();
 
+    /**
+     * chart の表示を更新する
+     */
     function update() {
       const nodes = flatten(root);
       const links = root.links();
 
-      link = chartSvg.selectAll(".link").data(links, (d) => d.target.id);
-      link.exit().remove();
+      linkChart = chartSvg.selectAll(".link").data(links, (d) => d.target.id);
+      linkChart.exit().remove();
 
-      const linkEnter = link
+      const linkEnter = linkChart
         .enter()
         .append("line")
         .attr("class", "link")
@@ -300,12 +330,12 @@ function createVisualization(tsv) {
         .style("opacity", "0.2")
         .style("stroke-width", 3);
 
-      link = linkEnter.merge(link);
+      linkChart = linkEnter.merge(linkChart);
 
-      node = chartSvg.selectAll(".node").data(nodes, (d) => d.id);
-      node.exit().remove();
+      nodeChart = chartSvg.selectAll(".node").data(nodes, (d) => d.id);
+      nodeChart.exit().remove();
 
-      const nodeEnter = node
+      const nodeEnter = nodeChart
         .enter()
         .append("g")
         .attr("class", "node")
@@ -328,12 +358,12 @@ function createVisualization(tsv) {
         .attr("r", (d) =>
           d.data.command === "root"
             ? 50
-            : Math.max(Math.sqrt(cpuModeOn ? d.data.cpu : d.data.rss) * 15, 5)
+            : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.rss) * 15, 5)
         )
         .style("text-anchor", (d) => (d.children ? "end" : "start"))
         .text((d) => d.data.command);
 
-      node = nodeEnter.merge(node);
+      nodeChart = nodeEnter.merge(nodeChart);
       simulation.nodes(nodes);
       simulation.nodes().forEach((node) => {
         if (!node.parent) {
@@ -345,6 +375,10 @@ function createVisualization(tsv) {
       simulation.force("link").links(links);
     }
 
+    /**
+     * ノードとその子を固定する
+     * @param {Object} parentNode 自身と子を固定するノード
+     */
     function fixChildren(parentNode) {
       if (parentNode.children) {
         const radius = 200;
@@ -360,13 +394,10 @@ function createVisualization(tsv) {
       }
     }
 
-    function fix2Gene(parentNode) {
-      fixChildren(parentNode);
-      parentNode.children.forEach((child) => {
-        fixChildren(child);
-      });
-    }
-
+    /**
+     * ノードとその子以降を固定する
+     * @param {Object} parentNode 自身とその子以降を固定するノード
+     */
     function fixAllGene(parentNode) {
       if (parentNode.children) {
         fixChildren(parentNode);
@@ -376,6 +407,11 @@ function createVisualization(tsv) {
       }
     }
 
+    /**
+     * データから階層・内容に応じて色を返す
+     * @param {Object} d データ
+     * @returns データの階層・内容に応じた色
+     */
     function color(d) {
       if (d.data.command === "root") {
         return "url(#areaGradientRoot)";
@@ -389,14 +425,17 @@ function createVisualization(tsv) {
       return "url(#areaGradientLeafU}";
     }
 
+    /**
+     * 再計算時に実行される関数
+     */
     function ticked() {
-      link
+      linkChart
         .attr("x1", (d) => d.source.x)
         .attr("y1", (d) => d.source.y)
         .attr("x2", (d) => d.target.x)
         .attr("y2", (d) => d.target.y);
 
-      node.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+      nodeChart.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     }
 
     function clicked(event, d) {
@@ -413,6 +452,11 @@ function createVisualization(tsv) {
       update();
     }
 
+    /**
+     * ノードのドラッグ開始時に呼ばれる関数
+     * @param {Object} event イベントオブジェクト
+     * @param {Object} d ドラッグされたノードのデータ
+     */
     function dragstarted(event, d) {
       if (!event.active) {
         simulation.alphaTarget(0.3).restart();
@@ -421,11 +465,21 @@ function createVisualization(tsv) {
       d.fy = d.y;
     }
 
+    /**
+     * ノードのドラッグ中に呼ばれる関数
+     * @param {Object} event イベントオブジェクト
+     * @param {Object} d ドラッグされたノードのデータ
+     */
     function dragged(event, d) {
       d.fx = event.x;
       d.fy = event.y;
     }
 
+    /**
+     * ノードのドラッグ終了時に呼ばれる関数
+     * @param {Object} event イベントオブジェクト
+     * @param {Object} d ドラッグされたノードのデータ
+     */
     function dragended(event, d) {
       if (!event.active) {
         simulation.alphaTarget(0);
@@ -434,20 +488,25 @@ function createVisualization(tsv) {
       d.fy = null;
     }
 
-    function flatten(root) {
+    /**
+     * ルートオブジェクトに id を追加して返す
+     * @param {Object} source ルートオブジェクト
+     * @returns ルートオブジェクトに id を追加したもの
+     */
+    function flatten(source) {
       const nodes = [];
       function recurse(node) {
         if (node.children) {
           node.children.forEach(recurse);
         }
         if (!node.id) {
-          node.id = ++index;
+          node.id = ++indexChart;
         } else {
-          ++index;
+          ++indexChart;
         }
         nodes.push(node);
       }
-      recurse(root);
+      recurse(source);
       return nodes;
     }
   }
