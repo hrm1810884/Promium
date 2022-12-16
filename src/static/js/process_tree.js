@@ -414,11 +414,11 @@ function createVisualization(tsv) {
       node
         .filter((data) => data.id === d.id)
         .attr("stroke", (d) =>
-          d3.select(this).attr("stroke") == "#666" ? "red" : "#666"
+          d3.select(this).attr("stroke") === "#666" ? "red" : "#666"
         )
-        .attr("stroke-width", (d) =>
-          d3.select(this).attr("stroke-width") === 0 ? 3 : 0
-        );
+        .attr("stroke-width", (d) => {
+          parseInt(d3.select(this).attr("stroke-width")) === 0 ? 3 : 0;
+        });
     }
 
     function dragstarted(event, d) {
