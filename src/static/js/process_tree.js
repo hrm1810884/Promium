@@ -1,43 +1,139 @@
-const DIM_CHART = {
-  container: {
-    width: -1,
-    height: -1,
-    centerX: -1,
-    centerY: -1,
+/* 定数の初期化・設定 */
+const DIM_CHART = {};
+const DIM_LEGEND = {};
+const DIM_HIERARCHY = {};
+
+const INTERVAL_TIME = 1000000;
+const NODE_TYPE = {
+  root: {
+    displayText: "root",
+    colorLight: "#444",
+    colorDark: "#222",
   },
-};
-const DIM_LEGEND = {
-  container: {
-    width: -1,
-    height: -1,
+  parent: {
+    displayText: "parent",
+    colorLight: "#888",
+    colorDark: "#444",
   },
-  each: {
-    width: 250,
-    height: 30,
-    spacing: 3,
-    radius: 3,
-  },
-};
-const DIM_HIERARCHY = {
-  container: {
-    width: -1,
-    height: -1,
-  },
-  rect: {
-    height: 20,
-    width: 80,
-  },
-  space: {
-    padding: 30,
-    height: 50,
-    width: 120,
-  },
-  link: {
-    left: 20,
+  leaf: {
+    R: {
+      displayText: "runnable",
+      colorLight: "#1A85F1",
+      colorDark: "#082A4C",
+    },
+    D: {
+      displayText: "uninterruptible sleep",
+      colorLight: "#F26523",
+      colorDark: "#4C200B",
+    },
+    T: {
+      displayText: "stopped",
+      colorLight: "#ED1C24",
+      colorDark: "#4C090C",
+    },
+    S: {
+      displayText: "interruptible sleep",
+      colorLight: "#FBF267",
+      colorDark: "#4C4920",
+    },
+    Z: {
+      displayText: "zombie",
+      colorLight: "#7053CC",
+      colorDark: "#291F4C",
+    },
+    I: {
+      displayText: "process generating",
+      colorLight: "#38B349",
+      colorDark: "#184C1F",
+    },
+    O: {
+      displayText: "running",
+      colorLight: "#0218FF",
+      colorDark: "#00084C",
+    },
+    U: {
+      displayText: "unknown",
+      colorLight: "#777",
+      colorDark: "#777",
+    },
   },
 };
 
+const [chartSvg, legendSvg, hierarchySvg] = initializeSvgElement();
+function initializeSvgElement() {
+  const initializeDimention = () => {
+    // DIM_CHART の初期化
+    const chartStyle = window.getComputedStyle(
+      document.getElementById("chart")
+    );
+    DIM_CHART.container = {
+      width: parseFloat(chartStyle.width.replace("px", "")),
+      height: parseFloat(chartStyle.height.replace("px", "")),
+    };
+    DIM_CHART.container.centerX = DIM_CHART.container.width / 2;
+    DIM_CHART.container.centerY = DIM_CHART.container.height / 2;
+
+    // DIM_LEGEND の初期化
+    DIM_LEGEND.each = {
+      width: 250,
+      height: 30,
+      spacing: 3,
+      radius: 3,
+    };
+    DIM_LEGEND.container = {
+      width: DIM_LEGEND.each.width,
+      height:
+        Object.keys(NODE_TYPE.leaf).length *
+        (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing),
+    };
+
+    // DIM_HIERARCHY の初期化
+    const hierarchyStyle = window.getComputedStyle(
+      document.getElementById("hierarchy")
+    );
+    DIM_HIERARCHY.rect = {
+      height: 20,
+      width: 80,
+    };
+    DIM_HIERARCHY.space = {
+      padding: 30,
+      height: 50,
+      width: 120,
+    };
+    DIM_HIERARCHY.link = {
+      left: 20,
+    };
+    DIM_HIERARCHY.container = {
+      width: parseFloat(hierarchyStyle.width.replace("px", "")),
+      height: parseFloat(hierarchyStyle.height.replace("px", "")),
+    };
+  };
+
+  initializeDimention();
+
+  const chartElement = d3
+    .select("#chart")
+    .append("svg:svg")
+    .attr("width", DIM_CHART.container.width)
+    .attr("height", DIM_CHART.container.height)
+    .call(
+      d3
+        .zoom()
+        .scaleExtent([1 / 2, 8])
+        .on("zoom", (event) => {
+          chartElement.attr("transform", event.transform);
+        })
+    )
+    .append("g");
+  const legendElement = d3.select("#legendContent").append("svg:svg");
+  const hierarchyElement = d3.select("#hierarchy").append("svg");
+  return [chartElement, legendElement, hierarchyElement];
+}
+
+/* 挙動と状態変数をセットする */
+let liveModeOn = true;
 let cpuModeOn = true;
+let timerIdGeneral = setInterval(readData, INTERVAL_TIME);
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("helpButton").addEventListener("change", function () {
@@ -49,6 +145,15 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       helpContentContainer.style.visibility = "hidden";
       sidebarContainer.style.visibility = "visible";
+    }
+  });
+
+  document.getElementById("liveButton").addEventListener("change", function () {
+    if (this.checked) {
+      timerIdGeneral = setInterval(readData, INTERVAL_TIME);
+    } else {
+      clearInterval(timerIdGeneral);
+      readData();
     }
   });
 
@@ -72,75 +177,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-const initializeSvgElement = () => {
-  const initializeDimention = () => {
-    const chartStyle = window.getComputedStyle(
-      document.getElementById("chart")
-    );
-    const hierarchyStyle = window.getComputedStyle(
-      document.getElementById("hierarchy")
-    );
-    DIM_CHART.container.width = parseFloat(chartStyle.width.replace("px", ""));
-    DIM_CHART.container.height = parseFloat(
-      chartStyle.height.replace("px", "")
-    );
-    DIM_CHART.container.centerX = DIM_CHART.container.width / 2;
-    DIM_CHART.container.centerY = DIM_CHART.container.height / 2;
-    DIM_LEGEND.container.width = DIM_LEGEND.each.width;
-    DIM_LEGEND.container.height =
-      8 * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing);
-    DIM_HIERARCHY.container.width = parseFloat(
-      hierarchyStyle.width.replace("px", "")
-    );
-    DIM_HIERARCHY.container.height = parseFloat(
-      hierarchyStyle.height.replace("px", "")
-    );
-  };
-
-  initializeDimention();
-
-  const chartElement = d3
-    .select("#chart")
-    .append("svg:svg")
-    .attr("width", DIM_CHART.container.width)
-    .attr("height", DIM_CHART.container.height)
-    .call(
-      d3
-        .zoom()
-        .scaleExtent([1 / 2, 8])
-        .on("zoom", (event) => {
-          chartElement.attr("transform", event.transform);
-        })
-    )
-    .append("g");
-  const legendElement = d3.select("#legendContent").append("svg:svg");
-  const hierarchyElement = d3.select("#hierarchy").append("svg");
-  return [chartElement, legendElement, hierarchyElement];
-};
-
-const [chartSvg, legendSvg, hierarchySvg] = initializeSvgElement();
-const intervalTime = 1000000;
-let liveModeOn = true;
-let timerIdGeneral = setInterval(readData, intervalTime);
-const NODE_TYPE = {};
-
-d3.json("./data/status.json").then((inputObject) => {
-  Object.keys(inputObject).forEach(function (key) {
-    NODE_TYPE[key] = this[key];
-  }, inputObject);
-});
-
-document.getElementById("liveButton").addEventListener("change", function () {
-  if (this.checked) {
-    timerIdGeneral = setInterval(readData, intervalTime);
-  } else {
-    clearInterval(timerIdGeneral);
-    readData();
-  }
-});
-
+/* 処理 */
 readData();
-
 function readData() {
   d3.tsv("./data/process_data.tsv").then((text) => {
     createVisualization(text);
