@@ -216,20 +216,23 @@ function createVisualization(tsv) {
    * @param {Object} json TSV から作った JSON ファイル
    */
   function drawChart(json) {
-    const sumUpCpuPercentage = (source) => {
-      let cpuSum = 0;
-      function addCpuPercentage(node) {
-        if (node.cpu) {
-          cpuSum += node.cpu;
+    const sumUpPercentage = (source) => {
+      let percentageSum = 0;
+      function addPercentage(node) {
+        if (isCpuModeOn && node.cpu) {
+          percentageSum += node.cpu;
+        }
+        if (!isCpuModeOn && node.rss) {
+          percentageSum += node.cpu;
         }
         if (node.children) {
           node.children.forEach((childNode) => {
-            addCpuPercentage(childNode);
+            addPercentage(childNode);
           });
         }
       }
-      addCpuPercentage(source);
-      return cpuSum;
+      addPercentage(source);
+      return percentageSum;
     };
 
     const convertHexToRgb = (hexString) => {
@@ -252,7 +255,7 @@ function createVisualization(tsv) {
       ].map((str) => parseInt(str, 16));
     };
 
-    const cpuPercentageSum = sumUpCpuPercentage(json);
+    const cpuPercentageSum = sumUpPercentage(json);
     document.getElementById(
       "chart"
     ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${
