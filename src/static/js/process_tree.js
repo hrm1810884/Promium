@@ -91,7 +91,7 @@ function initializeDimention() {
 
   // DIM_HIERARCHY の初期化
   const hierarchyStyle = window.getComputedStyle(
-    document.getElementById("hierarchy")
+    document.getElementById("hierarchyContainer")
   );
   hierarchyDim.rect = {
     height: 20,
@@ -118,8 +118,6 @@ function initializeDimention() {
  * @returns [svg for chart, svg for legend, svg for hierarchy]
  */
 function initializeSvgElement() {
-  initializeDimention();
-
   const chartElement = d3
     .select("#chart")
     .append("svg:svg")
@@ -187,15 +185,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 readAndVisualizeData();
-
-document.getElementById("liveButton").addEventListener("change", function () {
-  if (this.checked) {
-    timerIdGeneral = setInterval(readData, intervalTime);
-  } else {
-    clearInterval(timerIdGeneral);
-    readAndVisualizeData();
-  }
-});
 
 /**
  * プロセスのデータを読み込んで chart，legend，hierarchy をセットする
