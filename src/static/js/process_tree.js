@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const initializeSvgElement = () => {
-  const initializeDimention = (() => {
+  const initializeDimention = () => {
     const chartStyle = window.getComputedStyle(
       document.getElementById("chart")
     );
@@ -95,7 +95,9 @@ const initializeSvgElement = () => {
     DIM_HIERARCHY.container.height = parseFloat(
       hierarchyStyle.height.replace("px", "")
     );
-  })();
+  };
+
+  initializeDimention();
 
   const chartElement = d3
     .select("#chart")
@@ -116,13 +118,17 @@ const initializeSvgElement = () => {
   return [chartElement, legendElement, hierarchyElement];
 };
 
-
 const [chartSvg, legendSvg, hierarchySvg] = initializeSvgElement();
 const intervalTime = 1000000;
 let liveModeOn = true;
 let timerIdGeneral = setInterval(readData, intervalTime);
+const NODE_TYPE = {};
 
-readData();
+d3.json("./data/status.json").then((inputObject) => {
+  Object.keys(inputObject).forEach(function (key) {
+    NODE_TYPE[key] = this[key];
+  }, inputObject);
+});
 
 document.getElementById("liveButton").addEventListener("change", function () {
   if (this.checked) {
@@ -133,67 +139,16 @@ document.getElementById("liveButton").addEventListener("change", function () {
   }
 });
 
-async function readData() {
-  const text = await d3.tsv("./data/process_data.tsv");
-  createVisualization(text);
+readData();
+
+function readData() {
+  d3.tsv("./data/process_data.tsv").then((text) => {
+    createVisualization(text);
+  });
 }
 
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
-  const nodeType = {
-    root: {
-      displayText: "root",
-      colorLight: "#444",
-      colorDark: "#222",
-    },
-    parent: {
-      displayText: "parent",
-      colorLight: "#888",
-      colorDark: "#444",
-    },
-    leaf: {
-      R: {
-        displayText: "runnable",
-        colorLight: "#1A85F1",
-        colorDark: "#082A4C",
-      },
-      D: {
-        displayText: "uninterruptible sleep",
-        colorLight: "#F26523",
-        colorDark: "#4C200B",
-      },
-      T: {
-        displayText: "stopped",
-        colorLight: "#ED1C24",
-        colorDark: "#4C090C",
-      },
-      S: {
-        displayText: "interruptible sleep",
-        colorLight: "#FBF267",
-        colorDark: "#4C4920",
-      },
-      Z: {
-        displayText: "zombie",
-        colorLight: "#7053CC",
-        colorDark: "#291F4C",
-      },
-      I: {
-        displayText: "process generating",
-        colorLight: "#38B349",
-        colorDark: "#184C1F",
-      },
-      O: {
-        displayText: "running",
-        colorLight: "#0218FF",
-        colorDark: "#00084C",
-      },
-      U: {
-        displayText: "unknown",
-        colorLight: "#777",
-        colorDark: "#777",
-      },
-    },
-  };
 
   drawChart(json);
   drawLegend(tsv);
@@ -224,7 +179,7 @@ function createVisualization(tsv) {
     let index = 0;
 
     const defs = chartSvg.append("defs");
-    Object.keys(nodeType).forEach((keyNode) => {
+    Object.keys(NODE_TYPE).forEach((keyNode) => {
       const capitalize = (string) => string[0].toUpperCase() + string.slice(1);
       const setGradient = (idString, colorLight, colorDark) => {
         const areaGradient = defs
@@ -245,7 +200,7 @@ function createVisualization(tsv) {
           .attr("stop-color", colorDark);
       };
 
-      const eachNode = nodeType[keyNode];
+      const eachNode = NODE_TYPE[keyNode];
       if (keyNode === "leaf") {
         Object.keys(eachNode).forEach((keyStatus) => {
           const eachStatus = eachNode[keyStatus];
@@ -328,7 +283,7 @@ function createVisualization(tsv) {
             .on("drag", dragged)
             .on("end", dragended)
         )
-        .sort((a, b) => (b.depth - a.depth));
+        .sort((a, b) => b.depth - a.depth);
 
       nodeEnter
         .append("circle")
@@ -407,16 +362,17 @@ function createVisualization(tsv) {
     }
 
     function clicked(event, d) {
-      if (!event.defaultPrevented) {
-        if (d.children) {
-          d._children = d.children;
-          d.children = null;
-        } else {
-          d.children = d._children;
-          d._children = null;
-        }
-        update();
+      if (event.defaultPrevented) {
+        return;
       }
+      if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else {
+        d.children = d._children;
+        d._children = null;
+      }
+      update();
     }
 
     function dragstarted(event, d) {
@@ -503,7 +459,8 @@ function createVisualization(tsv) {
       .attr("height", DIM_LEGEND.each.height)
       .style(
         "fill",
-        (d) => nodeType.leaf[d.stat in nodeType.leaf ? d.stat : "U"].colorLight
+        (d) =>
+          NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].colorLight
       )
       .style("opacity", 0.5)
       .attr("class", (d) => "rect_" + d.id);
@@ -514,7 +471,8 @@ function createVisualization(tsv) {
       .attr("dy", "0.35em")
       .attr("text-anchor", "middle")
       .text(
-        (d) => nodeType.leaf[d.stat in nodeType.leaf ? d.stat : "U"].displayText
+        (d) =>
+          NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].displayText
       );
 
     g.on("click", clickLegend);

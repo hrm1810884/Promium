@@ -1,0 +1,54 @@
+{
+  "root": {
+    "displayText": "root",
+    "colorLight": "#444",
+    "colorDark": "#222"
+  },
+  "parent": {
+    "displayText": "parent",
+    "colorLight": "#888",
+    "colorDark": "#444"
+  },
+  "leaf": {
+    "R": {
+      "displayText": "runnable",
+      "colorLight": "#1A85F1",
+      "colorDark": "#082A4C"
+    },
+    "D": {
+      "displayText": "uninterruptible sleep",
+      "colorLight": "#F26523",
+      "colorDark": "#4C200B"
+    },
+    "T": {
+      "displayText": "stopped",
+      "colorLight": "#ED1C24",
+      "colorDark": "#4C090C"
+    },
+    "S": {
+      "displayText": "interruptible sleep",
+      "colorLight": "#FBF267",
+      "colorDark": "#4C4920"
+    },
+    "Z": {
+      "displayText": "zombie",
+      "colorLight": "#7053CC",
+      "colorDark": "#291F4C"
+    },
+    "I": {
+      "displayText": "process generating",
+      "colorLight": "#38B349",
+      "colorDark": "#184C1F"
+    },
+    "O": {
+      "displayText": "running",
+      "colorLight": "#0218FF",
+      "colorDark": "#00084C"
+    },
+    "U": {
+      "displayText": "unknown",
+      "colorLight": "#777",
+      "colorDark": "#777"
+    }
+  }
+}
