@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : "hidden";
     });
 
-  const inputTabs = document.querySelectorAll("input[name=tab_name]");
+  const inputTabs = document.getElementsByClassName("chart-tab");
   for (const inputTab of inputTabs) {
     inputTab.addEventListener("change", function () {
       if (this.checked) {
