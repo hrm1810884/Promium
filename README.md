@@ -46,6 +46,8 @@
   - [ツリーをまともにした](https://github.com/InfovisHandsOn/B-Tohoken/pull/37)
 - チャートを変えるのを手伝った（[プルリク](https://github.com/InfovisHandsOn/B-Tohoken/pull/44)）
 - デザインを変更している（[プルリク](https://github.com/InfovisHandsOn/B-Tohoken/pull/48)）
+- デザインを変更している（[#52](https://github.com/InfovisHandsOn/B-Tohoken/pull/52)，[#54](https://github.com/InfovisHandsOn/B-Tohoken/pull/54)，[#55](https://github.com/InfovisHandsOn/B-Tohoken/pull/55)，[#64](https://github.com/InfovisHandsOn/B-Tohoken/pull/64)
+- 最近はプルリクが来たら見てリファクタしてからマージしている
 
 ## 開発にあたって
 
