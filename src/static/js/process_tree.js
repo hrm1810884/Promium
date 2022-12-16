@@ -469,29 +469,36 @@ function createVisualization(tsv) {
      * @param {Object} clickedNodeData クリックされたデータ
      */
     function chartNodeClicked(event, clickedNodeData) {
-      const selectedColor = "red";
-      const notSelectedColor = "#666";
-      const selectedStrokeWidth = "3";
-      const notSelectedStrokeWidth = "0";
-      nodeChart
-        .attr("stroke", (eachNodeData) => {
-          if (eachNodeData.id === clickedNodeData.id) {
-            return d3.select(this).attr("stroke") === selectedColor
-              ? notSelectedColor
-              : selectedColor;
-          } else {
-            return notSelectedColor;
-          }
-        })
-        .attr("stroke-width", (eachNodeData) => {
-          if (eachNodeData.id === clickedNodeData.id) {
-            return d3.select(this).attr("stroke") === selectedStrokeWidth
-              ? notSelectedStrokeWidth
-              : selectedStrokeWidth;
-          } else {
-            return notSelectedStrokeWidth;
-          }
-        });
+      const changeNodeColorByClick = (nodeData) => {
+        const selectedColor = "red";
+        const notSelectedColor = "#666";
+        const selectedStrokeWidth = "3";
+        const notSelectedStrokeWidth = "0";
+        nodeChart
+          .attr("stroke", (eachNodeData) => {
+            if (eachNodeData.id === nodeData.id) {
+              return d3.select(this).attr("stroke") === selectedColor
+                ? notSelectedColor
+                : selectedColor;
+            } else {
+              return notSelectedColor;
+            }
+          })
+          .attr("stroke-width", (eachNodeData) => {
+            if (eachNodeData.id === nodeData.id) {
+              return d3.select(this).attr("stroke") === selectedStrokeWidth
+                ? notSelectedStrokeWidth
+                : selectedStrokeWidth;
+            } else {
+              return notSelectedStrokeWidth;
+            }
+          });
+      };
+
+      const highlightHierarchyNode = (nodeData) => {};
+
+      changeNodeColorByClick(clickedNodeData);
+      highlightHierarchyNode(clickedNodeData);
     }
 
     /**
@@ -664,6 +671,11 @@ function createVisualization(tsv) {
     let indexHierarchy = 0;
     updateHierarchy(root);
 
+    function hierarchyNodeClicked(d) {
+      toggleHierarchy(d);
+      updateHierarchy(d);
+    }
+
     function toggleHierarchy(d) {
       if (d.children) {
         d._children = d.children;
@@ -831,8 +843,7 @@ function createVisualization(tsv) {
         .attr("class", "node")
         .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
         .on("click", (event, d) => {
-          toggleHierarchy(d);
-          updateHierarchy(d);
+          hierarchyNodeClicked(d);
         });
       nodeEnter
         .append("rect")
@@ -853,6 +864,7 @@ function createVisualization(tsv) {
         .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
       nodeUpdate
         .select("rect")
+        .attr("id", (d) => `hierarchyRect${d.data.command}`)
         .style("fill", (d) => (d._children ? "#444" : "#222"));
       nodeEnter.select("text").style("fill-opacity", 1);
 
