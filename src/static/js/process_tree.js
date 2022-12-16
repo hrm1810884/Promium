@@ -216,6 +216,31 @@ function createVisualization(tsv) {
    * @param {Object} json TSV から作った JSON ファイル
    */
   function drawChart(json) {
+    const sumUpCpuPercentage = (source) => {
+      let cpuSum = 0;
+      function addCpuPercentage(node) {
+        if (node.cpu) {
+          cpuSum += node.cpu;
+        }
+        if (node.children) {
+          node.children.forEach((childNode) => {
+            addCpuPercentage(childNode);
+          });
+        }
+      }
+      addCpuPercentage(source);
+      return cpuSum;
+    };
+
+    const cpuPercentageSum = sumUpCpuPercentage(json);
+
+    const chartBackground = chartSvg
+      .append("rect")
+      .attr("height", DIM_CHART.container.height)
+      .attr("width", DIM_CHART.container.width)
+      .attr("fill", "#ED1C24")
+      .attr("opacity", cpuPercentageSum / 100);
+
     const root = d3
       .hierarchy(json)
       .sum((d) => (isCpuModeOn ? d.cpu : d.rss))
