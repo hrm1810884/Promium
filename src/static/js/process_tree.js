@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : "hidden";
     });
 
-  const inputTabs = document.querySelectorAll("input[name=tab_name]");
+  const inputTabs = document.getElementsByClassName("chart-tab");
   for (const inputTab of inputTabs) {
     inputTab.addEventListener("change", function () {
       if (this.checked) {
@@ -78,7 +78,7 @@ const initializeSvgElement = () => {
       document.getElementById("chart")
     );
     const hierarchyStyle = window.getComputedStyle(
-      document.getElementById("hierarchy")
+      document.getElementById("hierarchyContainer")
     );
     DIM_CHART.container.width = parseFloat(chartStyle.width.replace("px", ""));
     DIM_CHART.container.height = parseFloat(
