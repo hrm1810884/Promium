@@ -233,18 +233,11 @@ function createVisualization(tsv) {
     };
 
     const cpuPercentageSum = sumUpCpuPercentage(json);
+    document.getElementById(
+      "chart"
+    ).style.backgroundColor = `rgba(237, 28, 36, ${cpuPercentageSum / 200})`;
 
-    const chartBackground = chartSvg
-      .append("rect")
-      .attr("height", DIM_CHART.container.height)
-      .attr("width", DIM_CHART.container.width)
-      .attr("fill", "#ED1C24")
-      .attr("opacity", cpuPercentageSum / 100);
-
-    const root = d3
-      .hierarchy(json)
-      .sum((d) => (isCpuModeOn ? d.cpu : d.rss))
-      .sort((a, b) => b.value - a.value);
+    const root = d3.hierarchy(json).sort((a, b) => b.value - a.value);
 
     countChildren(root);
 
