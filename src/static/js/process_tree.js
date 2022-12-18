@@ -216,16 +216,56 @@ function createVisualization(tsv) {
    * @param {Object} json TSV から作った JSON ファイル
    */
   function drawChart(json) {
-    const root = d3
-      .hierarchy(json)
-      .sum((d) => (isCpuModeOn ? d.cpu : d.rss))
-      .sort((a, b) => b.value - a.value);
+    const sumUpPercentage = (source) => {
+      let percentageSum = 0;
+      function addPercentage(node) {
+        if (isCpuModeOn && node.cpu) {
+          percentageSum += node.cpu;
+        }
+        if (!isCpuModeOn && node.rss) {
+          percentageSum += node.cpu;
+        }
+        if (node.children) {
+          node.children.forEach((childNode) => {
+            addPercentage(childNode);
+          });
+        }
+      }
+      addPercentage(source);
+      return percentageSum;
+    };
 
+    const convertHexToRgb = (hexString) => {
+      if (hexString.slice(0, 1) === "#") {
+        hexString = hexString.slice(1);
+      }
+      if (hexString.length === 3) {
+        hexString =
+          hexString.slice(0, 1) +
+          hexString.slice(0, 1) +
+          hexString.slice(1, 2) +
+          hexString.slice(1, 2) +
+          hexString.slice(2, 3) +
+          hexString.slice(2, 3);
+      }
+      return [
+        hexString.slice(0, 2),
+        hexString.slice(2, 4),
+        hexString.slice(4, 6),
+      ].map((str) => parseInt(str, 16));
+    };
+
+    const percentageSum = sumUpPercentage(json);
+    document.getElementById(
+      "chart"
+    ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${
+      percentageSum / 200
+    })`;
+
+    const root = d3.hierarchy(json).sort((a, b) => b.value - a.value);
     countChildren(root);
-
     let nodeChart;
     let linkChart;
-
     const defs = chartSvg.append("defs");
 
     /**
