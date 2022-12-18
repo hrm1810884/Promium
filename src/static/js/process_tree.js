@@ -236,10 +236,10 @@ function createVisualization(tsv) {
     };
 
     const convertHexToRgb = (hexString) => {
-      if (hexString.slice(0, 1) == "#") {
+      if (hexString.slice(0, 1) === "#") {
         hexString = hexString.slice(1);
       }
-      if (hexString.length == 3) {
+      if (hexString.length === 3) {
         hexString =
           hexString.slice(0, 1) +
           hexString.slice(0, 1) +
@@ -255,19 +255,17 @@ function createVisualization(tsv) {
       ].map((str) => parseInt(str, 16));
     };
 
-    const cpuPercentageSum = sumUpPercentage(json);
+    const percentageSum = sumUpPercentage(json);
     document.getElementById(
       "chart"
     ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${
-      cpuPercentageSum / 200
+      percentageSum / 200
     })`;
+
     const root = d3.hierarchy(json).sort((a, b) => b.value - a.value);
-
     countChildren(root);
-
     let nodeChart;
     let linkChart;
-
     const defs = chartSvg.append("defs");
 
     /**
