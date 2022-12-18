@@ -262,7 +262,7 @@ function createVisualization(tsv) {
       percentageSum / 200
     })`;
 
-    const root = d3.hierarchy(json).sort((a, b) => b.value - a.value);
+    const root = d3.hierarchy(json);
     countChildren(root);
     let nodeChart;
     let linkChart;
@@ -349,37 +349,6 @@ function createVisualization(tsv) {
      */
     function updateChart() {
       /* ノードとリンクを SVG にセットする */
-
-      /**
-       * 階層構造を配列にする
-       * @param {Object} source 配列にしたい階層構造
-       * @returns source に ID を振って配列に放り込んだもの
-       *
-       * 名前が flattern なのは入れ子になっているオブジェクトをユニークな ID を振って配列に放り込むことで
-       * 平坦にしているからだと思う．誰がわかるか
-       */
-      const flatten = (source) => {
-        let indexChart = 0;
-        const nodes = [];
-        recurse(source);
-
-        /**
-         * ノードにユニークな ID を振る
-         * @param {Object} node ID を振り始めるノード
-         */
-        function recurse(node) {
-          if (node.children) {
-            node.children.forEach(recurse);
-          }
-          ++indexChart;
-          if (!node.id) {
-            node.id = indexChart;
-          }
-          nodes.push(node);
-        }
-        return nodes;
-      };
-
       const nodes = flatten(root);
       const links = root.links();
 
@@ -396,13 +365,14 @@ function createVisualization(tsv) {
 
       linkChart = linkEnter.merge(linkChart);
 
-      nodeChart = chartSvg.selectAll(".node").data(nodes, (d) => d.id);
+      nodeChart = chartSvg.selectAll(".chart-node").data(nodes, (d) => d.id);
       nodeChart.exit().remove();
 
       const nodeEnter = nodeChart
         .enter()
         .append("g")
-        .attr("class", "node")
+        .attr("class", "chart-node")
+        .attr("id", (d) => `chartNode${d.id}`)
         .attr("stroke", "#666")
         .attr("stroke-width", 0)
         .style("fill", selectColorForData)
@@ -713,6 +683,7 @@ function createVisualization(tsv) {
 
     function hierarchyNodeClicked(d) {
       toggleHierarchy(d);
+      highlightChartNode(d);
       updateHierarchy(d);
     }
 
@@ -821,6 +792,7 @@ function createVisualization(tsv) {
 
       tree(root);
       definePos(root, DIM_HIERARCHY.space);
+      const nodes = flatten(root);
 
       linkHierarchy = hierarchyGroup
         .selectAll(".link")
@@ -873,14 +845,14 @@ function createVisualization(tsv) {
         .remove();
 
       nodeHierarchy = hierarchyGroup
-        .selectAll(".node")
-        .data(root.descendants(), (d) => d.id || (d.id = ++indexHierarchy));
+        .selectAll(".hierarchy-node")
+        .data(nodes, (d) => d.id);
       nodeHierarchy.exit().remove();
 
       const nodeEnter = nodeHierarchy
         .enter()
         .append("g")
-        .attr("class", "node")
+        .attr("class", "hierarchy-node")
         .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
         .on("click", (event, d) => {
           hierarchyNodeClicked(d);
@@ -904,7 +876,7 @@ function createVisualization(tsv) {
         .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
       nodeUpdate
         .select("rect")
-        .attr("id", (d) => `hierarchyRect${d.data.command}`)
+        .attr("id", (d) => `hierarchyRect${d.data.id}`)
         .style("fill", (d) => (d._children ? "#444" : "#222"));
       nodeEnter.select("text").style("fill-opacity", 1);
 
@@ -922,6 +894,39 @@ function createVisualization(tsv) {
         d.yPrev = d.y;
       });
     }
+
+    function highlightChartNode(hierarchyNodeData) {
+    }
+  }
+
+  /**
+   * 階層構造を配列にする
+   * @param {Object} source 配列にしたい階層構造
+   * @returns source に ID を振って配列に放り込んだもの
+   *
+   * 名前が flattern なのは入れ子になっているオブジェクトをユニークな ID を振って配列に放り込むことで
+   * 平坦にしているからだと思う．誰がわかるか
+   */
+  function flatten(source) {
+    let index = 0;
+    const nodes = [];
+    recurse(source);
+
+    /**
+     * ノードにユニークな ID を振る
+     * @param {Object} node ID を振り始めるノード
+     */
+    function recurse(node) {
+      if (node.children) {
+        node.children.forEach(recurse);
+      }
+      ++index;
+      if (!node.id) {
+        node.id = index;
+      }
+      nodes.push(node);
+    }
+    return nodes;
   }
 
   /**
