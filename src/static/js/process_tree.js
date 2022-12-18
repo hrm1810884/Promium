@@ -222,8 +222,8 @@ function createVisualization(tsv) {
         if (isCpuModeOn && node.cpu) {
           percentageSum += node.cpu;
         }
-        if (!isCpuModeOn && node.rss) {
-          percentageSum += node.cpu;
+        if (!isCpuModeOn && node.mem) {
+          percentageSum += node.mem;
         }
         if (node.children) {
           node.children.forEach((childNode) => {
@@ -256,10 +256,11 @@ function createVisualization(tsv) {
     };
 
     const percentageSum = sumUpPercentage(json);
+    console.log(percentageSum);
     document.getElementById(
       "chart"
     ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${
-      percentageSum / 200
+      Math.min(percentageSum / 200, 100)
     })`;
 
     const root = d3.hierarchy(json).sort((a, b) => b.value - a.value);
@@ -422,7 +423,7 @@ function createVisualization(tsv) {
         .attr("r", (d) =>
           d.data.command === "root"
             ? 50
-            : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.rss) * 15, 5)
+            : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.mem) * 15, 5)
         )
         .style("text-anchor", (d) => (d.children ? "end" : "start"))
         .text((d) => d.data.command);
@@ -937,12 +938,15 @@ function createVisualization(tsv) {
     let root = { command: "root", children: [] };
     let parentNode = root;
     let childNode;
+    let memSum = 0;
     for (let i = 0; i < tsv.length - 1; i++) {
       const currentRow = tsv[i];
       const nextRow = tsv[i + 1];
       const user = currentRow["USER"];
       const pid = parseInt(currentRow["PID"]);
       const cpu = parseFloat(currentRow["%CPU"]);
+      const mem = parseFloat(currentRow["%MEM"]);
+      memSum += mem;
       const rss = parseFloat(currentRow["RSS"]);
       const stat = currentRow["STAT"];
       const command = currentRow["COMMAND"];
@@ -955,6 +959,7 @@ function createVisualization(tsv) {
           user: user,
           pid: pid,
           cpu: cpu,
+          mem: mem,
           rss: rss,
           stat: stat,
           parent: parentNode,
@@ -968,6 +973,7 @@ function createVisualization(tsv) {
           user: user,
           pid: pid,
           cpu: cpu,
+          mem: mem,
           rss: rss,
           stat: stat,
           parent: parentNode,
@@ -980,6 +986,7 @@ function createVisualization(tsv) {
           user: user,
           pid: pid,
           cpu: cpu,
+          mem: mem,
           rss: rss,
           stat: stat,
           parent: parentNode,
@@ -991,6 +998,8 @@ function createVisualization(tsv) {
           parentNode = parentNode["parent"];
         }
       }
+      console.log(memSum);
+
     }
 
     return root;
