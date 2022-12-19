@@ -305,10 +305,7 @@ class Chart {
       )
       .force(
         "center",
-        d3.forceCenter(
-          DIM_CHART.container.width / 2,
-          DIM_CHART.container.height / 6
-        )
+        d3.forceCenter(DIM_CHART.container.centerX, DIM_CHART.container.centerY)
       )
       .on("tick", () => {
         this.link
@@ -443,7 +440,7 @@ class Chart {
       .attr("r", (d) =>
         d.data.command === "root"
           ? 50
-          : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.rss) * 15, 5)
+          : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.mem) * 15, 5)
       )
       .style("text-anchor", (d) => (d.children ? "end" : "start"))
       .text((d) => d.data.command);
@@ -905,6 +902,7 @@ function buildHierarchy(tsv) {
     const user = currentRow["USER"];
     const pid = parseInt(currentRow["PID"]);
     const cpu = parseFloat(currentRow["%CPU"]);
+    const mem = parseFloat(currentRow["%MEM"]);
     const rss = parseFloat(currentRow["RSS"]);
     const stat = currentRow["STAT"];
     const command = currentRow["COMMAND"];
@@ -917,6 +915,7 @@ function buildHierarchy(tsv) {
         user: user,
         pid: pid,
         cpu: cpu,
+        mem: mem,
         rss: rss,
         stat: stat,
         parent: parentNode,
@@ -930,6 +929,7 @@ function buildHierarchy(tsv) {
         user: user,
         pid: pid,
         cpu: cpu,
+        mem: mem,
         rss: rss,
         stat: stat,
         parent: parentNode,
@@ -942,6 +942,7 @@ function buildHierarchy(tsv) {
         user: user,
         pid: pid,
         cpu: cpu,
+        mem: mem,
         rss: rss,
         stat: stat,
         parent: parentNode,

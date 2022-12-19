@@ -98,7 +98,7 @@ h3 {
 
 .main {
   grid-row: 2;
-  margin: 10px;
+  padding: 0px 15px;
   font-family: var(--font-family-serif);
   display: grid;
   height: 100%;
@@ -108,6 +108,7 @@ h3 {
     )
     calc((95vh - var(--header-height) - var(--tab-height)) * 0.6);
   grid-template-columns: 6fr 4fr;
+
 }
 
 .tooltip {
