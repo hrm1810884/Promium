@@ -341,6 +341,7 @@ class Chart {
       .enter()
       .append("line")
       .attr("class", "link")
+      .attr("id", (d) => `chartLink${d.id}`)
       .style("stroke", "#ccc")
       .style("opacity", "0.2")
       .style("stroke-width", 3);
@@ -695,6 +696,7 @@ class Hierarchy {
       .enter()
       .append("path")
       .attr("class", "link")
+      .attr("id", (d) => `HierarchyLink${d.id}`)
       .attr("fill", "none")
       .attr("stroke", "#ccc")
       .attr("d", (d) =>
