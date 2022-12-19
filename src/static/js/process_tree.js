@@ -357,9 +357,6 @@ class Chart {
         if (d.data.command === "root") {
           return "url(#areaGradientRoot)";
         }
-        if (d._children || d.children) {
-          return "url(#areaGradientParent)";
-        }
         if ("stat" in d.data) {
           return `url(#${"areaGradientLeaf" + d.data.stat[0]})`;
         }
@@ -454,8 +451,9 @@ class Chart {
 }
 
 class Legend {
-  constructor(tsv) {
+  constructor(tsv, json) {
     this.tsv = tsv;
+    this.json = json;
   }
 
   draw() {
@@ -492,8 +490,8 @@ class Legend {
         (d) =>
           NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].colorLight
       )
-      .style("opacity", 0.5)
-      .attr("class", (d) => "rect_" + d.id);
+      .style("opacity", 0.6)
+      .attr("class", (d) => "rect_" + d.stat);
 
     legendGroup
       .append("svg:text")
@@ -505,6 +503,48 @@ class Legend {
         (d) =>
           NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].displayText
       );
+
+    legendGroup.on("click", (event, clickedLegendData) => {
+      d3.selectAll(".chart-node").attr("visibility", "visible");
+      d3.selectAll("line").attr("visibility", "visible");
+
+      clickedLegendData.buttonClicked = !clickedLegendData.buttonClicked;
+      let hiddenStat = [];
+      this.statusList.forEach((data) => {
+        if (!data.buttonClicked) {
+          hiddenStat.push(data.stat);
+        }
+      });
+
+      this.root = d3.hierarchy(this.json);
+      countChildren(this.root);
+      flatten(this.root);
+
+      this.root.eachAfter((node) => {
+        node.hiddenValue = node.value;
+        if (node.children) {
+          for (const child of node.children) {
+            if (
+              child.hiddenValue === 1 &&
+              hiddenStat.indexOf(child.data.stat[0]) >= 0
+            ) {
+              d3.select(`#chartNode${child.id}`).attr("visibility", "hidden");
+              node.hiddenValue -= child.value;
+            }
+          }
+        }
+      });
+
+      d3.selectAll("line").attr("visibility", (lineData) =>
+        d3.select(`#chartNode${lineData.target.id}`).attr("visibility")
+      );
+
+      countChildren(this.root);
+
+      legendGroup
+        .selectAll("rect")
+        .style("opacity", (d) => (d.buttonClicked ? 0.6 : 0.1));
+    });
   }
 
   selectUniqueStatus(statusData) {
@@ -520,7 +560,7 @@ class Legend {
         uniqueStatusList.push({
           stat: statFirstLetter,
           id: statusIndex,
-          buttonClicked: false,
+          buttonClicked: true,
         });
         ++statusIndex;
       }
@@ -843,7 +883,7 @@ function readAndVisualizeData() {
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
   const chart = new Chart(json);
-  const legend = new Legend(tsv);
+  const legend = new Legend(tsv, json);
   const hierarchy = new Hierarchy(json);
   hierarchy.chart = chart;
   legend.draw();
