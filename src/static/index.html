@@ -64,21 +64,22 @@
             <div class="chart" id="chart"></div>
           </div>
         </div>
-        <div class="setting-container">
+        <div class="setting-container" id="settingContainer">
           <div class="setting">
-            <input type="checkbox" id="liveButton" checked="checked" />
+            <input
+              type="checkbox"
+              id="liveButton"
+              checked="checked"
+              autocomplete="off"
+            />
             Show realtime process<br />
-            <input type="checkbox" id="legendButton" autocomplete="off" />
-            Legend<br />
           </div>
           <div
             class="legend"
             id="legendContent"
-            style="visibility: hidden"
           ></div>
         </div>
         <div class="hierarchy-container" id="hierarchyContainer">
-          <h2>Hierarchy</h2>
           <div class="hierarchy" id="hierarchy"></div>
         </div>
         <div
@@ -100,73 +101,72 @@
                   <span>Running</span>
                 </div>
                 <div class="process-info">現在実行中のプロセスです</div>
-                <div
-                  class="process-description-item"
-                  style="grid-row: 1; grid-column: 2"
-                >
-                  <div class="process-header" style="color: #1a85f1">
-                    <span>Runnable</span>
-                  </div>
-                  <div class="process-info">実行可能なプロセスです</div>
+              </div>
+
+              <div
+                class="process-description-item"
+                style="grid-row: 1; grid-column: 2"
+              >
+                <div class="process-header" style="color: #1a85f1">
+                  <span>Runnable</span>
                 </div>
-                <div
-                  class="process-description-item"
-                  style="grid-row: 1; grid-column: 3"
-                >
-                  <div class="process-header" style="color: #38b349">
-                    <span>Generating</span>
-                  </div>
-                  <div class="process-info">生成中のプロセスです</div>
+                <div class="process-info">実行可能なプロセスです</div>
+              </div>
+              <div
+                class="process-description-item"
+                style="grid-row: 1; grid-column: 3"
+              >
+                <div class="process-header" style="color: #38b349">
+                  <span>Generating</span>
                 </div>
-                <div
-                  class="process-description-item"
-                  style="grid-row: 2; grid-column: 1"
-                >
-                  <div class="process-header" style="color: #f26523">
-                    <span>Uninterruptible Sleep</span>
-                  </div>
-                  <div class="process-info">
-                    割り込み不可能な休眠中プロセスです
-                  </div>
+                <div class="process-info">生成中のプロセスです</div>
+              </div>
+              <div
+                class="process-description-item"
+                style="grid-row: 2; grid-column: 1"
+              >
+                <div class="process-header" style="color: #f26523">
+                  <span>Uninterruptible Sleep</span>
                 </div>
-                <div
-                  class="process-description-item"
-                  style="grid-row: 2; grid-column: 2"
-                >
-                  <div class="process-header" style="color: #fbf267">
-                    <span>Interruptible Sleep</span>
-                  </div>
-                  <div class="process-info">
-                    割り込み可能な休眠中プロセスです
-                  </div>
+                <div class="process-info">
+                  割り込み不可能な休眠中プロセスです
                 </div>
-                <div
-                  class="process-description-item"
-                  style="grid-row: 2; grid-column: 3"
-                >
-                  <div class="process-header" style="color: #ed1c24">
-                    <span>Stopped</span>
-                  </div>
-                  <div class="process-info">停止したプロセスです</div>
+              </div>
+              <div
+                class="process-description-item"
+                style="grid-row: 2; grid-column: 2"
+              >
+                <div class="process-header" style="color: #fbf267">
+                  <span>Interruptible Sleep</span>
                 </div>
-                <div
-                  class="process-description-item"
-                  style="grid-row: 3; grid-column: 1"
-                >
-                  <div class="process-header" style="color: #7053cc">
-                    <span>Zombie</span>
-                  </div>
-                  <div class="process-info">ゾンビ状態のプロセスです</div>
+                <div class="process-info">割り込み可能な休眠中プロセスです</div>
+              </div>
+              <div
+                class="process-description-item"
+                style="grid-row: 2; grid-column: 3"
+              >
+                <div class="process-header" style="color: #ed1c24">
+                  <span>Stopped</span>
                 </div>
-                <div
-                  class="process-description-item"
-                  style="grid-row: 3; grid-column: 2"
-                >
-                  <div class="process-header" style="color: #777">
-                    <span>Unknown</span>
-                  </div>
-                  <div class="process-info">よくわからないプロセスです</div>
+                <div class="process-info">停止したプロセスです</div>
+              </div>
+              <div
+                class="process-description-item"
+                style="grid-row: 3; grid-column: 1"
+              >
+                <div class="process-header" style="color: #7053cc">
+                  <span>Zombie</span>
                 </div>
+                <div class="process-info">ゾンビ状態のプロセスです</div>
+              </div>
+              <div
+                class="process-description-item"
+                style="grid-row: 3; grid-column: 2"
+              >
+                <div class="process-header" style="color: #777">
+                  <span>Unknown</span>
+                </div>
+                <div class="process-info">よくわからないプロセスです</div>
               </div>
             </div>
           </div>
