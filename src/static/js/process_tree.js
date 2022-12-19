@@ -349,6 +349,7 @@ class Chart {
       .attr("id", (d) => `chartNode${d.id}`)
       .attr("stroke", "#666")
       .attr("stroke-width", 0)
+      .classed("shadow-circle", false)
       .style("fill", (d) => {
         if (d.data.command === "root") {
           return "url(#areaGradientRoot)";
@@ -371,28 +372,10 @@ class Chart {
         } else {
           this.selectedNodeId = -1;
         }
-        const selectedColor = "red";
-        const notSelectedColor = "#666";
-        const selectedStrokeWidth = "5";
-        const notSelectedStrokeWidth = "0";
 
-        this.node
-          .attr("stroke", (eachNodeData) => {
-            if (eachNodeData.id === clickedNodeData.id) {
-              return this.selectedNodeId > 0 ? selectedColor : notSelectedColor;
-            } else {
-              return notSelectedColor;
-            }
-          })
-          .attr("stroke-width", (eachNodeData) => {
-            if (eachNodeData.id === clickedNodeData.id) {
-              return this.selectedNodeId > 0
-                ? selectedStrokeWidth
-                : notSelectedStrokeWidth;
-            } else {
-              return notSelectedStrokeWidth;
-            }
-          });
+        d3.select(`#chartNode${clickedNodeData.id}`)
+          .attr("stroke", "red")
+          .attr("stroke-width", this.selectedNodeId > 0 ? 3 : 0);
       })
       .on("mouseover", (event, hoveringNodeData) => {
         tooltip
@@ -437,6 +420,8 @@ class Chart {
 
     nodeEnter
       .append("circle")
+      .attr("id", (d) => `chartCircle${d.id}`)
+      .classed("shadow-circle", false)
       .attr("r", (d) =>
         d.data.command === "root"
           ? 50
