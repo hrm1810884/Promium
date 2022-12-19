@@ -11,40 +11,40 @@ const NODE_TYPE = {
     colorDark: "#444",
   },
   leaf: {
-    R: {
-      displayText: "runnable",
-      colorLight: "#1A85F1",
-      colorDark: "#082A4C",
+    O: {
+      displayText: "running",
+      colorLight: "#0218FF",
+      colorDark: "#00084C",
     },
     D: {
       displayText: "uninterruptible sleep",
       colorLight: "#F26523",
       colorDark: "#4C200B",
     },
-    T: {
-      displayText: "stopped",
-      colorLight: "#ED1C24",
-      colorDark: "#4C090C",
-    },
-    S: {
-      displayText: "interruptible sleep",
-      colorLight: "#FBF267",
-      colorDark: "#4C4920",
+    I: {
+      displayText: "process generating",
+      colorLight: "#38B349",
+      colorDark: "#184C1F",
     },
     Z: {
       displayText: "zombie",
       colorLight: "#7053CC",
       colorDark: "#291F4C",
     },
-    I: {
-      displayText: "process generating",
-      colorLight: "#38B349",
-      colorDark: "#184C1F",
+    R: {
+      displayText: "runnable",
+      colorLight: "#1A85F1",
+      colorDark: "#082A4C",
     },
-    O: {
-      displayText: "running",
-      colorLight: "#0218FF",
-      colorDark: "#00084C",
+    S: {
+      displayText: "interruptible sleep",
+      colorLight: "#FBF267",
+      colorDark: "#4C4920",
+    },
+    T: {
+      displayText: "stopped",
+      colorLight: "#ED1C24",
+      colorDark: "#4C090C",
     },
     U: {
       displayText: "unknown",
@@ -56,7 +56,7 @@ const NODE_TYPE = {
 
 const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
 const [chartSvg, legendSvg, hierarchySvg, tooltip] = initializeElement();
-const INTERVAL_TIME = 5000; // live モードの更新頻度 [ms]
+const INTERVAL_TIME = 5000000; // live モードの更新頻度 [ms]
 
 const defineGradient = () => {
   const defs = chartSvg.append("defs");
@@ -125,7 +125,7 @@ function initializeDimention() {
     radius: 3,
   };
   legendDim.container = {
-    width: legendDim.each.width,
+    width: legendDim.each.width * 2 + legendDim.each.spacing,
     height:
       Object.keys(NODE_TYPE.leaf).length *
       (legendDim.each.height + legendDim.each.spacing),
@@ -457,7 +457,16 @@ class Legend {
   }
 
   draw() {
-    this.statusList = this.selectUniqueStatus(this.tsv);
+    // this.statusList = this.selectUniqueStatus(this.tsv);
+    this.statusList = [];
+    Object.keys(NODE_TYPE.leaf).forEach((data) => {
+      this.statusList.push({
+        stat: data,
+        displayText: NODE_TYPE.leaf[data].displayText,
+        buttonClicked: false,
+      });
+    })
+    console.log(this.statusList);
     legendSvg
       .attr("width", DIM_LEGEND.container.width)
       .attr("height", DIM_LEGEND.container.height);
@@ -466,17 +475,16 @@ class Legend {
 
     const legendGroup = legendSvg
       .selectAll("g")
-      .data(
-        this.statusList.slice().sort((a, b) => d3.ascending(a.stat, b.stat))
-      )
+      .data(this.statusList)
       .enter()
       .append("svg:g")
       .attr(
         "transform",
-        (d, i) =>
-          "translate(0," +
-          i * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
-          ")"
+        (d, i) => {
+          return i < 4
+          ? "translate(0," + i * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +")"
+          : "translate(" + (DIM_LEGEND.each.width + DIM_LEGEND.each.spacing) + "," + (i - 4) * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +")"
+        }
       );
 
     legendGroup
