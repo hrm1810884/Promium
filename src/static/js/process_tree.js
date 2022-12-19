@@ -808,9 +808,13 @@ class Hierarchy {
 
   highlightChartNode(data) {
     const selectedHierarchyNode = d3.select(`#hierarchyNode${data.id}`)
-    const selectedChartNode = d3.select(`#chartNode${data.id}`);
+    let selectedChartNode = d3.select(`#chartNode${data.id}`);
     selectedHierarchyNode.style("fill","red")
     selectedChartNode.style("fill","red")
+    selectedHierarchyNode.data()[0].ancestors().forEach((parent) =>{
+      selectedChartNode = d3.select(`#chartNode${parent.id}`)
+      selectedChartNode.style("fill","red")
+    })
   }
 }
 
