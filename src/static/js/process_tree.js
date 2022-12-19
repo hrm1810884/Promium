@@ -55,8 +55,8 @@ const NODE_TYPE = {
 };
 
 const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
-const [chartSvg, legendSvg, hierarchySvg] = initializeSvgElement();
-const INTERVAL_TIME = 1000000; // live モードの更新頻度 [ms]
+const [chartSvg, legendSvg, hierarchySvg, tooltip] = initializeElement();
+const INTERVAL_TIME = 5000; // live モードの更新頻度 [ms]
 
 const defineGradient = () => {
   const defs = chartSvg.append("defs");
@@ -156,7 +156,7 @@ function initializeDimention() {
  * SVG の要素を初期化する
  * @returns [svg for chart, svg for legend, svg for hierarchy]
  */
-function initializeSvgElement() {
+function initializeElement() {
   const chartElement = d3
     .select("#chart")
     .append("svg:svg")
@@ -173,7 +173,8 @@ function initializeSvgElement() {
     .append("g");
   const legendElement = d3.select("#legendContent").append("svg:svg");
   const hierarchyElement = d3.select("#hierarchy").append("svg");
-  return [chartElement, legendElement, hierarchyElement];
+  const tooltip = d3.select("body").append("div").attr("class", "tooltip");
+  return [chartElement, legendElement, hierarchyElement, tooltip];
 }
 
 /* 挙動と状態変数をセットする */
@@ -199,6 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("liveButton").addEventListener("change", function () {
     if (this.checked) {
+      clearInterval(timerIdLiveMode);
       timerIdLiveMode = setInterval(readAndVisualizeData, INTERVAL_TIME);
     } else {
       clearInterval(timerIdLiveMode);
@@ -231,6 +233,10 @@ class Chart {
     this.node = {};
     this.link = {};
     this.selectedNodeId = -1;
+
+    Object.defineProperty(this, "DURATION", {
+      value: 750,
+    });
   }
 
   draw() {
@@ -342,7 +348,11 @@ class Chart {
     this.link = linkEnter.merge(this.link);
 
     this.node = chartSvg.selectAll(".chart-node").data(nodes, (d) => d.id);
-    this.node.exit().remove();
+    this.node
+      .exit()
+      .transition(d3.transition().duration(this.DURATION))
+      .attr("r", 1e-6)
+      .remove();
 
     const nodeEnter = this.node
       .enter()
@@ -375,7 +385,7 @@ class Chart {
         }
         const selectedColor = "red";
         const notSelectedColor = "#666";
-        const selectedStrokeWidth = "3";
+        const selectedStrokeWidth = "5";
         const notSelectedStrokeWidth = "0";
 
         this.node
@@ -395,6 +405,23 @@ class Chart {
               return notSelectedStrokeWidth;
             }
           });
+      })
+      .on("mouseover", (event, hoveringNodeData) => {
+        tooltip
+          .style("visibility", "visible")
+          .html(() =>
+            isCpuModeOn
+              ? `Command: ${hoveringNodeData.data.command}<br>CPU usage: ${hoveringNodeData.data.cpu} %`
+              : `Command: ${hoveringNodeData.data.command}<br>Memory usage: ${hoveringNodeData.data.mem} %`
+          );
+      })
+      .on("mousemove", (event, d) => {
+        tooltip
+          .style("top", event.pageY - 20 + "px")
+          .style("left", event.pageX + 10 + "px");
+      })
+      .on("mouseout", (event, d) => {
+        tooltip.style("visibility", "hidden");
       })
       .call(
         d3
@@ -434,12 +461,6 @@ class Chart {
 
     /* simulation にノードとリンクをセットする */
     this.simulation.nodes(nodes);
-    this.simulation.nodes().forEach((node) => {
-      if (!node.parent) {
-        node.fx = DIM_CHART.container.centerX;
-        node.fy = DIM_CHART.container.centerY;
-      }
-    });
     this.simulation.force("link").links(links);
   }
 
@@ -807,7 +828,6 @@ function readAndVisualizeData() {
  */
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
-
   const chart = new Chart(json);
   const legend = new Legend(tsv);
   const hierarchy = new Hierarchy(json);
