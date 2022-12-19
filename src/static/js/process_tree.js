@@ -812,10 +812,10 @@ class Hierarchy {
   highlightPath(d) {}
 
   highlightChartNode(data) {
-    const selectedHierarchyNode = d3.select(`#hierarchyNode${data.id}`)
+    const selectedHierarchyNode = d3.select(`#hierarchyNode${data.id}`);
     const selectedChartNode = d3.select(`#chartNode${data.id}`);
-    selectedHierarchyNode.style("fill","red")
-    selectedChartNode.style("fill","red")
+    selectedHierarchyNode.style("fill", "red");
+    selectedChartNode.style("fill", "red");
   }
 }
 
