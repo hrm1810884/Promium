@@ -562,7 +562,7 @@ class Hierarchy {
     this.json = json;
     this.link = {};
     this.node = {};
-    this.chart;
+    this.chart = {};
   }
 
   draw() {
@@ -809,14 +809,16 @@ class Hierarchy {
   highlightPath(d) {}
 
   highlightChartNode(data) {
-    const selectedHierarchyNode = d3.select(`#hierarchyNode${data.id}`)
-    let selectedChartNode = d3.select(`#chartNode${data.id}`);
-    selectedHierarchyNode.style("fill","red")
-    selectedChartNode.style("fill","red")
-    selectedHierarchyNode.data()[0].ancestors().forEach((parent) =>{
-      selectedChartNode = d3.select(`#chartNode${parent.id}`)
-      selectedChartNode.style("fill","red")
-    })
+    const selectedHierarchyNode = d3.select(`#hierarchyNode${data.id}`);
+    const selectedChartNode = d3.select(`#chartNode${data.id}`);
+    selectedHierarchyNode.style("fill", "red");
+    selectedChartNode.style("fill", "red");
+    selectedHierarchyNode
+      .data()[0]
+      .ancestors()
+      .forEach((mother) => {
+        d3.select(`#chartNode${mother.id}`).style("fill", "red");
+      });
   }
 }
 
