@@ -368,7 +368,7 @@ class Chart {
         return "url(#areaGradientLeafU}";
       })
       .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
-      .on("click", (clickedNodeData) => {
+      .on("click", (event, clickedNodeData) => {
         if (
           this.selectedNodeId < 0 ||
           this.selectedNodeId !== clickedNodeData.id
@@ -385,14 +385,14 @@ class Chart {
         this.node
           .attr("stroke", (eachNodeData) => {
             if (eachNodeData.id === clickedNodeData.id) {
-              return this.selectedNodeId < 0 ? selectedColor : notSelectedColor;
+              return this.selectedNodeId > 0 ? selectedColor : notSelectedColor;
             } else {
               return notSelectedColor;
             }
           })
           .attr("stroke-width", (eachNodeData) => {
             if (eachNodeData.id === clickedNodeData.id) {
-              return this.selectedNodeId < 0
+              return this.selectedNodeId > 0
                 ? selectedStrokeWidth
                 : notSelectedStrokeWidth;
             } else {
@@ -452,7 +452,7 @@ class Chart {
    * @param {Object} event イベントオブジェクト
    * @param {Object} clickedNodeData クリックされたデータ
    */
-  clicked(clickedNodeData) {
+  clicked(event, clickedNodeData) {
     const highlightHierarchyNode = (nodeData) => {};
 
     changeNodeColorByClick(clickedNodeData);
