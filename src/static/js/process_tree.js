@@ -56,7 +56,7 @@ const NODE_TYPE = {
 
 const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
 const [chartSvg, legendSvg, hierarchySvg, tooltip] = initializeElement();
-const INTERVAL_TIME = 5000; // live モードの更新頻度 [ms]
+const INTERVAL_TIME = 10000000; // live モードの更新頻度 [ms]
 
 const defineGradient = () => {
   const defs = chartSvg.append("defs");
@@ -132,9 +132,6 @@ function initializeDimention() {
   };
 
   // hierarchyDim の初期化
-  const hierarchyStyle = window.getComputedStyle(
-    document.getElementById("hierarchyContainer")
-  );
   hierarchyDim.rect = {
     height: 20,
     width: 80,
@@ -148,8 +145,8 @@ function initializeDimention() {
     left: 20,
   };
   hierarchyDim.container = {
-    width: parseFloat(hierarchyStyle.width.replace("px", "")),
-    height: parseFloat(hierarchyStyle.height.replace("px", "")),
+    height: 0,
+    width: 0,
   };
 
   return [chartDim, legendDim, hierarchyDim];
@@ -175,11 +172,7 @@ function initializeElement() {
     )
     .append("g");
   const legendElement = d3.select("#legendContent").append("svg:svg");
-  const hierarchyElement = d3
-    .select("#hierarchy")
-    .append("svg")
-    .attr("width", DIM_HIERARCHY.container.width)
-    .attr("height", DIM_HIERARCHY.container.height);
+  const hierarchyElement = d3.select("#hierarchy").append("svg");
   const tooltip = d3.select("body").append("div").attr("class", "tooltip");
   return [chartElement, legendElement, hierarchyElement, tooltip];
 }
@@ -191,14 +184,17 @@ let timerIdLiveMode = setInterval(readAndVisualizeData, INTERVAL_TIME); // リ�
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("helpButton").addEventListener("change", function () {
-    const sidebarContainer = document.getElementById("sidebar");
-    const helpContentContainer = document.getElementById("helpContent");
+    const settingContainer = document.getElementById("settingContainer");
+    const hierarchyContainer = document.getElementById("hierarchyContainer");
+    const helpContentContainer = document.getElementById("helpContainer");
     if (this.checked) {
-      sidebarContainer.style.visibility = "hidden";
+      settingContainer.style.visibility = "hidden";
+      hierarchyContainer.style.visibility = "hidden";
       helpContentContainer.style.visibility = "visible";
     } else {
       helpContentContainer.style.visibility = "hidden";
-      sidebarContainer.style.visibility = "visible";
+      settingContainer.style.visibility = "visible";
+      hierarchyContainer.style.visibility = "visible";
     }
   });
 
@@ -211,15 +207,6 @@ document.addEventListener("DOMContentLoaded", () => {
       readAndVisualizeData();
     }
   });
-
-  document
-    .getElementById("legendButton")
-    .addEventListener("change", function () {
-      const legendContentContainer = document.getElementById("legendContent");
-      legendContentContainer.style.visibility = this.checked
-        ? "visible"
-        : "hidden";
-    });
 
   for (const chartTab of document.getElementsByClassName("chart-tab")) {
     chartTab.addEventListener("change", function () {
@@ -318,10 +305,7 @@ class Chart {
       )
       .force(
         "center",
-        d3.forceCenter(
-          DIM_CHART.container.width / 2,
-          DIM_CHART.container.height / 6
-        )
+        d3.forceCenter(DIM_CHART.container.centerX, DIM_CHART.container.centerY)
       )
       .on("tick", () => {
         this.link
@@ -456,7 +440,7 @@ class Chart {
       .attr("r", (d) =>
         d.data.command === "root"
           ? 50
-          : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.rss) * 15, 5)
+          : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.mem) * 15, 5)
       )
       .style("text-anchor", (d) => (d.children ? "end" : "start"))
       .text((d) => d.data.command);
@@ -572,9 +556,43 @@ class Hierarchy {
     this.tree = d3.tree();
     this.tree(this.root);
     countChildren(this.root);
+    this.resetSvg();
     hierarchySvg.selectAll("g").remove();
     this.group = hierarchySvg.append("g");
+    this.foldChildrenNode(this.root);
     this.update(this.root);
+  }
+
+  resetSvg() {
+    DIM_HIERARCHY.container.height =
+      this.root.value * DIM_HIERARCHY.rect.height +
+      (this.root.value - 1) *
+        (DIM_HIERARCHY.space.height - DIM_HIERARCHY.rect.height) +
+      DIM_HIERARCHY.space.padding * 2;
+    DIM_HIERARCHY.container.width =
+      (this.root.height + 1) * DIM_HIERARCHY.rect.width +
+      this.root.height *
+        (DIM_HIERARCHY.space.width - DIM_HIERARCHY.rect.width) +
+      DIM_HIERARCHY.space.padding * 2;
+    hierarchySvg
+      .attr("width", DIM_HIERARCHY.container.width)
+      .attr("height", DIM_HIERARCHY.container.height);
+  }
+
+  foldChildrenNode(source) {
+    const UNFOLDED_LAYER = 1;
+    for (
+      let currentLayer = source.height;
+      currentLayer >= UNFOLDED_LAYER;
+      --currentLayer
+    ) {
+      source.each((node) => {
+        if (node.depth === currentLayer) {
+          node._children = node.children;
+          node.children = null;
+        }
+      });
+    }
   }
 
   update(source) {
@@ -756,7 +774,7 @@ class Hierarchy {
     nodeUpdate
       .select("rect")
       .attr("id", (d) => `hierarchyRect${d.data.id}`)
-      .style("fill", (d) => (d._children ? "#444" : "#222"));
+      .style("fill", (d) => (d._children ? "#666" : "#222"));
     nodeEnter.select("text").style("fill-opacity", 1);
 
     const nodeExit = this.node
@@ -884,6 +902,7 @@ function buildHierarchy(tsv) {
     const user = currentRow["USER"];
     const pid = parseInt(currentRow["PID"]);
     const cpu = parseFloat(currentRow["%CPU"]);
+    const mem = parseFloat(currentRow["%MEM"]);
     const rss = parseFloat(currentRow["RSS"]);
     const stat = currentRow["STAT"];
     const command = currentRow["COMMAND"];
@@ -896,6 +915,7 @@ function buildHierarchy(tsv) {
         user: user,
         pid: pid,
         cpu: cpu,
+        mem: mem,
         rss: rss,
         stat: stat,
         parent: parentNode,
@@ -909,6 +929,7 @@ function buildHierarchy(tsv) {
         user: user,
         pid: pid,
         cpu: cpu,
+        mem: mem,
         rss: rss,
         stat: stat,
         parent: parentNode,
@@ -921,6 +942,7 @@ function buildHierarchy(tsv) {
         user: user,
         pid: pid,
         cpu: cpu,
+        mem: mem,
         rss: rss,
         stat: stat,
         parent: parentNode,
