@@ -108,6 +108,7 @@ h3 {
     )
     calc((95vh - var(--header-height) - var(--tab-height)) * 0.6);
   grid-template-columns: 6fr 4fr;
+
 }
 
 .tooltip {
