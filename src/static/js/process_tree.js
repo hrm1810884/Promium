@@ -562,7 +562,7 @@ class Hierarchy {
     countChildren(this.root);
     this.resetSvg();
     this.group = hierarchySvg.append("g");
-    this.foldChildrenNode(this.root);
+    // this.foldChildrenNode(this.root);
     this.update(this.root);
   }
 
@@ -777,7 +777,7 @@ class Hierarchy {
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     nodeUpdate
       .select("rect")
-      .attr("id", (d) => `hierarchyRect${d.data.id}`)
+      .attr("id", (d) => `hierarchyNode${d.id}`)
       .style("fill", (d) => (d._children ? "#666" : "#222"));
 
     nodeEnter.select("text").style("fill-opacity", 1);
