@@ -139,10 +139,9 @@ class WebServer:
                     time_b_command = split_line[COLUMN_NUM - 2]
                     time, b_command = time_b_command.split(" ", 1)
                     line_head.append(time)
-
                     if b_command.count(r"\_"):
                         blank, command = b_command.split(r"\_ ")
-                        gene = blank.count(" ") // 4 + 1
+                        gene = (blank.count(" ") + blank.count("|")) // 4 + 1
                     else:
                         command = b_command
                         gene = 0

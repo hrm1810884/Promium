@@ -102,10 +102,26 @@ h3 {
   font-family: var(--font-family-serif);
   display: grid;
   height: 100%;
-  grid-template-rows: var(--tab-height) calc(
+  grid-template-rows:
+    var(--tab-height) calc(
       (95vh - var(--header-height) - var(--tab-height)) * 0.4
-    ) calc((95vh - var(--header-height) - var(--tab-height)) * 0.6);
+    )
+    calc((95vh - var(--header-height) - var(--tab-height)) * 0.6);
   grid-template-columns: 6fr 4fr;
+}
+
+.tooltip {
+  position: absolute;
+  text-align: center;
+  width: auto;
+  height: auto;
+  padding: 5px;
+  font: 18px var(--font-family-mono);
+  background: #487e1c;
+  -webkit-text-fill-color: rgb(184, 198, 178);
+  -webkit-box-shadow: 0px 0px 25px rgba(42, 75, 15, 0.8);
+  box-shadow: 0px 0px 25px rgba(42, 75, 15, 0.8);
+  visibility: hidden;
 }
 
 .chart-container {
