@@ -58,6 +58,47 @@ const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
 const [chartSvg, legendSvg, hierarchySvg, tooltip] = initializeElement();
 const INTERVAL_TIME = 5000; // live モードの更新頻度 [ms]
 
+const defineGradient = () => {
+  const defs = chartSvg.append("defs");
+  const capitalize = (string) => string[0].toUpperCase() + string.slice(1);
+  const setGradient = (idString, colorLight, colorDark) => {
+    const areaGradient = defs
+      .append("radialGradient")
+      .attr("id", `areaGradient${idString}`)
+      .attr("cx", "0.5")
+      .attr("cy", "0.5")
+      .attr("fx", "0.3")
+      .attr("fy", "0.3")
+      .attr("r", "0.5");
+    areaGradient
+      .append("stop")
+      .attr("offset", "0%")
+      .attr("stop-color", colorLight);
+    areaGradient
+      .append("stop")
+      .attr("offset", "100%")
+      .attr("stop-color", colorDark);
+  };
+
+  Object.keys(NODE_TYPE).forEach((keyNode) => {
+    const eachNode = NODE_TYPE[keyNode];
+    if (keyNode === "leaf") {
+      Object.keys(eachNode).forEach((keyStatus) => {
+        const eachStatus = eachNode[keyStatus];
+        setGradient(
+          capitalize(keyNode) + keyStatus,
+          eachStatus.colorLight,
+          eachStatus.colorDark
+        );
+      });
+    } else {
+      setGradient(capitalize(keyNode), eachNode.colorLight, eachNode.colorDark);
+    }
+  });
+};
+
+defineGradient();
+
 /**
  * DIM_CHART, DIM_LEGEND, DIM_HIERARCHY を初期化する
  * @returns [chart のサイズ, legend のサイズ, hierarychy のサイズ]
@@ -198,29 +239,10 @@ class Chart {
     this.selectedNodeId = -1;
   }
 
-  initializeDimention() {
-    Object.defineProperty(this, "SIZE", {
-      container: {
-        width: parseFloat(chartStyle.width.replace("px", "")),
-        height: parseFloat(chartStyle.height.replace("px", "")),
-      },
-    });
-    const chartStyle = window.getComputedStyle(
-      document.getElementById("chart")
-    );
-    chartDim.container = {
-      width: parseFloat(chartStyle.width.replace("px", "")),
-      height: parseFloat(chartStyle.height.replace("px", "")),
-    };
-    chartDim.container.centerX = chartDim.container.width / 2;
-    chartDim.container.centerY = chartDim.container.height / 2;
-  }
-
   draw() {
     this.setBackgroundColor();
     this.root = d3.hierarchy(this.json);
     countChildren(this.root);
-    this.defineGradient();
     this.setSimulation();
     this.update();
   }
@@ -308,49 +330,6 @@ class Chart {
       });
   }
 
-  defineGradient() {
-    const defs = chartSvg.append("defs");
-    const capitalize = (string) => string[0].toUpperCase() + string.slice(1);
-    const setGradient = (idString, colorLight, colorDark) => {
-      const areaGradient = defs
-        .append("radialGradient")
-        .attr("id", `areaGradient${idString}`)
-        .attr("cx", "0.5")
-        .attr("cy", "0.5")
-        .attr("fx", "0.3")
-        .attr("fy", "0.3")
-        .attr("r", "0.5");
-      areaGradient
-        .append("stop")
-        .attr("offset", "0%")
-        .attr("stop-color", colorLight);
-      areaGradient
-        .append("stop")
-        .attr("offset", "100%")
-        .attr("stop-color", colorDark);
-    };
-
-    Object.keys(NODE_TYPE).forEach((keyNode) => {
-      const eachNode = NODE_TYPE[keyNode];
-      if (keyNode === "leaf") {
-        Object.keys(eachNode).forEach((keyStatus) => {
-          const eachStatus = eachNode[keyStatus];
-          setGradient(
-            capitalize(keyNode) + keyStatus,
-            eachStatus.colorLight,
-            eachStatus.colorDark
-          );
-        });
-      } else {
-        setGradient(
-          capitalize(keyNode),
-          eachNode.colorLight,
-          eachNode.colorDark
-        );
-      }
-    });
-  }
-
   update() {
     const nodes = flatten(this.root);
     const links = this.root.links();
@@ -394,7 +373,10 @@ class Chart {
       })
       .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
       .on("click", (event, clickedNodeData) => {
-        if (this.selectedNodeId < 0 | this.selectedNodeId != clickedNodeData.id) {
+        if (
+          this.selectedNodeId < 0 ||
+          this.selectedNodeId !== clickedNodeData.id
+        ) {
           this.selectedNodeId = clickedNodeData.id;
         } else {
           this.selectedNodeId = -1;
@@ -407,14 +389,14 @@ class Chart {
         this.node
           .attr("stroke", (eachNodeData) => {
             if (eachNodeData.id === clickedNodeData.id) {
-              return this.selectedNodeId < 0 ? selectedColor : notSelectedColor;
+              return this.selectedNodeId > 0 ? selectedColor : notSelectedColor;
             } else {
               return notSelectedColor;
             }
           })
           .attr("stroke-width", (eachNodeData) => {
             if (eachNodeData.id === clickedNodeData.id) {
-              return this.selectedNodeId < 0
+              return this.selectedNodeId > 0
                 ? selectedStrokeWidth
                 : notSelectedStrokeWidth;
             } else {
@@ -794,9 +776,10 @@ class Hierarchy {
     });
   }
 
-  clicked(d) {
-    this.toggle(d);
-    this.update(d);
+  clicked(clickedNodeData) {
+    this.toggle(clickedNodeData);
+    this.update(clickedNodeData);
+    this.highlightPath(clickedNodeData);
   }
 
   toggle(d) {
@@ -807,6 +790,12 @@ class Hierarchy {
       d.children = d._children;
       d._children = null;
     }
+  }
+
+  highlightPath(d) {}
+
+  highlightChartNode(data) {
+    const chartNode = d3.select(`chartNode${data.id}`);
   }
 }
 
