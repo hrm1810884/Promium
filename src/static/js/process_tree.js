@@ -457,16 +457,17 @@ class Legend {
   }
 
   draw() {
-    // this.statusList = this.selectUniqueStatus(this.tsv);
+    this.realStatusList = this.selectUniqueStatus(this.tsv);
     this.statusList = [];
     Object.keys(NODE_TYPE.leaf).forEach((data) => {
       this.statusList.push({
         stat: data,
         displayText: NODE_TYPE.leaf[data].displayText,
         buttonClicked: false,
+        clickCapability: false,
       });
     })
-    console.log(this.statusList);
+
     legendSvg
       .attr("width", DIM_LEGEND.container.width)
       .attr("height", DIM_LEGEND.container.height);
@@ -498,7 +499,16 @@ class Legend {
         (d) =>
           NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].colorLight
       )
-      .style("opacity", 0.6)
+      .style("opacity", (d) => {
+        if (this.realStatusList.indexOf(d.stat) >= 0) {
+          d.buttonClicked = true;
+          d.clickCapability = true;
+          return 0.6
+        }
+        else {
+          return 0.02
+        }
+      })
       .attr("class", (d) => "rect_" + d.stat);
 
     legendGroup
@@ -507,16 +517,15 @@ class Legend {
       .attr("y", DIM_LEGEND.each.height / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "middle")
-      .text(
-        (d) =>
-          NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].displayText
-      );
+      .text((d) => d.displayText);
 
     legendGroup.on("click", (event, clickedLegendData) => {
       d3.selectAll(".chart-node").attr("visibility", "visible");
       d3.selectAll("line").attr("visibility", "visible");
 
-      clickedLegendData.buttonClicked = !clickedLegendData.buttonClicked;
+      if (clickedLegendData.clickCapability){
+        clickedLegendData.buttonClicked = !clickedLegendData.buttonClicked;
+      }
       let hiddenStat = [];
       this.statusList.forEach((data) => {
         if (!data.buttonClicked) {
@@ -551,26 +560,26 @@ class Legend {
 
       legendGroup
         .selectAll("rect")
-        .style("opacity", (d) => (d.buttonClicked ? 0.6 : 0.1));
+        .style("opacity", (d) => {
+          if (d.buttonClicked) {
+            return 0.6;
+          }
+          else if (d.clickCapability) {
+            return 0.2;
+          }
+          else {
+            return 0.02
+          }
+        });
     });
   }
 
   selectUniqueStatus(statusData) {
-    let statusIndex = 0;
     let uniqueStatusList = [];
     statusData.forEach((status) => {
       const statFirstLetter = status.STAT[0];
-      if (
-        uniqueStatusList
-          .map((uniqueStatus) => uniqueStatus.stat)
-          .indexOf(statFirstLetter) === -1
-      ) {
-        uniqueStatusList.push({
-          stat: statFirstLetter,
-          id: statusIndex,
-          buttonClicked: true,
-        });
-        ++statusIndex;
+      if (uniqueStatusList.indexOf(statFirstLetter) === -1) {
+        uniqueStatusList.push(statFirstLetter);
       }
     });
     return uniqueStatusList;
