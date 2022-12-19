@@ -314,7 +314,7 @@ class Chart {
         "center",
         d3.forceCenter(
           DIM_CHART.container.width / 2,
-          DIM_CHART.container.height / 6
+          DIM_CHART.container.height / 2
         )
       )
       .on("tick", () => {
@@ -757,6 +757,7 @@ class Hierarchy {
     this.toggle(clickedNodeData);
     this.update(clickedNodeData);
     this.highlightPath(clickedNodeData);
+    this.highlightChartNode(clickedNodeData);
   }
 
   toggle(d) {
@@ -772,7 +773,6 @@ class Hierarchy {
   highlightPath(d) {}
 
   highlightChartNode(data) {
-    const chartNode = d3.select(`chartNode${data.id}`);
   }
 }
 
