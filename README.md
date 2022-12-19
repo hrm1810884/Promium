@@ -19,6 +19,8 @@
 - これまでwebからとってきたテストデータだったものをプロセスの情報に対応できるようにpsコマンドの結果から親子関係を導き出し,tsvをjsonに変換し,表示できるようにした.
 [プロセスデータに対応](https://github.com/InfovisHandsOn/B-Tohoken/commit/bde525023d9fe6b831ad05e9a74dcbfa64bbf599)
 - pythonでサーバを立ててブラウザからの要求に応じて,ファイルを送信する[プログラム](https://github.com/InfovisHandsOn/B-Tohoken/commit/fe4e5848eb79a6d75b04cec4d09bf2a8fc657e23)を作成した.データを要求された際にはサーバサイドで`ps auxf`を実行し,データを取得した後に表示する.
+- 右側に表示したツリーをクリックすることで左のチャート部分にハイライト表示ができるようにした.  
+他のノードをクリックした際もしっかり表示が切り替わるようにするなど細かい工夫を実装した.
 
 ### LEEANHUA
 
