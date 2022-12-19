@@ -208,7 +208,8 @@ h3 {
 
 .process-description-container {
   display: grid;
-  grid-template-columns: 0.32fr 0.32fr 0.32fr;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 120px 120px 120px 120px;
   justify-content: center;
 }
 
@@ -218,16 +219,31 @@ h3 {
   width: 90%;
   box-shadow: 0 0 5px var(--color-accent);
   text-align: center;
+  display: flex;
+  flex-direction: column;
 }
 
 .process-header {
   font-family: var(--font-family-mono);
   font-weight: 300;
-  padding-bottom: 5px;
+  height: 50%;
+  vertical-align: middle;
+  flex-grow: 1;
+  display: grid;
+  place-items: center;
 }
 
 .process-info {
+  vertical-align: middle;
+  height: 50%;
   font-family: var(--font-family-sans);
+  flex-grow: 2;
+  display: grid;
+  place-items: center;
+}
+
+.process-info .br {
+  display: inline-block;
 }
 
 .chart-container text,
