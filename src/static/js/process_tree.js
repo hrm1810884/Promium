@@ -518,7 +518,7 @@ class Legend {
         (d) =>
           NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].colorLight
       )
-      .style("opacity", 0.5)
+      .style("opacity", 0.6)
       .attr("class", (d) => "rect_" + d.stat);
 
     legendGroup
@@ -540,43 +540,43 @@ class Legend {
         d3.selectAll("line")
           .attr("visibility", "visible");
 
-        if (clickedLegendData.buttonClicked == true) {
-          clickedLegendData.buttonClicked = false;
-        }
-        else {
-          this.statusList
-            .forEach((data) => {
-              data.buttonClicked = false;
-            });
-          clickedLegendData.buttonClicked = true;
+        clickedLegendData.buttonClicked = !clickedLegendData.buttonClicked;
 
-          this.root = d3.hierarchy(this.json);
-          countChildren(this.root);
-          flatten(this.root);
+        let hiddenStat = [];
+        this.statusList.forEach((data) => {
+          if (!data.buttonClicked){
+            hiddenStat.push(data.stat);
+          }
+        });
 
-          this.root.eachAfter((node) => {
-            node.hiddenValue = node.value;
-            if (node.children) {
-              for (const child of node.children) {
-                if (child.hiddenValue == 1 && child.data.stat[0] != clickedLegendData.stat) {
-                  d3.select(`#chartNode${child.id}`)
-                    .attr("visibility", "hidden");
-                  node.hiddenValue -= child.value;
-                }
+        this.root = d3.hierarchy(this.json);
+        countChildren(this.root);
+        flatten(this.root);
+
+        this.root.eachAfter((node) => {
+          node.hiddenValue = node.value;
+          if (node.children) {
+            for (const child of node.children) {
+              if (child.hiddenValue == 1 && hiddenStat.indexOf(child.data.stat[0]) >= 0) {
+                d3.select(`#chartNode${child.id}`)
+                  .attr("visibility", "hidden");
+                node.hiddenValue -= child.value;
               }
-            }  
-          })
+            }
+          }  
+        })
 
-          d3.selectAll("line")
-            .attr("visibility", (lineData) => {
-              return d3.select(`#chartNode${lineData.target.id}`).attr("visibility");
-            });
+        d3.selectAll("line")
+          .attr("visibility", (lineData) => {
+            return d3.select(`#chartNode${lineData.target.id}`).attr("visibility");
+          });
 
-          countChildren(this.root);
-        }
+        countChildren(this.root);
+      
         legendGroup
-            .style("opacity", (d) => {
-              return d.buttonClicked == true ? 1 : 0.5}); 
+          .selectAll("rect")
+          .style("opacity", (d) => {
+            return d.buttonClicked == true ? 0.6 : 0.1}); 
       });
   }
 
@@ -593,7 +593,7 @@ class Legend {
         uniqueStatusList.push({
           stat: statFirstLetter,
           id: statusIndex,
-          buttonClicked: false,
+          buttonClicked: true,
         });
         ++statusIndex;
       }
