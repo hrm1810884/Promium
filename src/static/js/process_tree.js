@@ -574,7 +574,7 @@ class Hierarchy {
     this.tree(this.root);
     countChildren(this.root);
     this.resetSvg();
-    hierarchySvg.select("g").remove()
+    hierarchySvg.select("g").remove();
     this.group = hierarchySvg.append("g");
     this.update(this.root);
   }
@@ -753,14 +753,6 @@ class Hierarchy {
       .attr("class", "hierarchy-node")
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
       .on("click", (event, clickedNodeData) => {
-        if (
-          this.selectedNodeId < 0 ||
-          this.selectedNodeId !== clickedNodeData.id
-        ) {
-          this.selectedNodeId = clickedNodeData.id;
-        } else {
-          this.selectedNodeId = -1;
-        }
         this.clicked(clickedNodeData);
       });
     nodeEnter
@@ -802,10 +794,19 @@ class Hierarchy {
   }
 
   clicked(clickedNodeData) {
+    this.updateStatusId(clickedNodeData);
     this.toggle(clickedNodeData);
     this.update(clickedNodeData);
     this.highlightPath(clickedNodeData);
     this.highlightChartNode(clickedNodeData);
+  }
+
+  updateStatusId(nodeData) {
+    if (this.selectedNodeId < 0 || this.selectedNodeId !== nodeData.id) {
+      this.selectedNodeId = nodeData.id;
+    } else {
+      this.selectedNodeId = -1;
+    }
   }
 
   toggle(d) {
@@ -821,42 +822,32 @@ class Hierarchy {
   highlightPath(d) {}
 
   highlightChartNode(clickedNodeData) {
-    const selectedColor = "red"
-    const notSelectedColor = "none"
-    d3.selectAll(".hierarchy-node").style("fill",notSelectedColor)
-    const selectedHierarchyNode = d3.select(`#hierarchyNode${clickedNodeData.id}`);
-    console.log(selectedHierarchyNode)
-    selectedHierarchyNode.style("fill", this.selectedNodeId > 0 ? selectedColor : notSelectedColor);
-    d3.selectAll(".chart-node").style("fill",(d) => {
-      if (d.data.command === "root") {
-        return "url(#areaGradientRoot)";
-      }
-      if (d._children || d.children) {
-        return "url(#areaGradientParent)";
-      }
-      if ("stat" in d.data) {
-        return `url(#${"areaGradientLeaf" + d.data.stat[0]})`;
-      }
-      return "url(#areaGradientLeafU}";
-    });
-    d3.selectAll(".chart-link").style("stroke","#ccc").style("stroke-width",3)
+    const selectedColor = "red";
+    const notSelectedColor = "none";
+    d3.selectAll(".hierarchy-node").style("stroke", notSelectedColor);
+    const selectedHierarchyNode = d3.select(
+      `#hierarchyNode${clickedNodeData.id}`
+    );
+    selectedHierarchyNode.style(
+      "fill",
+      this.selectedNodeId > 0 ? selectedColor : notSelectedColor
+    );
+    d3.selectAll(".chart-node")
+      .style("stroke", selectedColor)
+      .style("stroke-width", 0);
+    d3.selectAll(".chart-link")
+      .style("stroke", "#ccc")
+      .style("stroke-width", 3);
     let daughter = clickedNodeData;
     selectedHierarchyNode
       .data()[0]
       .ancestors()
       .forEach((mother) => {
-        d3.select(`#chartNode${mother.id}`).style("fill", this.selectedNodeId > 0 ? selectedColor : (d) => {
-          if (d.data.command === "root") {
-          return "url(#areaGradientRoot)";
-        }
-        if (d._children || d.children) {
-          return "url(#areaGradientParent)";
-        }
-        if ("stat" in d.data) {
-          return `url(#${"areaGradientLeaf" + d.data.stat[0]})`;
-        }
-        return "url(#areaGradientLeafU}";});
-        if(mother != clickedNodeData){
+        d3.select(`#chartNode${mother.id}`).style(
+          "stroke-width",
+          this.selectedNodeId > 0 ? 3 : 0
+        );
+        if (mother != clickedNodeData) {
           d3.select(`#chartLink${mother.id}-${daughter.id}`)
             .style("stroke", this.selectedNodeId > 0 ? selectedColor : "#ccc")
             .style("stroke-width", this.selectedNodeId > 0 ? 5 : 3);
