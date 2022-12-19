@@ -56,7 +56,7 @@ const NODE_TYPE = {
 
 const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
 const [chartSvg, legendSvg, hierarchySvg, tooltip] = initializeElement();
-const INTERVAL_TIME = 10000000; // live モードの更新頻度 [ms]
+const INTERVAL_TIME = 5000; // live モードの更新頻度 [ms]
 
 const defineGradient = () => {
   const defs = chartSvg.append("defs");
@@ -549,6 +549,7 @@ class Hierarchy {
     this.json = json;
     this.link = {};
     this.node = {};
+    this.chart;
   }
 
   draw() {
@@ -557,7 +558,6 @@ class Hierarchy {
     this.tree(this.root);
     countChildren(this.root);
     this.resetSvg();
-    hierarchySvg.selectAll("g").remove();
     this.group = hierarchySvg.append("g");
     this.foldChildrenNode(this.root);
     this.update(this.root);
@@ -773,8 +773,8 @@ class Hierarchy {
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     nodeUpdate
       .select("rect")
-      .attr("id", (d) => `hierarchyRect${d.data.id}`)
-      .style("fill", (d) => (d._children ? "#666" : "#222"));
+      .attr("id", (d) => `hierarchyNode${d.id}`)
+      .style("fill", (d) => (d._children ? "#444" : "#222"));
     nodeEnter.select("text").style("fill-opacity", 1);
 
     const nodeExit = this.node
@@ -796,6 +796,7 @@ class Hierarchy {
     this.toggle(clickedNodeData);
     this.update(clickedNodeData);
     this.highlightPath(clickedNodeData);
+    this.highlightChartNode(clickedNodeData);
   }
 
   toggle(d) {
@@ -811,7 +812,10 @@ class Hierarchy {
   highlightPath(d) {}
 
   highlightChartNode(data) {
-    const chartNode = d3.select(`chartNode${data.id}`);
+    const selectedHierarchyNode = d3.select(`#hierarchyNode${data.id}`)
+    const selectedChartNode = d3.select(`#chartNode${data.id}`);
+    selectedHierarchyNode.style("fill","red")
+    selectedChartNode.style("fill","red")
   }
 }
 
@@ -836,6 +840,7 @@ function createVisualization(tsv) {
   const chart = new Chart(json);
   const legend = new Legend(tsv);
   const hierarchy = new Hierarchy(json);
+  hierarchy.chart = chart;
   legend.draw();
   chart.draw();
   hierarchy.draw();
