@@ -230,8 +230,8 @@ class Chart {
         if (isCpuModeOn && node.cpu) {
           percentageSum += node.cpu;
         }
-        if (!isCpuModeOn && node.rss) {
-          percentageSum += node.cpu;
+        if (!isCpuModeOn && node.mem) {
+          percentageSum += node.mem;
         }
         if (node.children) {
           node.children.forEach((childNode) => {
@@ -303,6 +303,101 @@ class Chart {
           .attr("y2", (d) => d.target.y);
 
         this.node.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+
+    updateChart();
+
+    /**
+     * chart の表示を更新する
+     */
+    function updateChart() {
+      /* ノードとリンクを SVG にセットする */
+
+      /**
+       * 階層構造を配列にする
+       * @param {Object} source 配列にしたい階層構造
+       * @returns source に ID を振って配列に放り込んだもの
+       *
+       * 名前が flattern なのは入れ子になっているオブジェクトをユニークな ID を振って配列に放り込むことで
+       * 平坦にしているからだと思う．誰がわかるか
+       */
+      const flatten = (source) => {
+        let indexChart = 0;
+        const nodes = [];
+        recurse(source);
+
+        /**
+         * ノードにユニークな ID を振る
+         * @param {Object} node ID を振り始めるノード
+         */
+        function recurse(node) {
+          if (node.children) {
+            node.children.forEach(recurse);
+          }
+          ++indexChart;
+          if (!node.id) {
+            node.id = indexChart;
+          }
+          nodes.push(node);
+        }
+        return nodes;
+      };
+
+      const nodes = flatten(root);
+      const links = root.links();
+
+      linkChart = chartSvg.selectAll(".link").data(links, (d) => d.target.id);
+      linkChart.exit().remove();
+
+      const linkEnter = linkChart
+        .enter()
+        .append("line")
+        .attr("class", "link")
+        .style("stroke", "#ccc")
+        .style("opacity", "0.2")
+        .style("stroke-width", 3);
+
+      linkChart = linkEnter.merge(linkChart);
+
+      nodeChart = chartSvg.selectAll(".node").data(nodes, (d) => d.id);
+      nodeChart.exit().remove();
+
+      const nodeEnter = nodeChart
+        .enter()
+        .append("g")
+        .attr("class", "node")
+        .attr("stroke", "#666")
+        .attr("stroke-width", 0)
+        .style("fill", selectColorForData)
+        .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
+        .on("click", chartNodeClicked)
+        .call(
+          d3
+            .drag()
+            .on("start", chartNodeDragStarted)
+            .on("drag", chartNodeDragged)
+            .on("end", chartNodeDragEnded)
+        )
+        .sort((a, b) => b.depth - a.depth);
+
+      nodeEnter
+        .append("circle")
+        .attr("r", (d) =>
+          d.data.command === "root"
+            ? 50
+            : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.mem) * 15, 5)
+        )
+        .style("text-anchor", (d) => (d.children ? "end" : "start"))
+        .text((d) => d.data.command);
+
+      nodeChart = nodeEnter.merge(nodeChart);
+
+      /* simulation にノードとリンクをセットする */
+      simulation.nodes(nodes);
+      simulation.nodes().forEach((node) => {
+        if (!node.parent) {
+          node.fx = DIM_CHART.container.centerX;
+          node.fy = DIM_CHART.container.centerY;
+        }
       });
   }
 
