@@ -534,28 +534,49 @@ class Legend {
 
     legendGroup
       .on("click", (event, clickedLegendData) => {
-        this.root = d3.hierarchy(this.json);
-        countChildren(this.root);
-        flatten(this.root);
-        this.root.eachAfter((node) => {
-          node.hiddenValue = node.value;
-          if (node.children) {
-            for (const child of node.children) {
-              if (child.hiddenValue == 1 && child.data.stat[0] != clickedLegendData.stat) {
-                d3.select(`#chartNode${child.id}`)
-                  .attr("visibility", "hidden");
-                node.hiddenValue -= child.value;
-              }
-            }
-          }  
-        })
+        d3.selectAll(".chart-node")
+          .attr("visibility", "visible");
 
         d3.selectAll("line")
-          .attr("visibility", (lineData) => {
-            return d3.select(`#chartNode${lineData.target.id}`).attr("visibility");
-          });
+          .attr("visibility", "visible");
 
-        countChildren(this.root);
+        if (clickedLegendData.buttonClicked == true) {
+          clickedLegendData.buttonClicked = false;
+        }
+        else {
+          this.statusList
+            .forEach((data) => {
+              data.buttonClicked = false;
+            });
+          clickedLegendData.buttonClicked = true;
+
+          this.root = d3.hierarchy(this.json);
+          countChildren(this.root);
+          flatten(this.root);
+
+          this.root.eachAfter((node) => {
+            node.hiddenValue = node.value;
+            if (node.children) {
+              for (const child of node.children) {
+                if (child.hiddenValue == 1 && child.data.stat[0] != clickedLegendData.stat) {
+                  d3.select(`#chartNode${child.id}`)
+                    .attr("visibility", "hidden");
+                  node.hiddenValue -= child.value;
+                }
+              }
+            }  
+          })
+
+          d3.selectAll("line")
+            .attr("visibility", (lineData) => {
+              return d3.select(`#chartNode${lineData.target.id}`).attr("visibility");
+            });
+
+          countChildren(this.root);
+        }
+        legendGroup
+            .style("opacity", (d) => {
+              return d.buttonClicked == true ? 1 : 0.5}); 
       });
   }
 
