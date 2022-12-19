@@ -334,14 +334,14 @@ class Chart {
     const nodes = flatten(this.root);
     const links = this.root.links();
 
-    this.link = chartSvg.selectAll(".link").data(links, (d) => d.target.id);
+    this.link = chartSvg.selectAll(".chart-link").data(links, (d) => d.target.id);
     this.link.exit().remove();
 
     const linkEnter = this.link
       .enter()
       .append("line")
-      .attr("class", "link")
-      .attr("id", (d) => `chartLink${d.id}`)
+      .attr("class", "chart-link")
+      .attr("id", (d) => `chartLink${d.source.id}${d.target.id}`)
       .style("stroke", "#ccc")
       .style("opacity", "0.2")
       .style("stroke-width", 3);
@@ -688,15 +688,15 @@ class Hierarchy {
     const nodes = flatten(this.root);
 
     this.link = this.group
-      .selectAll(".link")
+      .selectAll(".hierarchy-link")
       .data(this.root.links(), (d) => d.target.id);
     this.link.exit().remove();
 
     const linkEnter = this.link
       .enter()
       .append("path")
-      .attr("class", "link")
-      .attr("id", (d) => `HierarchyLink${d.id}`)
+      .attr("class", "hierarchy-link")
+      .attr("id", (d) => `hierarchyLink${d.id}`)
       .attr("fill", "none")
       .attr("stroke", "#ccc")
       .attr("d", (d) =>
@@ -811,14 +811,21 @@ class Hierarchy {
   highlightChartNode(data) {
     const selectedHierarchyNode = d3.select(`#hierarchyNode${data.id}`);
     const selectedChartNode = d3.select(`#chartNode${data.id}`);
+    let daughter = data
     selectedHierarchyNode.style("fill", "red");
     selectedChartNode.style("fill", "red");
+    console.log(selectedChartNode)
     selectedHierarchyNode
       .data()[0]
       .ancestors()
       .forEach((mother) => {
-        d3.select(`#chartNode${mother.id}`).style("fill", "red");
-      });
+        if(mother != daughter){
+            d3.select(`#chartNode${mother.id}`).style("fill", "red");
+            d3.select(`#chartLink${mother.id}${daughter.id}`).style("stroke","red")
+                                                            .style("stroke-width",5)
+            daughter = mother
+        }
+        });
   }
 }
 
