@@ -365,38 +365,7 @@ class Chart {
         return "url(#areaGradientLeafU}";
       })
       .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
-      .on("click", (event, clickedNodeData) => {
-        if (
-          this.selectedNodeId < 0 ||
-          this.selectedNodeId !== clickedNodeData.id
-        ) {
-          this.selectedNodeId = clickedNodeData.id;
-        } else {
-          this.selectedNodeId = -1;
-        }
-        const selectedColor = "red";
-        const notSelectedColor = "#666";
-        const selectedStrokeWidth = "5";
-        const notSelectedStrokeWidth = "0";
-
-        this.node
-          .attr("stroke", (eachNodeData) => {
-            if (eachNodeData.id === clickedNodeData.id) {
-              return this.selectedNodeId > 0 ? selectedColor : notSelectedColor;
-            } else {
-              return notSelectedColor;
-            }
-          })
-          .attr("stroke-width", (eachNodeData) => {
-            if (eachNodeData.id === clickedNodeData.id) {
-              return this.selectedNodeId > 0
-                ? selectedStrokeWidth
-                : notSelectedStrokeWidth;
-            } else {
-              return notSelectedStrokeWidth;
-            }
-          });
-      })
+      .on("click", this.clicked)
       .on("mouseover", (event, hoveringNodeData) => {
         tooltip
           .style("visibility", "visible")
@@ -461,7 +430,28 @@ class Chart {
    * @param {Object} clickedNodeData クリックされたデータ
    */
   clicked(event, clickedNodeData) {
-    const highlightHierarchyNode = (nodeData) => {};
+    const highlightHierarchyNode = (nodeData) => {
+      console.log(nodeData)
+    };
+    const changeNodeColorByClick = (nodeData) => {
+      if (
+        this.selectedNodeId < 0 ||
+        this.selectedNodeId !== nodeData.id
+      ) {
+        this.selectedNodeId = nodeData.id;
+      } else {
+        this.selectedNodeId = -1;
+      }
+      const selectedColor = "red";
+      const notSelectedColor = "#666";
+      const selectedStrokeWidth = "5";
+      const notSelectedStrokeWidth = "0";
+
+      d3.selectAll(".chart-node").style("stroke",notSelectedColor)
+                                .style("stroke-width",notSelectedStrokeWidth)
+      d3.select(`#chartNode${nodeData.id}`).style("stroke", this.selectedNodeId > 0 ? selectedColor : notSelectedColor)
+                                          .style("stroke-width", this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth)
+    }
 
     changeNodeColorByClick(clickedNodeData);
     highlightHierarchyNode(clickedNodeData);
