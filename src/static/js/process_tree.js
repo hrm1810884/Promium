@@ -55,8 +55,8 @@ const NODE_TYPE = {
 };
 
 const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
-const [chartSvg, legendSvg, hierarchySvg] = initializeSvgElement();
-const INTERVAL_TIME = 1000000; // live モードの更新頻度 [ms]
+const [chartSvg, legendSvg, hierarchySvg, tooltip] = initializeElement();
+const INTERVAL_TIME = 5000; // live モードの更新頻度 [ms]
 
 /**
  * DIM_CHART, DIM_LEGEND, DIM_HIERARCHY を初期化する
@@ -118,7 +118,7 @@ function initializeDimention() {
  * SVG の要素を初期化する
  * @returns [svg for chart, svg for legend, svg for hierarchy]
  */
-function initializeSvgElement() {
+function initializeElement() {
   const chartElement = d3
     .select("#chart")
     .append("svg:svg")
@@ -139,7 +139,8 @@ function initializeSvgElement() {
     .append("svg")
     .attr("width", DIM_HIERARCHY.container.width)
     .attr("height", DIM_HIERARCHY.container.height);
-  return [chartElement, legendElement, hierarchyElement];
+  const tooltip = d3.select("body").append("div").attr("class","tooltip");
+  return [chartElement, legendElement, hierarchyElement, tooltip];
 }
 
 /* 挙動と状態変数をセットする */
@@ -162,6 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("liveButton").addEventListener("change", function () {
     if (this.checked) {
+      clearInterval(timerIdLiveMode);
       timerIdLiveMode = setInterval(readAndVisualizeData, INTERVAL_TIME);
     } else {
       clearInterval(timerIdLiveMode);
@@ -353,6 +355,8 @@ class Chart {
     const nodes = flatten(this.root);
     const links = this.root.links();
 
+    let t = d3.transition().duration(750);
+
     this.link = chartSvg.selectAll(".link").data(links, (d) => d.target.id);
     this.link.exit().remove();
 
@@ -367,7 +371,7 @@ class Chart {
     this.link = linkEnter.merge(this.link);
 
     this.node = chartSvg.selectAll(".chart-node").data(nodes, (d) => d.id);
-    this.node.exit().remove();
+    this.node.exit().transition(t).attr("r", 1e-4).remove();
 
     const nodeEnter = this.node
       .enter()
@@ -390,14 +394,14 @@ class Chart {
       })
       .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
       .on("click", (event, clickedNodeData) => {
-        if (this.selectedNodeId < 0) {
+        if (this.selectedNodeId < 0 | this.selectedNodeId != clickedNodeData.id) {
           this.selectedNodeId = clickedNodeData.id;
         } else {
           this.selectedNodeId = -1;
         }
         const selectedColor = "red";
         const notSelectedColor = "#666";
-        const selectedStrokeWidth = "3";
+        const selectedStrokeWidth = "5";
         const notSelectedStrokeWidth = "0";
 
         this.node
@@ -417,6 +421,25 @@ class Chart {
               return notSelectedStrokeWidth;
             }
           });
+      })
+      .on("mouseover", (event,hoveringNode) => {
+        tooltip
+            .style("visibility", "visible")
+            .html(() => {
+              if(isCpuModeOn){
+                return "command: " + hoveringNode.data.command + "<br>CPU: " + hoveringNode.data.cpu
+              }else{
+                return "command: " + hoveringNode.data.command + "<br>MEM: " + hoveringNode.data.mem
+              }
+            });
+      })
+      .on("mousemove", (event,d) => {
+        tooltip
+          .style("top", (event.pageY - 20) + "px")
+          .style("left", (event.pageX + 10) + "px");
+      })
+      .on("mouseout", (event,d) => {
+        tooltip.style("visibility", "hidden");
       })
       .call(
         d3
@@ -456,12 +479,12 @@ class Chart {
 
     /* simulation にノードとリンクをセットする */
     this.simulation.nodes(nodes);
-    this.simulation.nodes().forEach((node) => {
-      if (!node.parent) {
-        node.fx = DIM_CHART.container.centerX;
-        node.fy = DIM_CHART.container.centerY;
-      }
-    });
+    // this.simulation.nodes().forEach((node) => {
+    //   if (!node.parent) {
+    //     node.fx = DIM_CHART.container.centerX;
+    //     node.fy = DIM_CHART.container.centerY;
+    //   }
+    // });
     this.simulation.force("link").links(links);
   }
 
@@ -805,7 +828,6 @@ function readAndVisualizeData() {
  */
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
-
   const chart = new Chart(json);
   const legend = new Legend(tsv);
   const hierarchy = new Hierarchy(json);
