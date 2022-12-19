@@ -369,9 +369,6 @@ class Chart {
         if (d.data.command === "root") {
           return "url(#areaGradientRoot)";
         }
-        if (d._children || d.children) {
-          return "url(#areaGradientParent)";
-        }
         if ("stat" in d.data) {
           return `url(#${"areaGradientLeaf" + d.data.stat[0]})`;
         }
@@ -482,8 +479,9 @@ class Chart {
 }
 
 class Legend {
-  constructor(tsv) {
+  constructor(tsv, json) {
     this.tsv = tsv;
+    this.json = json;
   }
 
   draw() {
@@ -521,7 +519,7 @@ class Legend {
           NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].colorLight
       )
       .style("opacity", 0.5)
-      .attr("class", (d) => "rect_" + d.id);
+      .attr("class", (d) => "rect_" + d.stat);
 
     legendGroup
       .append("svg:text")
@@ -533,6 +531,32 @@ class Legend {
         (d) =>
           NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].displayText
       );
+
+    legendGroup
+      .on("click", (event, clickedLegendData) => {
+        this.root = d3.hierarchy(this.json);
+        countChildren(this.root);
+        flatten(this.root);
+        this.root.eachAfter((node) => {
+          node.hiddenValue = node.value;
+          if (node.children) {
+            for (const child of node.children) {
+              if (child.hiddenValue == 1 && child.data.stat[0] != clickedLegendData.stat) {
+                d3.select(`#chartNode${child.id}`)
+                  .attr("visibility", "hidden");
+                node.hiddenValue -= child.value;
+              }
+            }
+          }  
+        })
+
+        d3.selectAll("line")
+          .attr("visibility", (lineData) => {
+            return d3.select(`#chartNode${lineData.target.id}`).attr("visibility");
+          });
+
+        countChildren(this.root);
+      });
   }
 
   selectUniqueStatus(statusData) {
@@ -816,7 +840,7 @@ function readAndVisualizeData() {
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
   const chart = new Chart(json);
-  const legend = new Legend(tsv);
+  const legend = new Legend(tsv, json);
   const hierarchy = new Hierarchy(json);
   legend.draw();
   chart.draw();
