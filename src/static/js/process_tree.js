@@ -132,9 +132,6 @@ function initializeDimention() {
   };
 
   // hierarchyDim の初期化
-  const hierarchyStyle = window.getComputedStyle(
-    document.getElementById("hierarchyContainer")
-  );
   hierarchyDim.rect = {
     height: 20,
     width: 80,
@@ -148,8 +145,8 @@ function initializeDimention() {
     left: 20,
   };
   hierarchyDim.container = {
-    width: parseFloat(hierarchyStyle.width.replace("px", "")),
-    height: parseFloat(hierarchyStyle.height.replace("px", "")),
+    height: 0,
+    width: 0,
   };
 
   return [chartDim, legendDim, hierarchyDim];
@@ -175,11 +172,7 @@ function initializeSvgElement() {
     )
     .append("g");
   const legendElement = d3.select("#legendContent").append("svg:svg");
-  const hierarchyElement = d3
-    .select("#hierarchy")
-    .append("svg")
-    .attr("width", DIM_HIERARCHY.container.width)
-    .attr("height", DIM_HIERARCHY.container.height);
+  const hierarchyElement = d3.select("#hierarchy").append("svg");
   return [chartElement, legendElement, hierarchyElement];
 }
 
@@ -190,14 +183,17 @@ let timerIdLiveMode = setInterval(readAndVisualizeData, INTERVAL_TIME); // リ�
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("helpButton").addEventListener("change", function () {
-    const sidebarContainer = document.getElementById("sidebar");
-    const helpContentContainer = document.getElementById("helpContent");
+    const settingContainer = document.getElementById("settingContainer");
+    const hierarchyContainer = document.getElementById("hierarchyContainer");
+    const helpContentContainer = document.getElementById("helpContainer");
     if (this.checked) {
-      sidebarContainer.style.visibility = "hidden";
+      settingContainer.style.visibility = "hidden";
+      hierarchyContainer.style.visibility = "hidden";
       helpContentContainer.style.visibility = "visible";
     } else {
       helpContentContainer.style.visibility = "hidden";
-      sidebarContainer.style.visibility = "visible";
+      settingContainer.style.visibility = "visible";
+      hierarchyContainer.style.visibility = "visible";
     }
   });
 
@@ -551,9 +547,26 @@ class Hierarchy {
     this.tree = d3.tree();
     this.tree(this.root);
     countChildren(this.root);
+    this.resetSvg();
     hierarchySvg.selectAll("g").remove();
     this.group = hierarchySvg.append("g");
     this.update(this.root);
+  }
+
+  resetSvg() {
+    DIM_HIERARCHY.container.height =
+      this.root.value * DIM_HIERARCHY.rect.height +
+      (this.root.value - 1) *
+        (DIM_HIERARCHY.space.height - DIM_HIERARCHY.rect.height) +
+      DIM_HIERARCHY.space.padding * 2;
+    DIM_HIERARCHY.container.width =
+      (this.root.height + 1) * DIM_HIERARCHY.rect.width +
+      this.root.height *
+        (DIM_HIERARCHY.space.width - DIM_HIERARCHY.rect.width) +
+      DIM_HIERARCHY.space.padding * 2;
+    hierarchySvg
+      .attr("width", DIM_HIERARCHY.container.width)
+      .attr("height", DIM_HIERARCHY.container.height);
   }
 
   update(source) {
