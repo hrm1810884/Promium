@@ -180,7 +180,7 @@ function initializeElement() {
     .append("svg")
     .attr("width", DIM_HIERARCHY.container.width)
     .attr("height", DIM_HIERARCHY.container.height);
-  const tooltip = d3.select("body").append("div").attr("class","tooltip");
+  const tooltip = d3.select("body").append("div").attr("class", "tooltip");
   return [chartElement, legendElement, hierarchyElement, tooltip];
 }
 
@@ -237,6 +237,10 @@ class Chart {
     this.node = {};
     this.link = {};
     this.selectedNodeId = -1;
+
+    Object.defineProperty(this, "DURATION", {
+      value: 750,
+    });
   }
 
   draw() {
@@ -334,8 +338,6 @@ class Chart {
     const nodes = flatten(this.root);
     const links = this.root.links();
 
-    let t = d3.transition().duration(750);
-
     this.link = chartSvg.selectAll(".link").data(links, (d) => d.target.id);
     this.link.exit().remove();
 
@@ -350,7 +352,11 @@ class Chart {
     this.link = linkEnter.merge(this.link);
 
     this.node = chartSvg.selectAll(".chart-node").data(nodes, (d) => d.id);
-    this.node.exit().transition(t).attr("r", 1e-4).remove();
+    this.node
+      .exit()
+      .transition(d3.transition().duration(this.DURATION))
+      .attr("r", 1e-6)
+      .remove();
 
     const nodeEnter = this.node
       .enter()
@@ -404,23 +410,21 @@ class Chart {
             }
           });
       })
-      .on("mouseover", (event,hoveringNode) => {
+      .on("mouseover", (event, hoveringNodeData) => {
         tooltip
-            .style("visibility", "visible")
-            .html(() => {
-              if(isCpuModeOn){
-                return "command: " + hoveringNode.data.command + "<br>CPU: " + hoveringNode.data.cpu
-              }else{
-                return "command: " + hoveringNode.data.command + "<br>MEM: " + hoveringNode.data.mem
-              }
-            });
+          .style("visibility", "visible")
+          .html(() =>
+            isCpuModeOn
+              ? `Command: ${hoveringNodeData.data.command}<br>CPU usage: ${hoveringNodeData.data.cpu} %`
+              : `Command: ${hoveringNodeData.data.command}<br>Memory usage: ${hoveringNodeData.data.mem} %`
+          );
       })
-      .on("mousemove", (event,d) => {
+      .on("mousemove", (event, d) => {
         tooltip
-          .style("top", (event.pageY - 20) + "px")
-          .style("left", (event.pageX + 10) + "px");
+          .style("top", event.pageY - 20 + "px")
+          .style("left", event.pageX + 10 + "px");
       })
-      .on("mouseout", (event,d) => {
+      .on("mouseout", (event, d) => {
         tooltip.style("visibility", "hidden");
       })
       .call(
@@ -461,12 +465,6 @@ class Chart {
 
     /* simulation にノードとリンクをセットする */
     this.simulation.nodes(nodes);
-    // this.simulation.nodes().forEach((node) => {
-    //   if (!node.parent) {
-    //     node.fx = DIM_CHART.container.centerX;
-    //     node.fy = DIM_CHART.container.centerY;
-    //   }
-    // });
     this.simulation.force("link").links(links);
   }
 
