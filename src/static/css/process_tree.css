@@ -194,7 +194,6 @@ h3 {
 }
 
 .hierarchy {
-  position: fixed;
   font-family: var(--font-family-mono);
   color: var(--color-font-normal);
 }
