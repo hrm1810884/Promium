@@ -208,15 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  document
-    .getElementById("legendButton")
-    .addEventListener("change", function () {
-      const legendContentContainer = document.getElementById("legendContent");
-      legendContentContainer.style.visibility = this.checked
-        ? "visible"
-        : "hidden";
-    });
-
   for (const chartTab of document.getElementsByClassName("chart-tab")) {
     chartTab.addEventListener("change", function () {
       if (this.checked) {
@@ -571,6 +562,7 @@ class Hierarchy {
     this.resetSvg();
     hierarchySvg.selectAll("g").remove();
     this.group = hierarchySvg.append("g");
+    this.foldChildrenNode(this.root);
     this.update(this.root);
   }
 
@@ -588,6 +580,22 @@ class Hierarchy {
     hierarchySvg
       .attr("width", DIM_HIERARCHY.container.width)
       .attr("height", DIM_HIERARCHY.container.height);
+  }
+
+  foldChildrenNode(source) {
+    const UNFOLDED_LAYER = 1;
+    for (
+      let currentLayer = source.height;
+      currentLayer >= UNFOLDED_LAYER;
+      --currentLayer
+    ) {
+      source.each((node) => {
+        if (node.depth === currentLayer) {
+          node._children = node.children;
+          node.children = null;
+        }
+      });
+    }
   }
 
   update(source) {
@@ -769,7 +777,7 @@ class Hierarchy {
     nodeUpdate
       .select("rect")
       .attr("id", (d) => `hierarchyRect${d.data.id}`)
-      .style("fill", (d) => (d._children ? "#444" : "#222"));
+      .style("fill", (d) => (d._children ? "#666" : "#222"));
     nodeEnter.select("text").style("fill-opacity", 1);
 
     const nodeExit = this.node
