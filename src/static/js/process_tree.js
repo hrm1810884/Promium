@@ -208,15 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  document
-    .getElementById("legendButton")
-    .addEventListener("change", function () {
-      const legendContentContainer = document.getElementById("legendContent");
-      legendContentContainer.style.visibility = this.checked
-        ? "visible"
-        : "hidden";
-    });
-
   for (const chartTab of document.getElementsByClassName("chart-tab")) {
     chartTab.addEventListener("change", function () {
       if (this.checked) {
@@ -314,10 +305,7 @@ class Chart {
       )
       .force(
         "center",
-        d3.forceCenter(
-          DIM_CHART.container.width / 2,
-          DIM_CHART.container.height / 2
-        )
+        d3.forceCenter(DIM_CHART.container.centerX, DIM_CHART.container.centerY)
       )
       .on("tick", () => {
         this.link
@@ -455,7 +443,7 @@ class Chart {
       .attr("r", (d) =>
         d.data.command === "root"
           ? 50
-          : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.rss) * 15, 5)
+          : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.mem) * 15, 5)
       )
       .style("text-anchor", (d) => (d.children ? "end" : "start"))
       .text((d) => d.data.command);
@@ -574,6 +562,7 @@ class Hierarchy {
     countChildren(this.root);
     this.resetSvg();
     this.group = hierarchySvg.append("g");
+    this.foldChildrenNode(this.root);
     this.update(this.root);
   }
 
@@ -591,6 +580,22 @@ class Hierarchy {
     hierarchySvg
       .attr("width", DIM_HIERARCHY.container.width)
       .attr("height", DIM_HIERARCHY.container.height);
+  }
+
+  foldChildrenNode(source) {
+    const UNFOLDED_LAYER = 1;
+    for (
+      let currentLayer = source.height;
+      currentLayer >= UNFOLDED_LAYER;
+      --currentLayer
+    ) {
+      source.each((node) => {
+        if (node.depth === currentLayer) {
+          node._children = node.children;
+          node.children = null;
+        }
+      });
+    }
   }
 
   update(source) {
@@ -772,8 +777,9 @@ class Hierarchy {
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     nodeUpdate
       .select("rect")
-      .attr("id", (d) => `hierarchyNode${d.id}`)
-      .style("fill", (d) => (d._children ? "#444" : "#222"));
+      .attr("id", (d) => `hierarchyRect${d.data.id}`)
+      .style("fill", (d) => (d._children ? "#666" : "#222"));
+
     nodeEnter.select("text").style("fill-opacity", 1);
 
     const nodeExit = this.node
@@ -921,6 +927,7 @@ function buildHierarchy(tsv) {
     const user = currentRow["USER"];
     const pid = parseInt(currentRow["PID"]);
     const cpu = parseFloat(currentRow["%CPU"]);
+    const mem = parseFloat(currentRow["%MEM"]);
     const rss = parseFloat(currentRow["RSS"]);
     const stat = currentRow["STAT"];
     const command = currentRow["COMMAND"];
@@ -933,6 +940,7 @@ function buildHierarchy(tsv) {
         user: user,
         pid: pid,
         cpu: cpu,
+        mem: mem,
         rss: rss,
         stat: stat,
         parent: parentNode,
@@ -946,6 +954,7 @@ function buildHierarchy(tsv) {
         user: user,
         pid: pid,
         cpu: cpu,
+        mem: mem,
         rss: rss,
         stat: stat,
         parent: parentNode,
@@ -958,6 +967,7 @@ function buildHierarchy(tsv) {
         user: user,
         pid: pid,
         cpu: cpu,
+        mem: mem,
         rss: rss,
         stat: stat,
         parent: parentNode,
