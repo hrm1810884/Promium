@@ -56,7 +56,7 @@ const NODE_TYPE = {
 
 const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
 const [chartSvg, legendSvg, hierarchySvg, tooltip] = initializeElement();
-const INTERVAL_TIME = 5000; // live モードの更新頻度 [ms]
+const INTERVAL_TIME = 10000000; // live モードの更新頻度 [ms]
 
 const defineGradient = () => {
   const defs = chartSvg.append("defs");
