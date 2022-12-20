@@ -12,42 +12,42 @@ const NODE_TYPE = {
   },
   leaf: {
     O: {
-      displayText: "running",
+      displayText: "Running",
       colorLight: "#0218FF",
       colorDark: "#00084C",
     },
     D: {
-      displayText: "uninterruptible sleep",
+      displayText: "Uninterruptible sleep",
       colorLight: "#F26523",
       colorDark: "#4C200B",
     },
     I: {
-      displayText: "process generating",
+      displayText: "Process generating",
       colorLight: "#38B349",
       colorDark: "#184C1F",
     },
     Z: {
-      displayText: "zombie",
+      displayText: "Zombie",
       colorLight: "#7053CC",
       colorDark: "#291F4C",
     },
     R: {
-      displayText: "runnable",
+      displayText: "Runnable",
       colorLight: "#1A85F1",
       colorDark: "#082A4C",
     },
     S: {
-      displayText: "interruptible sleep",
+      displayText: "Interruptible sleep",
       colorLight: "#FBF267",
       colorDark: "#4C4920",
     },
     T: {
-      displayText: "stopped",
+      displayText: "Stopped",
       colorLight: "#ED1C24",
       colorDark: "#4C090C",
     },
     U: {
-      displayText: "unknown",
+      displayText: "Unknown",
       colorLight: "#777",
       colorDark: "#777",
     },
