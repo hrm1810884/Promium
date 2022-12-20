@@ -204,6 +204,7 @@ h3 {
   grid-row: 2/4;
   grid-column: 2;
   padding-left: 10px;
+  overflow: scroll;
   font-family: var(--font-family-serif);
   position: relative;
 }
