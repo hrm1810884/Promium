@@ -11,43 +11,43 @@ const NODE_TYPE = {
     colorDark: "#444",
   },
   leaf: {
-    R: {
-      displayText: "runnable",
-      colorLight: "#1A85F1",
-      colorDark: "#082A4C",
-    },
-    D: {
-      displayText: "uninterruptible sleep",
-      colorLight: "#F26523",
-      colorDark: "#4C200B",
-    },
-    T: {
-      displayText: "stopped",
-      colorLight: "#ED1C24",
-      colorDark: "#4C090C",
-    },
-    S: {
-      displayText: "interruptible sleep",
-      colorLight: "#FBF267",
-      colorDark: "#4C4920",
-    },
-    Z: {
-      displayText: "zombie",
-      colorLight: "#7053CC",
-      colorDark: "#291F4C",
-    },
-    I: {
-      displayText: "process generating",
-      colorLight: "#38B349",
-      colorDark: "#184C1F",
-    },
     O: {
-      displayText: "running",
+      displayText: "Running",
       colorLight: "#0218FF",
       colorDark: "#00084C",
     },
+    D: {
+      displayText: "Uninterruptible sleep",
+      colorLight: "#F26523",
+      colorDark: "#4C200B",
+    },
+    I: {
+      displayText: "Process generating",
+      colorLight: "#38B349",
+      colorDark: "#184C1F",
+    },
+    Z: {
+      displayText: "Zombie",
+      colorLight: "#7053CC",
+      colorDark: "#291F4C",
+    },
+    R: {
+      displayText: "Runnable",
+      colorLight: "#1A85F1",
+      colorDark: "#082A4C",
+    },
+    S: {
+      displayText: "Interruptible sleep",
+      colorLight: "#FBF267",
+      colorDark: "#4C4920",
+    },
+    T: {
+      displayText: "Stopped",
+      colorLight: "#ED1C24",
+      colorDark: "#4C090C",
+    },
     U: {
-      displayText: "unknown",
+      displayText: "Unknown",
       colorLight: "#777",
       colorDark: "#777",
     },
@@ -56,7 +56,7 @@ const NODE_TYPE = {
 
 const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
 const [chartSvg, legendSvg, hierarchySvg, tooltip] = initializeElement();
-const INTERVAL_TIME = 5000; // live モードの更新頻度 [ms]
+const INTERVAL_TIME = 5000000; // live モードの更新頻度 [ms]
 
 const defineGradient = () => {
   const defs = chartSvg.append("defs");
@@ -120,12 +120,12 @@ function initializeDimention() {
   // legendDim の初期化
   legendDim.each = {
     width: 250,
-    height: 30,
+    height: 40,
     spacing: 3,
     radius: 3,
   };
   legendDim.container = {
-    width: legendDim.each.width,
+    width: legendDim.each.width * 2 + legendDim.each.spacing,
     height:
       Object.keys(NODE_TYPE.leaf).length *
       (legendDim.each.height + legendDim.each.spacing),
@@ -367,12 +367,10 @@ class Chart {
       .attr("id", (d) => `chartNode${d.id}`)
       .attr("stroke", "#666")
       .attr("stroke-width", 0)
+      .classed("shadow-circle", false)
       .style("fill", (d) => {
         if (d.data.command === "root") {
           return "url(#areaGradientRoot)";
-        }
-        if (d._children || d.children) {
-          return "url(#areaGradientParent)";
         }
         if ("stat" in d.data) {
           return `url(#${"areaGradientLeaf" + d.data.stat[0]})`;
@@ -441,6 +439,8 @@ class Chart {
 
     nodeUpdate
       .append("circle")
+      .attr("id", (d) => `chartCircle${d.id}`)
+      .classed("shadow-circle", false)
       .attr("r", (d) =>
         d.data.command === "root"
           ? 50
@@ -510,12 +510,30 @@ class Chart {
 }
 
 class Legend {
-  constructor(tsv) {
+  constructor(tsv, json) {
     this.tsv = tsv;
+    this.json = json;
   }
 
   draw() {
-    this.statusList = this.selectUniqueStatus(this.tsv);
+    this.statusList = [];
+    Object.keys(NODE_TYPE.leaf).forEach((data) => {
+      this.statusList.push({
+        stat: data,
+        displayText: NODE_TYPE.leaf[data].displayText,
+        isStatusDisplayed: false,
+        buttonClickable: false,
+      });
+    });
+
+    this.existingStatusList = this.selectExistingStatus(this.tsv);
+    this.statusList.forEach((status) => {
+      if (this.existingStatusList.includes(status.stat)) {
+        status.isStatusDisplayed = true;
+        status.buttonClickable = true;
+      }
+    });
+
     legendSvg
       .attr("width", DIM_LEGEND.container.width)
       .attr("height", DIM_LEGEND.container.height);
@@ -524,18 +542,20 @@ class Legend {
 
     const legendGroup = legendSvg
       .selectAll("g")
-      .data(
-        this.statusList.slice().sort((a, b) => d3.ascending(a.stat, b.stat))
-      )
+      .data(this.statusList)
       .enter()
       .append("svg:g")
-      .attr(
-        "transform",
-        (d, i) =>
-          "translate(0," +
-          i * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
-          ")"
-      );
+      .attr("transform", (d, i) => {
+        return i < 4
+          ? "translate(0," +
+              i * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
+              ")"
+          : "translate(" +
+              (DIM_LEGEND.each.width + DIM_LEGEND.each.spacing) +
+              "," +
+              (i - 4) * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
+              ")";
+      });
 
     legendGroup
       .append("svg:rect")
@@ -548,8 +568,8 @@ class Legend {
         (d) =>
           NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].colorLight
       )
-      .style("opacity", 0.5)
-      .attr("class", (d) => "rect_" + d.id);
+      .style("opacity", (d) => (d.buttonClickable ? 0.6 : 0.1))
+      .attr("class", (d) => "rect_" + d.stat);
 
     legendGroup
       .append("svg:text")
@@ -557,28 +577,66 @@ class Legend {
       .attr("y", DIM_LEGEND.each.height / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "middle")
-      .text(
-        (d) =>
-          NODE_TYPE.leaf[d.stat in NODE_TYPE.leaf ? d.stat : "U"].displayText
+      .text((d) => d.displayText);
+
+    legendGroup.on("click", (event, clickedLegendData) => {
+      d3.selectAll(".chart-node").attr("visibility", "visible");
+      d3.selectAll("line").attr("visibility", "visible");
+
+      if (clickedLegendData.buttonClickable) {
+        clickedLegendData.isStatusDisplayed =
+          !clickedLegendData.isStatusDisplayed;
+      }
+      let hiddenStat = [];
+      this.statusList.forEach((data) => {
+        if (!data.isStatusDisplayed) {
+          hiddenStat.push(data.stat);
+        }
+      });
+
+      this.root = d3.hierarchy(this.json);
+      countChildren(this.root);
+      flatten(this.root);
+
+      this.root.eachAfter((node) => {
+        node.hiddenValue = node.value;
+        if (node.children) {
+          for (const child of node.children) {
+            if (
+              child.hiddenValue === 1 &&
+              hiddenStat.includes(child.data.stat[0])
+            ) {
+              d3.select(`#chartNode${child.id}`).attr("visibility", "hidden");
+              node.hiddenValue -= child.value;
+            }
+          }
+        }
+      });
+
+      d3.selectAll("line").attr("visibility", (lineData) =>
+        d3.select(`#chartNode${lineData.target.id}`).attr("visibility")
       );
+
+      countChildren(this.root);
+
+      legendGroup.selectAll("rect").style("opacity", (d) => {
+        if (d.isStatusDisplayed) {
+          return 0.6;
+        } else if (d.buttonClickable) {
+          return 0.2;
+        } else {
+          return 0.1;
+        }
+      });
+    });
   }
 
-  selectUniqueStatus(statusData) {
-    let statusIndex = 0;
+  selectExistingStatus(statusData) {
     let uniqueStatusList = [];
     statusData.forEach((status) => {
       const statFirstLetter = status.STAT[0];
-      if (
-        uniqueStatusList
-          .map((uniqueStatus) => uniqueStatus.stat)
-          .indexOf(statFirstLetter) === -1
-      ) {
-        uniqueStatusList.push({
-          stat: statFirstLetter,
-          id: statusIndex,
-          buttonClicked: false,
-        });
-        ++statusIndex;
+      if (!uniqueStatusList.includes(statFirstLetter)) {
+        uniqueStatusList.push(statFirstLetter);
       }
     });
     return uniqueStatusList;
@@ -922,9 +980,10 @@ function readAndVisualizeData() {
  */
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
+
   const hierarchy = new Hierarchy(json);
   const chart = new Chart(json, hierarchy);
-  const legend = new Legend(tsv);
+  const legend = new Legend(tsv, json);
   legend.draw();
   chart.draw();
   hierarchy.draw();
