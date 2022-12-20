@@ -219,11 +219,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 class Chart {
-  constructor(json) {
+  constructor(json, hierarchy) {
     this.json = json;
     this.node = {};
     this.link = {};
     this.selectedNodeId = -1;
+    this.hierarchy = hierarchy;
 
     Object.defineProperty(this, "DURATION", {
       value: 750,
@@ -280,9 +281,8 @@ class Chart {
 
     document.getElementById(
       "chart"
-    ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${
-      sumUpPercentage(this.json) / 200
-    })`;
+    ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${sumUpPercentage(this.json) / 200
+      })`;
   }
 
   setSimulation() {
@@ -321,11 +321,18 @@ class Chart {
   update() {
     const nodes = flatten(this.root);
     const links = this.root.links();
+    const transition = chartSvg.transition()
+        .duration(250)
 
     this.link = chartSvg
       .selectAll(".chart-link")
       .data(links, (d) => d.target.id);
-    this.link.exit().remove();
+    const linkExit = this.link.exit()
+    
+    linkExit.transition(transition)
+    .remove()
+    .attr("fill-opacity", 0)
+    .attr("stroke-opacity", 0);;
 
     const linkEnter = this.link
       .enter()
@@ -339,6 +346,14 @@ class Chart {
     this.link = linkEnter.merge(this.link);
 
     this.node = chartSvg.selectAll(".chart-node").data(nodes, (d) => d.id);
+
+    const nodeExit = this.node.exit()
+    
+    nodeExit.transition(transition)
+        .remove()
+        .attr("fill-opacity", 0)
+        .attr("stroke-opacity", 0);
+
     this.node
       .exit()
       .transition(d3.transition().duration(this.DURATION))
@@ -364,18 +379,7 @@ class Chart {
       })
       .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
       .on("click", (event, clickedNodeData) => {
-        if (
-          this.selectedNodeId < 0 ||
-          this.selectedNodeId !== clickedNodeData.id
-        ) {
-          this.selectedNodeId = clickedNodeData.id;
-        } else {
-          this.selectedNodeId = -1;
-        }
-
-        d3.select(`#chartNode${clickedNodeData.id}`)
-          .attr("stroke", "red")
-          .attr("stroke-width", this.selectedNodeId > 0 ? 3 : 0);
+        this.clicked(clickedNodeData);
       })
       .on("mouseover", (event, hoveringNodeData) => {
         tooltip
@@ -418,7 +422,22 @@ class Chart {
       )
       .sort((a, b) => b.depth - a.depth);
 
-    nodeEnter
+    nodeEnter.append("circle")
+            .attr("r", (d) =>
+              d.data.command === "root"
+                ? 50
+                : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.mem) * 15, 5)
+            )
+            .style("text-anchor", (d) => (d.children ? "end" : "start"))
+            .text((d) => d.data.command);
+
+    const nodeUpdate = nodeEnter.merge(this.node);
+
+    nodeUpdate
+      .select("circle")
+      .remove()
+
+    nodeUpdate
       .append("circle")
       .attr("id", (d) => `chartCircle${d.id}`)
       .classed("shadow-circle", false)
@@ -430,8 +449,7 @@ class Chart {
       .style("text-anchor", (d) => (d.children ? "end" : "start"))
       .text((d) => d.data.command);
 
-    this.node = nodeEnter.merge(this.node);
-
+    this.node = nodeUpdate
     /* simulation にノードとリンクをセットする */
     this.simulation.nodes(nodes);
     this.simulation.force("link").links(links);
@@ -442,8 +460,49 @@ class Chart {
    * @param {Object} event イベントオブジェクト
    * @param {Object} clickedNodeData クリックされたデータ
    */
-  clicked(event, clickedNodeData) {
-    const highlightHierarchyNode = (nodeData) => {};
+  clicked(clickedNodeData) {
+    const selectedColor = "white"
+    const notSelectedColor = "#ccc"
+    const selectedStrokeWidth = "5"
+    const notSelectedStrokeWidth = "3"
+    const highlightHierarchyNode = (nodeData) => {
+      d3.selectAll("#hierarchy-node")
+        .style("stroke", notSelectedColor)
+        .style("stroke-width", notSelectedStrokeWidth)
+      const selectedHierarchyNode = d3.select(`#hierarchyNode${nodeData.id}`)
+      let daughter = nodeData
+      selectedHierarchyNode.data()[0].ancestors().forEach((mother) => {
+        d3.select(`#hierarchyNode${mother.id}`)
+          .style(
+            "stroke",
+            this.selectedNodeId > 0 ? selectedColor : notSelectedColor
+          )
+          .style(
+            "stroke-width",
+            this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth
+          );
+        daughter = mother;
+      });
+    };
+    const changeNodeColorByClick = (nodeData) => {
+      if (
+        this.selectedNodeId < 0 ||
+        this.selectedNodeId !== nodeData.id
+      ) {
+        this.selectedNodeId = nodeData.id;
+      } else {
+        this.selectedNodeId = -1;
+      }
+      const selectedColor = "white";
+      const notSelectedColor = "#666";
+      const selectedStrokeWidth = "5";
+      const notSelectedStrokeWidth = "0";
+
+      d3.selectAll(".chart-node").style("stroke", notSelectedColor)
+        .style("stroke-width", notSelectedStrokeWidth)
+      d3.select(`#chartNode${nodeData.id}`).style("stroke", this.selectedNodeId > 0 ? selectedColor : notSelectedColor)
+        .style("stroke-width", this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth)
+    }
 
     changeNodeColorByClick(clickedNodeData);
     highlightHierarchyNode(clickedNodeData);
@@ -593,6 +652,7 @@ class Hierarchy {
     this.link = {};
     this.node = {};
     this.chart = {};
+    this.selectedNodeId = -1;
   }
 
   draw() {
@@ -601,8 +661,9 @@ class Hierarchy {
     this.tree(this.root);
     countChildren(this.root);
     this.resetSvg();
+    hierarchySvg.select("g").remove();
     this.group = hierarchySvg.append("g");
-    this.foldChildrenNode(this.root);
+    // this.foldChildrenNode(this.root);
     this.update(this.root);
   }
 
@@ -610,12 +671,12 @@ class Hierarchy {
     DIM_HIERARCHY.container.height =
       this.root.value * DIM_HIERARCHY.rect.height +
       (this.root.value - 1) *
-        (DIM_HIERARCHY.space.height - DIM_HIERARCHY.rect.height) +
+      (DIM_HIERARCHY.space.height - DIM_HIERARCHY.rect.height) +
       DIM_HIERARCHY.space.padding * 2;
     DIM_HIERARCHY.container.width =
       (this.root.height + 1) * DIM_HIERARCHY.rect.width +
       this.root.height *
-        (DIM_HIERARCHY.space.width - DIM_HIERARCHY.rect.width) +
+      (DIM_HIERARCHY.space.width - DIM_HIERARCHY.rect.width) +
       DIM_HIERARCHY.space.padding * 2;
     hierarchySvg
       .attr("width", DIM_HIERARCHY.container.width)
@@ -743,7 +804,7 @@ class Hierarchy {
       .enter()
       .append("path")
       .attr("class", "hierarchy-link")
-      .attr("id", (d) => `hierarchyLink${d.id}`)
+      .attr("id", (d) => `hierarchyLink${d.source.id}-${d.target.id}`)
       .attr("fill", "none")
       .attr("stroke", "#ccc")
       .attr("d", (d) =>
@@ -795,8 +856,8 @@ class Hierarchy {
       .append("g")
       .attr("class", "hierarchy-node")
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
-      .on("click", (event, d) => {
-        this.clicked(d);
+      .on("click", (event, clickedNodeData) => {
+        this.clicked(clickedNodeData);
       });
     nodeEnter
       .append("rect")
@@ -817,7 +878,7 @@ class Hierarchy {
       .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
     nodeUpdate
       .select("rect")
-      .attr("id", (d) => `hierarchyRect${d.data.id}`)
+      .attr("id", (d) => `hierarchyNode${d.id}`)
       .style("fill", (d) => (d._children ? "#666" : "#222"));
 
     nodeEnter.select("text").style("fill-opacity", 1);
@@ -838,10 +899,19 @@ class Hierarchy {
   }
 
   clicked(clickedNodeData) {
+    this.updateStatusId(clickedNodeData);
     this.toggle(clickedNodeData);
     this.update(clickedNodeData);
     this.highlightPath(clickedNodeData);
     this.highlightChartNode(clickedNodeData);
+  }
+
+  updateStatusId(nodeData) {
+    if (this.selectedNodeId < 0 || this.selectedNodeId !== nodeData.id) {
+      this.selectedNodeId = nodeData.id;
+    } else {
+      this.selectedNodeId = -1;
+    }
   }
 
   toggle(d) {
@@ -854,26 +924,39 @@ class Hierarchy {
     }
   }
 
-  highlightPath(d) {}
+  highlightPath(d) { }
 
-  highlightChartNode(data) {
-    const selectedHierarchyNode = d3.select(`#hierarchyNode${data.id}`);
-    const selectedChartNode = d3.select(`#chartNode${data.id}`);
-    let daughter = data;
-    selectedHierarchyNode.style("fill", "red");
-    selectedChartNode.style("fill", "red");
-    console.log(selectedChartNode);
+  highlightChartNode(clickedNodeData) {
+    const selectedColor = "white";
+    const notSelectedColor = "none";
+    d3.selectAll(".hierarchy-node").style("stroke", notSelectedColor);
+    const selectedHierarchyNode = d3.select(
+      `#hierarchyNode${clickedNodeData.id}`
+    );
+    selectedHierarchyNode.style(
+      "fill",
+      this.selectedNodeId > 0 ? selectedColor : notSelectedColor
+    );
+    d3.selectAll(".chart-node")
+      .style("stroke", selectedColor)
+      .style("stroke-width", 0);
+    d3.selectAll(".chart-link")
+      .style("stroke", "#ccc")
+      .style("stroke-width", 3);
+    let daughter = clickedNodeData;
     selectedHierarchyNode
       .data()[0]
       .ancestors()
       .forEach((mother) => {
-        if (mother === daughter) {
-          return;
+        d3.select(`#chartNode${mother.id}`).style(
+          "stroke-width",
+          this.selectedNodeId > 0 ? 3 : 0
+        );
+        if (mother != clickedNodeData) {
+          d3.select(`#chartLink${mother.id}-${daughter.id}`)
+            .style("stroke", this.selectedNodeId > 0 ? selectedColor : "#ccc")
+            .style("stroke-width", this.selectedNodeId > 0 ? 5 : 3);
         }
-        d3.select(`#chartNode${mother.id}`).style("fill", "red");
-        d3.select(`#chartLink${mother.id}-${daughter.id}`)
-          .style("stroke", "red")
-          .style("stroke-width", 5);
         daughter = mother;
       });
   }
@@ -897,10 +980,10 @@ function readAndVisualizeData() {
  */
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
-  const chart = new Chart(json);
-  const legend = new Legend(tsv, json);
+
   const hierarchy = new Hierarchy(json);
-  hierarchy.chart = chart;
+  const chart = new Chart(json, hierarchy);
+  const legend = new Legend(tsv, json);
   legend.draw();
   chart.draw();
   hierarchy.draw();
