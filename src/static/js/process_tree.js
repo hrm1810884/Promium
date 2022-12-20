@@ -219,11 +219,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 class Chart {
-  constructor(json) {
+  constructor(json, hierarchy) {
     this.json = json;
     this.node = {};
     this.link = {};
     this.selectedNodeId = -1;
+    this.hierarchy = hierarchy;
 
     Object.defineProperty(this, "DURATION", {
       value: 750,
@@ -280,9 +281,8 @@ class Chart {
 
     document.getElementById(
       "chart"
-    ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${
-      sumUpPercentage(this.json) / 200
-    })`;
+    ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${sumUpPercentage(this.json) / 200
+      })`;
   }
 
   setSimulation() {
@@ -365,7 +365,9 @@ class Chart {
         return "url(#areaGradientLeafU}";
       })
       .style("opacity", (d) => (d.data.command === "root" ? 0.9 : 0.5))
-      .on("click", this.clicked)
+      .on("click", (event, clickedNodeData) => {
+        this.clicked(clickedNodeData);
+      })
       .on("mouseover", (event, hoveringNodeData) => {
         tooltip
           .style("visibility", "visible")
@@ -429,9 +431,19 @@ class Chart {
    * @param {Object} event イベントオブジェクト
    * @param {Object} clickedNodeData クリックされたデータ
    */
-  clicked(event, clickedNodeData) {
+  clicked(clickedNodeData) {
+    const selectedColor = "red"
+    const notSelectedColor = "#ccc"
     const highlightHierarchyNode = (nodeData) => {
-      console.log(nodeData)
+      const selectedHierarchyNode = d3.select(`#hierarchyNode${nodeData.id}`)
+      let daughter = nodeData
+      selectedHierarchyNode.data()[0].ancestors().forEach((mother) => {
+        d3.select(`#hierarchyNode${mother.id}`).style(
+          "stroke",
+          this.selectedNodeId > 0 ? selectedColor : notSelectedColor
+        );
+        daughter = mother;
+      });
     };
     const changeNodeColorByClick = (nodeData) => {
       if (
@@ -447,10 +459,10 @@ class Chart {
       const selectedStrokeWidth = "5";
       const notSelectedStrokeWidth = "0";
 
-      d3.selectAll(".chart-node").style("stroke",notSelectedColor)
-                                .style("stroke-width",notSelectedStrokeWidth)
+      d3.selectAll(".chart-node").style("stroke", notSelectedColor)
+        .style("stroke-width", notSelectedStrokeWidth)
       d3.select(`#chartNode${nodeData.id}`).style("stroke", this.selectedNodeId > 0 ? selectedColor : notSelectedColor)
-                                          .style("stroke-width", this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth)
+        .style("stroke-width", this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth)
     }
 
     changeNodeColorByClick(clickedNodeData);
@@ -562,12 +574,12 @@ class Hierarchy {
     DIM_HIERARCHY.container.height =
       this.root.value * DIM_HIERARCHY.rect.height +
       (this.root.value - 1) *
-        (DIM_HIERARCHY.space.height - DIM_HIERARCHY.rect.height) +
+      (DIM_HIERARCHY.space.height - DIM_HIERARCHY.rect.height) +
       DIM_HIERARCHY.space.padding * 2;
     DIM_HIERARCHY.container.width =
       (this.root.height + 1) * DIM_HIERARCHY.rect.width +
       this.root.height *
-        (DIM_HIERARCHY.space.width - DIM_HIERARCHY.rect.width) +
+      (DIM_HIERARCHY.space.width - DIM_HIERARCHY.rect.width) +
       DIM_HIERARCHY.space.padding * 2;
     hierarchySvg
       .attr("width", DIM_HIERARCHY.container.width)
@@ -695,7 +707,7 @@ class Hierarchy {
       .enter()
       .append("path")
       .attr("class", "hierarchy-link")
-      .attr("id", (d) => `hierarchyLink${d.id}`)
+      .attr("id", (d) => `hierarchyLink${d.source.id}-${d.target.id}`)
       .attr("fill", "none")
       .attr("stroke", "#ccc")
       .attr("d", (d) =>
@@ -815,7 +827,7 @@ class Hierarchy {
     }
   }
 
-  highlightPath(d) {}
+  highlightPath(d) { }
 
   highlightChartNode(clickedNodeData) {
     const selectedColor = "red";
@@ -871,10 +883,9 @@ function readAndVisualizeData() {
  */
 function createVisualization(tsv) {
   const json = buildHierarchy(tsv);
-  const chart = new Chart(json);
-  const legend = new Legend(tsv);
   const hierarchy = new Hierarchy(json);
-  hierarchy.chart = chart;
+  const chart = new Chart(json, hierarchy);
+  const legend = new Legend(tsv);
   legend.draw();
   chart.draw();
   hierarchy.draw();
