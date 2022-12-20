@@ -321,11 +321,18 @@ class Chart {
   update() {
     const nodes = flatten(this.root);
     const links = this.root.links();
+    const transition = chartSvg.transition()
+        .duration(250)
 
     this.link = chartSvg
       .selectAll(".chart-link")
       .data(links, (d) => d.target.id);
-    this.link.exit().remove();
+    const linkExit = this.link.exit()
+    
+    linkExit.transition(transition)
+    .remove()
+    .attr("fill-opacity", 0)
+    .attr("stroke-opacity", 0);;
 
     const linkEnter = this.link
       .enter()
@@ -339,6 +346,14 @@ class Chart {
     this.link = linkEnter.merge(this.link);
 
     this.node = chartSvg.selectAll(".chart-node").data(nodes, (d) => d.id);
+
+    const nodeExit = this.node.exit()
+    
+    nodeExit.transition(transition)
+        .remove()
+        .attr("fill-opacity", 0)
+        .attr("stroke-opacity", 0);
+
     this.node
       .exit()
       .transition(d3.transition().duration(this.DURATION))
@@ -409,7 +424,22 @@ class Chart {
       )
       .sort((a, b) => b.depth - a.depth);
 
-    nodeEnter
+    nodeEnter.append("circle")
+            .attr("r", (d) =>
+              d.data.command === "root"
+                ? 50
+                : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.mem) * 15, 5)
+            )
+            .style("text-anchor", (d) => (d.children ? "end" : "start"))
+            .text((d) => d.data.command);
+
+    const nodeUpdate = nodeEnter.merge(this.node);
+
+    nodeUpdate
+      .select("circle")
+      .remove()
+
+    nodeUpdate
       .append("circle")
       .attr("r", (d) =>
         d.data.command === "root"
@@ -419,8 +449,7 @@ class Chart {
       .style("text-anchor", (d) => (d.children ? "end" : "start"))
       .text((d) => d.data.command);
 
-    this.node = nodeEnter.merge(this.node);
-
+    this.node = nodeUpdate
     /* simulation にノードとリンクをセットする */
     this.simulation.nodes(nodes);
     this.simulation.force("link").links(links);
@@ -432,16 +461,26 @@ class Chart {
    * @param {Object} clickedNodeData クリックされたデータ
    */
   clicked(clickedNodeData) {
-    const selectedColor = "red"
+    const selectedColor = "white"
     const notSelectedColor = "#ccc"
+    const selectedStrokeWidth = "5"
+    const notSelectedStrokeWidth = "3"
     const highlightHierarchyNode = (nodeData) => {
+      d3.selectAll("#hierarchy-node")
+        .style("stroke", notSelectedColor)
+        .style("stroke-width", notSelectedStrokeWidth)
       const selectedHierarchyNode = d3.select(`#hierarchyNode${nodeData.id}`)
       let daughter = nodeData
       selectedHierarchyNode.data()[0].ancestors().forEach((mother) => {
-        d3.select(`#hierarchyNode${mother.id}`).style(
-          "stroke",
-          this.selectedNodeId > 0 ? selectedColor : notSelectedColor
-        );
+        d3.select(`#hierarchyNode${mother.id}`)
+          .style(
+            "stroke",
+            this.selectedNodeId > 0 ? selectedColor : notSelectedColor
+          )
+          .style(
+            "stroke-width",
+            this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth
+          );
         daughter = mother;
       });
     };
@@ -454,7 +493,7 @@ class Chart {
       } else {
         this.selectedNodeId = -1;
       }
-      const selectedColor = "red";
+      const selectedColor = "white";
       const notSelectedColor = "#666";
       const selectedStrokeWidth = "5";
       const notSelectedStrokeWidth = "0";
@@ -830,7 +869,7 @@ class Hierarchy {
   highlightPath(d) { }
 
   highlightChartNode(clickedNodeData) {
-    const selectedColor = "red";
+    const selectedColor = "white";
     const notSelectedColor = "none";
     d3.selectAll(".hierarchy-node").style("stroke", notSelectedColor);
     const selectedHierarchyNode = d3.select(
