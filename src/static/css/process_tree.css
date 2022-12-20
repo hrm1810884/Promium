@@ -8,8 +8,9 @@
   --color-accent: #336601;
   --color-font-normal: #bbb;
   --color-font-accent: #54951f;
-  --font-family-serif: "EB Garamond", "Times New Roman", Times, serif;
-  --font-family-sans: "Avenir", sans-serif;
+  --font-family-serif: "EB Garamond", "Times New Roman", "Noto Sans JP", Times,
+    serif;
+  --font-family-sans: "Avenir", "Noto Sans JP", sans-serif;
   --font-family-mono: "Source Code Pro", monospace;
 }
 
@@ -108,7 +109,6 @@ h3 {
     )
     calc((95vh - var(--header-height) - var(--tab-height)) * 0.6);
   grid-template-columns: 6fr 4fr;
-
 }
 
 .tooltip {
@@ -205,8 +205,13 @@ h3 {
   grid-column: 2;
   padding-left: 10px;
   overflow: scroll;
-  font-family: var(--font-family-serif);
+  font-family: var(--font-family-sans);
   position: relative;
+  box-shadow: 0 0 5px var(--color-font-accent);
+}
+
+.description {
+  padding-left: 15px;
 }
 
 .process-description-container {
