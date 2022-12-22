@@ -56,7 +56,7 @@ const NODE_TYPE = {
 
 const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
 const [chartSvg, legendSvg, hierarchySvg, tooltip] = initializeElement();
-const INTERVAL_TIME = 5000000; // live モードの更新頻度 [ms]
+const INTERVAL_TIME = 5000; // live モードの更新頻度 [ms]
 
 const defineGradient = () => {
   const defs = chartSvg.append("defs");
@@ -384,10 +384,17 @@ class Chart {
       .on("mouseover", (event, hoveringNodeData) => {
         tooltip
           .style("visibility", "visible")
-          .html(() =>
-            isCpuModeOn
+          .html(() => {
+            if(hoveringNodeData.data.command == "root"){
+              return isCpuModeOn
+              ? `Command: ${hoveringNodeData.data.command}`
+              : `Command: ${hoveringNodeData.data.command}`
+            }else{
+              return isCpuModeOn
               ? `Command: ${hoveringNodeData.data.command}<br>CPU usage: ${hoveringNodeData.data.cpu} %`
               : `Command: ${hoveringNodeData.data.command}<br>Memory usage: ${hoveringNodeData.data.mem} %`
+            }
+          }
           );
       })
       .on("mousemove", (event, d) => {
@@ -465,10 +472,13 @@ class Chart {
     const notSelectedColor = "#ccc"
     const selectedStrokeWidth = "5"
     const notSelectedStrokeWidth = "3"
+    const selectedOpacity = "1.0"
+    const notSelectedOpacity = "0.2"
     const highlightHierarchyNode = (nodeData) => {
       d3.selectAll("#hierarchy-node")
         .style("stroke", notSelectedColor)
         .style("stroke-width", notSelectedStrokeWidth)
+        .style("opacity", notSelectedOpacity)
       const selectedHierarchyNode = d3.select(`#hierarchyNode${nodeData.id}`)
       let daughter = nodeData
       selectedHierarchyNode.data()[0].ancestors().forEach((mother) => {
@@ -480,6 +490,9 @@ class Chart {
           .style(
             "stroke-width",
             this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth
+          ).style(
+            "opacity",
+            this.selectedNodeId > 0 ? selectedOpacity : notSelectedOpacity
           );
         daughter = mother;
       });
@@ -929,6 +942,8 @@ class Hierarchy {
   highlightChartNode(clickedNodeData) {
     const selectedColor = "white";
     const notSelectedColor = "none";
+    const selectedOpacity = "1.0";
+    const notSelectedOpacity = "0.2"
     d3.selectAll(".hierarchy-node").style("stroke", notSelectedColor);
     const selectedHierarchyNode = d3.select(
       `#hierarchyNode${clickedNodeData.id}`
@@ -942,7 +957,8 @@ class Hierarchy {
       .style("stroke-width", 0);
     d3.selectAll(".chart-link")
       .style("stroke", "#ccc")
-      .style("stroke-width", 3);
+      .style("stroke-width", 3)
+      .style("opacity", notSelectedOpacity);
     let daughter = clickedNodeData;
     selectedHierarchyNode
       .data()[0]
@@ -955,7 +971,8 @@ class Hierarchy {
         if (mother != clickedNodeData) {
           d3.select(`#chartLink${mother.id}-${daughter.id}`)
             .style("stroke", this.selectedNodeId > 0 ? selectedColor : "#ccc")
-            .style("stroke-width", this.selectedNodeId > 0 ? 5 : 3);
+            .style("stroke-width", this.selectedNodeId > 0 ? 5 : 3)
+            .style("opacity", this.selectedNodeId > 0 ? selectedOpacity : notSelectedOpacity);
         }
         daughter = mother;
       });
