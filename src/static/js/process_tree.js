@@ -281,8 +281,9 @@ class Chart {
 
     document.getElementById(
       "chart"
-    ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${sumUpPercentage(this.json) / 200
-      })`;
+    ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${
+      sumUpPercentage(this.json) / 200
+    })`;
   }
 
   setSimulation() {
@@ -321,18 +322,18 @@ class Chart {
   update() {
     const nodes = flatten(this.root);
     const links = this.root.links();
-    const transition = chartSvg.transition()
-        .duration(250)
+    const transition = chartSvg.transition().duration(250);
 
     this.link = chartSvg
       .selectAll(".chart-link")
       .data(links, (d) => d.target.id);
-    const linkExit = this.link.exit()
-    
-    linkExit.transition(transition)
-    .remove()
-    .attr("fill-opacity", 0)
-    .attr("stroke-opacity", 0);;
+    const linkExit = this.link.exit();
+
+    linkExit
+      .transition(transition)
+      .remove()
+      .attr("fill-opacity", 0)
+      .attr("stroke-opacity", 0);
 
     const linkEnter = this.link
       .enter()
@@ -347,12 +348,13 @@ class Chart {
 
     this.node = chartSvg.selectAll(".chart-node").data(nodes, (d) => d.id);
 
-    const nodeExit = this.node.exit()
-    
-    nodeExit.transition(transition)
-        .remove()
-        .attr("fill-opacity", 0)
-        .attr("stroke-opacity", 0);
+    const nodeExit = this.node.exit();
+
+    nodeExit
+      .transition(transition)
+      .remove()
+      .attr("fill-opacity", 0)
+      .attr("stroke-opacity", 0);
 
     this.node
       .exit()
@@ -382,20 +384,15 @@ class Chart {
         this.clicked(clickedNodeData);
       })
       .on("mouseover", (event, hoveringNodeData) => {
-        tooltip
-          .style("visibility", "visible")
-          .html(() => {
-            if(hoveringNodeData.data.command == "root"){
-              return isCpuModeOn
-              ? `Command: ${hoveringNodeData.data.command}`
-              : `Command: ${hoveringNodeData.data.command}`
-            }else{
-              return isCpuModeOn
+        tooltip.style("visibility", "visible").html(() => {
+          if (hoveringNodeData.data.command === "root") {
+            return `Command: ${hoveringNodeData.data.command}`;
+          } else {
+            return isCpuModeOn
               ? `Command: ${hoveringNodeData.data.command}<br>CPU usage: ${hoveringNodeData.data.cpu} %`
-              : `Command: ${hoveringNodeData.data.command}<br>Memory usage: ${hoveringNodeData.data.mem} %`
-            }
+              : `Command: ${hoveringNodeData.data.command}<br>Memory usage: ${hoveringNodeData.data.mem} %`;
           }
-          );
+        });
       })
       .on("mousemove", (event, d) => {
         tooltip
@@ -429,20 +426,19 @@ class Chart {
       )
       .sort((a, b) => b.depth - a.depth);
 
-    nodeEnter.append("circle")
-            .attr("r", (d) =>
-              d.data.command === "root"
-                ? 50
-                : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.mem) * 15, 5)
-            )
-            .style("text-anchor", (d) => (d.children ? "end" : "start"))
-            .text((d) => d.data.command);
+    nodeEnter
+      .append("circle")
+      .attr("r", (d) =>
+        d.data.command === "root"
+          ? 50
+          : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.mem) * 15, 5)
+      )
+      .style("text-anchor", (d) => (d.children ? "end" : "start"))
+      .text((d) => d.data.command);
 
     const nodeUpdate = nodeEnter.merge(this.node);
 
-    nodeUpdate
-      .select("circle")
-      .remove()
+    nodeUpdate.select("circle").remove();
 
     nodeUpdate
       .append("circle")
@@ -456,7 +452,7 @@ class Chart {
       .style("text-anchor", (d) => (d.children ? "end" : "start"))
       .text((d) => d.data.command);
 
-    this.node = nodeUpdate
+    this.node = nodeUpdate;
     /* simulation にノードとリンクをセットする */
     this.simulation.nodes(nodes);
     this.simulation.force("link").links(links);
@@ -468,40 +464,43 @@ class Chart {
    * @param {Object} clickedNodeData クリックされたデータ
    */
   clicked(clickedNodeData) {
-    const selectedColor = "white"
-    const notSelectedColor = "#ccc"
-    const selectedStrokeWidth = "5"
-    const notSelectedStrokeWidth = "3"
-    const selectedOpacity = "1.0"
-    const notSelectedOpacity = "0.2"
+    const selectedColor = "white";
+    const notSelectedColor = "#ccc";
+    const selectedStrokeWidth = "5";
+    const notSelectedStrokeWidth = "3";
+    const selectedOpacity = "1.0";
+    const notSelectedOpacity = "0.2";
     const highlightHierarchyNode = (nodeData) => {
       d3.selectAll("#hierarchy-node")
         .style("stroke", notSelectedColor)
         .style("stroke-width", notSelectedStrokeWidth)
-        .style("opacity", notSelectedOpacity)
-      const selectedHierarchyNode = d3.select(`#hierarchyNode${nodeData.id}`)
-      let daughter = nodeData
-      selectedHierarchyNode.data()[0].ancestors().forEach((mother) => {
-        d3.select(`#hierarchyNode${mother.id}`)
-          .style(
-            "stroke",
-            this.selectedNodeId > 0 ? selectedColor : notSelectedColor
-          )
-          .style(
-            "stroke-width",
-            this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth
-          ).style(
-            "opacity",
-            this.selectedNodeId > 0 ? selectedOpacity : notSelectedOpacity
-          );
-        daughter = mother;
-      });
+        .style("opacity", notSelectedOpacity);
+      const selectedHierarchyNode = d3.select(`#hierarchyNode${nodeData.id}`);
+      let daughter = nodeData;
+      selectedHierarchyNode
+        .data()[0]
+        .ancestors()
+        .forEach((mother) => {
+          d3.select(`#hierarchyNode${mother.id}`)
+            .style(
+              "stroke",
+              this.selectedNodeId > 0 ? selectedColor : notSelectedColor
+            )
+            .style(
+              "stroke-width",
+              this.selectedNodeId > 0
+                ? selectedStrokeWidth
+                : notSelectedStrokeWidth
+            )
+            .style(
+              "opacity",
+              this.selectedNodeId > 0 ? selectedOpacity : notSelectedOpacity
+            );
+          daughter = mother;
+        });
     };
     const changeNodeColorByClick = (nodeData) => {
-      if (
-        this.selectedNodeId < 0 ||
-        this.selectedNodeId !== nodeData.id
-      ) {
+      if (this.selectedNodeId < 0 || this.selectedNodeId !== nodeData.id) {
         this.selectedNodeId = nodeData.id;
       } else {
         this.selectedNodeId = -1;
@@ -511,11 +510,19 @@ class Chart {
       const selectedStrokeWidth = "5";
       const notSelectedStrokeWidth = "0";
 
-      d3.selectAll(".chart-node").style("stroke", notSelectedColor)
-        .style("stroke-width", notSelectedStrokeWidth)
-      d3.select(`#chartNode${nodeData.id}`).style("stroke", this.selectedNodeId > 0 ? selectedColor : notSelectedColor)
-        .style("stroke-width", this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth)
-    }
+      d3.selectAll(".chart-node")
+        .style("stroke", notSelectedColor)
+        .style("stroke-width", notSelectedStrokeWidth);
+      d3.select(`#chartNode${nodeData.id}`)
+        .style(
+          "stroke",
+          this.selectedNodeId > 0 ? selectedColor : notSelectedColor
+        )
+        .style(
+          "stroke-width",
+          this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth
+        );
+    };
 
     changeNodeColorByClick(clickedNodeData);
     highlightHierarchyNode(clickedNodeData);
@@ -684,12 +691,12 @@ class Hierarchy {
     DIM_HIERARCHY.container.height =
       this.root.value * DIM_HIERARCHY.rect.height +
       (this.root.value - 1) *
-      (DIM_HIERARCHY.space.height - DIM_HIERARCHY.rect.height) +
+        (DIM_HIERARCHY.space.height - DIM_HIERARCHY.rect.height) +
       DIM_HIERARCHY.space.padding * 2;
     DIM_HIERARCHY.container.width =
       (this.root.height + 1) * DIM_HIERARCHY.rect.width +
       this.root.height *
-      (DIM_HIERARCHY.space.width - DIM_HIERARCHY.rect.width) +
+        (DIM_HIERARCHY.space.width - DIM_HIERARCHY.rect.width) +
       DIM_HIERARCHY.space.padding * 2;
     hierarchySvg
       .attr("width", DIM_HIERARCHY.container.width)
@@ -937,13 +944,13 @@ class Hierarchy {
     }
   }
 
-  highlightPath(d) { }
+  highlightPath(d) {}
 
   highlightChartNode(clickedNodeData) {
     const selectedColor = "white";
     const notSelectedColor = "none";
     const selectedOpacity = "1.0";
-    const notSelectedOpacity = "0.2"
+    const notSelectedOpacity = "0.2";
     d3.selectAll(".hierarchy-node").style("stroke", notSelectedColor);
     const selectedHierarchyNode = d3.select(
       `#hierarchyNode${clickedNodeData.id}`
@@ -972,7 +979,10 @@ class Hierarchy {
           d3.select(`#chartLink${mother.id}-${daughter.id}`)
             .style("stroke", this.selectedNodeId > 0 ? selectedColor : "#ccc")
             .style("stroke-width", this.selectedNodeId > 0 ? 5 : 3)
-            .style("opacity", this.selectedNodeId > 0 ? selectedOpacity : notSelectedOpacity);
+            .style(
+              "opacity",
+              this.selectedNodeId > 0 ? selectedOpacity : notSelectedOpacity
+            );
         }
         daughter = mother;
       });
