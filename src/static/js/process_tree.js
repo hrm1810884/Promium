@@ -58,9 +58,26 @@ const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
 const [chartSvg, legendSvg, hierarchySvg, tooltip] = initializeElement();
 const INTERVAL_TIME = 5000; // live モードの更新頻度 [ms]
 
+/**
+ * 円に使う fill を定義する
+ */
 const defineGradient = () => {
   const defs = chartSvg.append("defs");
-  const capitalize = (string) => string[0].toUpperCase() + string.slice(1);
+
+  /**
+   * １文字目だけ大文字にする
+   * @param {String} inputString 先頭を大文字にしたい文字列
+   * @returns 引数の１文字目が大文字になった文字列
+   */
+  const capitalize = (inputString) =>
+    inputString[0].toUpperCase() + inputString.slice(1);
+
+  /**
+   * 与えられた色，ID の gradient を定義する
+   * @param {String} idString 定義する gradient にユニークな ID
+   * @param {String} colorLight 明るい方の色
+   * @param {String} colorDark 暗い方の色
+   */
   const setGradient = (idString, colorLight, colorDark) => {
     const areaGradient = defs
       .append("radialGradient")
@@ -182,7 +199,11 @@ let isLiveModeOn = true; // リアルタイムで更新するか
 let isCpuModeOn = true; // 表示するものが CPU なら true，メモリなら false
 let timerIdLiveMode = setInterval(readAndVisualizeData, INTERVAL_TIME); // リアルタイムモードを司るタイマー id
 
+/**
+ * ボタンを有効化する
+ */
 document.addEventListener("DOMContentLoaded", () => {
+  // Help ボタン
   document.getElementById("helpButton").addEventListener("change", function () {
     const settingContainer = document.getElementById("settingContainer");
     const hierarchyContainer = document.getElementById("hierarchyContainer");
@@ -198,6 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // live モードのボタン
   document.getElementById("liveButton").addEventListener("change", function () {
     if (this.checked) {
       clearInterval(timerIdLiveMode);
@@ -208,6 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // タブ切り替えボタン
   for (const chartTab of document.getElementsByClassName("chart-tab")) {
     chartTab.addEventListener("change", function () {
       if (this.checked) {
@@ -218,19 +241,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+/**
+ * チャートを司るクラス
+ */
 class Chart {
+  /**
+   * 初期化関数
+   * @param {Objecg} json TSV から読み取った json
+   * @param {Object} hierarchy json から読み取った階層構造
+   */
   constructor(json, hierarchy) {
     this.json = json;
+    this.hierarchy = hierarchy;
     this.node = {};
     this.link = {};
     this.selectedNodeId = -1;
-    this.hierarchy = hierarchy;
 
     Object.defineProperty(this, "DURATION", {
       value: 750,
     });
   }
 
+  /**
+   * チャートを描画する関数
+   */
   draw() {
     this.setBackgroundColor();
     this.root = d3.hierarchy(this.json);
@@ -239,7 +273,15 @@ class Chart {
     this.update();
   }
 
+  /**
+   * CPU / メモリ使用率に応じて背景色を設定する
+   */
   setBackgroundColor() {
+    /**
+     * CPU / メモリ使用率を再帰的に合計する
+     * @param {Object} source 加算し始める親ノード
+     * @returns CPU / メモリ使用率の合計
+     */
     const sumUpPercentage = (source) => {
       let percentageSum = 0;
       function addPercentage(node) {
@@ -259,6 +301,11 @@ class Chart {
       return percentageSum;
     };
 
+    /**
+     * 16 進数のカラーコードを RGB に変換する
+     * @param {String} hexString 16 進数のカラーコード
+     * @returns RGB のカラーコード
+     */
     const convertHexToRgb = (hexString) => {
       if (hexString.slice(0, 1) === "#") {
         hexString = hexString.slice(1);
@@ -286,6 +333,9 @@ class Chart {
     })`;
   }
 
+  /**
+   * シミュレーションを初期化する
+   */
   setSimulation() {
     this.simulation = d3
       .forceSimulation()
@@ -319,6 +369,9 @@ class Chart {
       });
   }
 
+  /**
+   * 変更があった場合に描画し直す
+   */
   update() {
     const nodes = flatten(this.root);
     const links = this.root.links();
@@ -453,7 +506,6 @@ class Chart {
       .text((d) => d.data.command);
 
     this.node = nodeUpdate;
-    /* simulation にノードとリンクをセットする */
     this.simulation.nodes(nodes);
     this.simulation.force("link").links(links);
   }
@@ -470,6 +522,11 @@ class Chart {
     const notSelectedStrokeWidth = "3";
     const selectedOpacity = "1.0";
     const notSelectedOpacity = "0.2";
+    
+    /**
+     * 
+     * @param {Object} nodeData クリックされたノードのデータ
+     */
     const highlightHierarchyNode = (nodeData) => {
       d3.selectAll("#hierarchy-node")
         .style("stroke", notSelectedColor)
@@ -499,6 +556,11 @@ class Chart {
           daughter = mother;
         });
     };
+
+    /**
+     * 
+     * @param {Object} nodeData クリックされたノードのデータ
+     */
     const changeNodeColorByClick = (nodeData) => {
       if (this.selectedNodeId < 0 || this.selectedNodeId !== nodeData.id) {
         this.selectedNodeId = nodeData.id;
