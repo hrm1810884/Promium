@@ -32,10 +32,13 @@
   - mouseoverするとデータをハイライト表示する機能を追加([コミット](https://github.com/InfovisHandsOn/B-Tohoken/commit/7d0b474728818a57a5879f0148641cdea893e181))
   - プロセスの状態に対応させた([コミット](https://github.com/InfovisHandsOn/B-Tohoken/commit/aede949629d1c0240d2291b297503cccf15f9682))
   - 各項目をわかりやすく変更([コミット](https://github.com/InfovisHandsOn/B-Tohoken/commit/ccc71b45be58f5a79224d715cb029e0d616244b7))
-  - ([機能を拡張した](https://github.com/InfovisHandsOn/B-Tohoken/commit/aa6bc86a89e54bcb96a9eeb9b79c64ad5d388cb7))
+  - [機能を拡張した](https://github.com/InfovisHandsOn/B-Tohoken/commit/aa6bc86a89e54bcb96a9eeb9b79c64ad5d388cb7)
 
   が、sunburstを使わないことになった
-- タブでCPU使用率のグラフとメモリ使用率のグラフを切り替えられるようにした
+- タブでCPU使用率のグラフとメモリ使用率のグラフを切り替えられるようにした([コミット1](https://github.com/InfovisHandsOn/B-Tohoken/commit/ded794389ab761c118b798829178838a5d67382e), [2](https://github.com/InfovisHandsOn/B-Tohoken/commit/943bd31d63845be2ec7c066ee0e84344c0b2fe26))
+- ノードをクリックするとハイライト表示されるようにした([コミット1](https://github.com/InfovisHandsOn/B-Tohoken/commit/284f048273e5a848aa6e0ee6aebc4c8d31d924b0), [2](https://github.com/InfovisHandsOn/B-Tohoken/commit/e52a9af46fb1b579256a5b8794f8d81ee691206a), [バグ修正](https://github.com/InfovisHandsOn/B-Tohoken/commit/6cc4eada8eef0d2521e3a0fb7676a6db53f16baa))
+- 凡例をクリックするとそのステータスのノードの表示・非表示を切り替えられる機能を実装した([コミット1](https://github.com/InfovisHandsOn/B-Tohoken/commit/75efb625ee0b6923fa2566cd8ae6241ea11720df), [2](https://github.com/InfovisHandsOn/B-Tohoken/commit/aa1b2826b79edd707c25b7e0ea23276941ebe0fb), [3](https://github.com/InfovisHandsOn/B-Tohoken/commit/354c6be23b538787572a7002e756ccf49fbf5e4d), [4](https://github.com/InfovisHandsOn/B-Tohoken/commit/65b636b76367cde376c2cf05cb151008f584dd1d))
+- help欄の内容を充実させた([コミット1](https://github.com/InfovisHandsOn/B-Tohoken/commit/f25f930b1cd8f07e57689e3299d91dd84fbdfd0b), [2](https://github.com/InfovisHandsOn/B-Tohoken/commit/6f1c076bbba5a29f590d1076f4cd2752099cc06d))
 
 ### takep
 
