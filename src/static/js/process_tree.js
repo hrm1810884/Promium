@@ -246,7 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
  */
 class Chart {
   /**
-   * 初期化関数
+   * コンストラクタ
    * @param {Objecg} json TSV から読み取った json
    * @param {Object} hierarchy json から読み取った階層構造
    */
@@ -522,9 +522,9 @@ class Chart {
     const notSelectedStrokeWidth = "3";
     const selectedOpacity = "1.0";
     const notSelectedOpacity = "0.2";
-    
+
     /**
-     * 
+     * クリックされたノードに対応する hierarchy のノードをハイライトする
      * @param {Object} nodeData クリックされたノードのデータ
      */
     const highlightHierarchyNode = (nodeData) => {
@@ -558,7 +558,7 @@ class Chart {
     };
 
     /**
-     * 
+     * クリックされたノードの色を変更する
      * @param {Object} nodeData クリックされたノードのデータ
      */
     const changeNodeColorByClick = (nodeData) => {
@@ -567,6 +567,7 @@ class Chart {
       } else {
         this.selectedNodeId = -1;
       }
+
       const selectedColor = "white";
       const notSelectedColor = "#666";
       const selectedStrokeWidth = "5";
@@ -591,13 +592,18 @@ class Chart {
   }
 }
 
+/**
+ * legend を司るクラス
+ */
 class Legend {
+  /**
+   * コンストラクタ
+   * @param {Object} tsv TSV ファイルの内容
+   * @param {Object} json TSV から作った json
+   */
   constructor(tsv, json) {
     this.tsv = tsv;
     this.json = json;
-  }
-
-  draw() {
     this.statusList = [];
     Object.keys(NODE_TYPE.leaf).forEach((data) => {
       this.statusList.push({
@@ -607,15 +613,13 @@ class Legend {
         buttonClickable: false,
       });
     });
+  }
 
-    this.existingStatusList = this.selectExistingStatus(this.tsv);
-    this.statusList.forEach((status) => {
-      if (this.existingStatusList.includes(status.stat)) {
-        status.isStatusDisplayed = true;
-        status.buttonClickable = true;
-      }
-    });
-
+  /**
+   * 描画関数
+   */
+  draw() {
+    this.updateStatusList();
     legendSvg
       .attr("width", DIM_LEGEND.container.width)
       .attr("height", DIM_LEGEND.container.height);
@@ -680,6 +684,7 @@ class Legend {
       countChildren(this.root);
       flatten(this.root);
 
+      /* ステータスをクリックした時にそれ以外のノードを折りたたむ */
       this.root.eachAfter((node) => {
         node.hiddenValue = node.value;
         if (node.children) {
@@ -701,18 +706,36 @@ class Legend {
 
       countChildren(this.root);
 
-      legendGroup.selectAll("rect").style("opacity", (d) => {
-        if (d.isStatusDisplayed) {
-          return 0.6;
-        } else if (d.buttonClickable) {
-          return 0.2;
-        } else {
-          return 0.1;
-        }
-      });
+      legendGroup
+        .selectAll("rect")
+        .style("opacity", (d) =>
+          d.isStatusDisplayed ? 0.6 : d.buttonClickable ? 0.2 : 0.1
+        );
     });
   }
 
+  /**
+   * ステータスの状態（クリックできるか，表示するか）を変更する
+   */
+  updateStatusList() {
+    this.statusList.forEach((status) => {
+      status.isStatusDisplayed = false;
+      status.buttonClickable = false;
+    });
+    this.existingStatusList = this.selectExistingStatus(this.tsv);
+    this.statusList.forEach((status) => {
+      if (this.existingStatusList.includes(status.stat)) {
+        status.isStatusDisplayed = true;
+        status.buttonClickable = true;
+      }
+    });
+  }
+
+  /**
+   * プロセスから存在するステータスの１文字目を抽出する
+   * @param {Object} statusData プロセスの一覧
+   * @returns 存在するステータスの１文字目のリスト
+   */
   selectExistingStatus(statusData) {
     let uniqueStatusList = [];
     statusData.forEach((status) => {
@@ -725,7 +748,14 @@ class Legend {
   }
 }
 
+/**
+ * hierarchy を司るクラス
+ */
 class Hierarchy {
+  /**
+   * コンストラクタ
+   * @param {Object} json json ファイル
+   */
   constructor(json) {
     Object.defineProperty(this, "DURATION", {
       value: 500,
@@ -737,6 +767,9 @@ class Hierarchy {
     this.selectedNodeId = -1;
   }
 
+  /**
+   * 描画関数
+   */
   draw() {
     this.root = d3.hierarchy(this.json);
     this.tree = d3.tree();
@@ -745,10 +778,12 @@ class Hierarchy {
     this.resetSvg();
     hierarchySvg.select("g").remove();
     this.group = hierarchySvg.append("g");
-    // this.foldChildrenNode(this.root);
     this.update(this.root);
   }
 
+  /**
+   * SVG を初期化する
+   */
   resetSvg() {
     DIM_HIERARCHY.container.height =
       this.root.value * DIM_HIERARCHY.rect.height +
@@ -765,6 +800,10 @@ class Hierarchy {
       .attr("height", DIM_HIERARCHY.container.height);
   }
 
+  /**
+   * ツリーのあるノード以下のノードを折りたたむ
+   * @param {Object} source 折りたたむ根ノード
+   */
   foldChildrenNode(source) {
     const UNFOLDED_LAYER = 1;
     for (
@@ -781,6 +820,10 @@ class Hierarchy {
     }
   }
 
+  /**
+   * hierarchy の座標位置を再計算し再描画する
+   * @param {Object} source 根ノード
+   */
   update(source) {
     countChildren(this.root);
 
@@ -905,7 +948,7 @@ class Hierarchy {
       .duration(this.DURATION)
       .attr("d", (d) =>
         ` M ${d.target.x}, ${d.target.y + DIM_HIERARCHY.rect.height / 2}
-            L ${d.source.x + DIM_HIERARCHY.link.left}, 
+            L ${d.source.x + DIM_HIERARCHY.link.left},
               ${d.target.y + DIM_HIERARCHY.rect.height / 2}
             L ${d.source.x + DIM_HIERARCHY.link.left},
               ${d.source.y + DIM_HIERARCHY.rect.height}`
@@ -919,7 +962,7 @@ class Hierarchy {
       .duration(this.DURATION)
       .attr("d", (d) =>
         ` M ${source.x}, ${source.y + DIM_HIERARCHY.rect.height / 2}
-        L ${d.source.x + DIM_HIERARCHY.link.left}, 
+        L ${d.source.x + DIM_HIERARCHY.link.left},
           ${source.y + DIM_HIERARCHY.rect.height / 2}
         L ${d.source.x + DIM_HIERARCHY.link.left},
           ${d.source.y + DIM_HIERARCHY.rect.height}`
@@ -980,15 +1023,23 @@ class Hierarchy {
     });
   }
 
+  /**
+   * ノードをクリックした時に呼ばれる関数
+   * @param {Object} clickedNodeData クリックされたノードのデータ
+   */
   clicked(clickedNodeData) {
-    this.updateStatusId(clickedNodeData);
+    this.updateSelectedNodeId(clickedNodeData);
     this.toggle(clickedNodeData);
     this.update(clickedNodeData);
     this.highlightPath(clickedNodeData);
     this.highlightChartNode(clickedNodeData);
   }
 
-  updateStatusId(nodeData) {
+  /**
+   * クラスの selectedNodeId を更新する
+   * @param {Object} nodeData クリックしたノード
+   */
+  updateSelectedNodeId(nodeData) {
     if (this.selectedNodeId < 0 || this.selectedNodeId !== nodeData.id) {
       this.selectedNodeId = nodeData.id;
     } else {
@@ -996,6 +1047,10 @@ class Hierarchy {
     }
   }
 
+  /**
+   * ノードの子を出し入れする
+   * @param {Object} d ノードのデータ
+   */
   toggle(d) {
     if (d.children) {
       d._children = d.children;
@@ -1006,16 +1061,18 @@ class Hierarchy {
     }
   }
 
-  highlightPath(d) {}
-
-  highlightChartNode(clickedNodeData) {
+  /**
+   * クリックされた時に対応する chart のノードをハイライトする
+   * @param {Object} nodeData ノードのデータ
+   */
+  highlightChartNode(nodeData) {
     const selectedColor = "white";
     const notSelectedColor = "none";
     const selectedOpacity = "1.0";
     const notSelectedOpacity = "0.2";
     d3.selectAll(".hierarchy-node").style("stroke", notSelectedColor);
     const selectedHierarchyNode = d3.select(
-      `#hierarchyNode${clickedNodeData.id}`
+      `#hierarchyNode${nodeData.id}`
     );
     selectedHierarchyNode.style(
       "fill",
@@ -1028,7 +1085,7 @@ class Hierarchy {
       .style("stroke", "#ccc")
       .style("stroke-width", 3)
       .style("opacity", notSelectedOpacity);
-    let daughter = clickedNodeData;
+    let daughter = nodeData;
     selectedHierarchyNode
       .data()[0]
       .ancestors()
@@ -1037,7 +1094,7 @@ class Hierarchy {
           "stroke-width",
           this.selectedNodeId > 0 ? 3 : 0
         );
-        if (mother != clickedNodeData) {
+        if (mother != nodeData) {
           d3.select(`#chartLink${mother.id}-${daughter.id}`)
             .style("stroke", this.selectedNodeId > 0 ? selectedColor : "#ccc")
             .style("stroke-width", this.selectedNodeId > 0 ? 5 : 3)
