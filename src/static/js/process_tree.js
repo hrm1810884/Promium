@@ -58,9 +58,26 @@ const [DIM_CHART, DIM_LEGEND, DIM_HIERARCHY] = initializeDimention();
 const [chartSvg, legendSvg, hierarchySvg, tooltip] = initializeElement();
 const INTERVAL_TIME = 5000; // live モードの更新頻度 [ms]
 
+/**
+ * 円に使う fill を定義する
+ */
 const defineGradient = () => {
   const defs = chartSvg.append("defs");
-  const capitalize = (string) => string[0].toUpperCase() + string.slice(1);
+
+  /**
+   * １文字目だけ大文字にする
+   * @param {String} inputString 先頭を大文字にしたい文字列
+   * @returns 引数の１文字目が大文字になった文字列
+   */
+  const capitalize = (inputString) =>
+    inputString[0].toUpperCase() + inputString.slice(1);
+
+  /**
+   * 与えられた色，ID の gradient を定義する
+   * @param {String} idString 定義する gradient にユニークな ID
+   * @param {String} colorLight 明るい方の色
+   * @param {String} colorDark 暗い方の色
+   */
   const setGradient = (idString, colorLight, colorDark) => {
     const areaGradient = defs
       .append("radialGradient")
@@ -182,7 +199,11 @@ let isLiveModeOn = true; // リアルタイムで更新するか
 let isCpuModeOn = true; // 表示するものが CPU なら true，メモリなら false
 let timerIdLiveMode = setInterval(readAndVisualizeData, INTERVAL_TIME); // リアルタイムモードを司るタイマー id
 
+/**
+ * ボタンを有効化する
+ */
 document.addEventListener("DOMContentLoaded", () => {
+  // Help ボタン
   document.getElementById("helpButton").addEventListener("change", function () {
     const settingContainer = document.getElementById("settingContainer");
     const hierarchyContainer = document.getElementById("hierarchyContainer");
@@ -198,6 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // live モードのボタン
   document.getElementById("liveButton").addEventListener("change", function () {
     if (this.checked) {
       clearInterval(timerIdLiveMode);
@@ -208,6 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // タブ切り替えボタン
   for (const chartTab of document.getElementsByClassName("chart-tab")) {
     chartTab.addEventListener("change", function () {
       if (this.checked) {
@@ -218,19 +241,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+/**
+ * チャートを司るクラス
+ */
 class Chart {
+  /**
+   * コンストラクタ
+   * @param {Objecg} json TSV から読み取った json
+   * @param {Object} hierarchy json から読み取った階層構造
+   */
   constructor(json, hierarchy) {
     this.json = json;
+    this.hierarchy = hierarchy;
     this.node = {};
     this.link = {};
     this.selectedNodeId = -1;
-    this.hierarchy = hierarchy;
 
     Object.defineProperty(this, "DURATION", {
       value: 750,
     });
   }
 
+  /**
+   * チャートを描画する関数
+   */
   draw() {
     this.setBackgroundColor();
     this.root = d3.hierarchy(this.json);
@@ -239,7 +273,15 @@ class Chart {
     this.update();
   }
 
+  /**
+   * CPU / メモリ使用率に応じて背景色を設定する
+   */
   setBackgroundColor() {
+    /**
+     * CPU / メモリ使用率を再帰的に合計する
+     * @param {Object} source 加算し始める親ノード
+     * @returns CPU / メモリ使用率の合計
+     */
     const sumUpPercentage = (source) => {
       let percentageSum = 0;
       function addPercentage(node) {
@@ -259,6 +301,11 @@ class Chart {
       return percentageSum;
     };
 
+    /**
+     * 16 進数のカラーコードを RGB に変換する
+     * @param {String} hexString 16 進数のカラーコード
+     * @returns RGB のカラーコード
+     */
     const convertHexToRgb = (hexString) => {
       if (hexString.slice(0, 1) === "#") {
         hexString = hexString.slice(1);
@@ -281,10 +328,14 @@ class Chart {
 
     document.getElementById(
       "chart"
-    ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${sumUpPercentage(this.json) / 200
-      })`;
+    ).style.backgroundColor = `rgba(${convertHexToRgb("#ED1C2")}, ${
+      sumUpPercentage(this.json) / 200
+    })`;
   }
 
+  /**
+   * シミュレーションを初期化する
+   */
   setSimulation() {
     this.simulation = d3
       .forceSimulation()
@@ -318,21 +369,24 @@ class Chart {
       });
   }
 
+  /**
+   * 変更があった場合に描画し直す
+   */
   update() {
     const nodes = flatten(this.root);
     const links = this.root.links();
-    const transition = chartSvg.transition()
-        .duration(250)
+    const transition = chartSvg.transition().duration(250);
 
     this.link = chartSvg
       .selectAll(".chart-link")
       .data(links, (d) => d.target.id);
-    const linkExit = this.link.exit()
-    
-    linkExit.transition(transition)
-    .remove()
-    .attr("fill-opacity", 0)
-    .attr("stroke-opacity", 0);;
+    const linkExit = this.link.exit();
+
+    linkExit
+      .transition(transition)
+      .remove()
+      .attr("fill-opacity", 0)
+      .attr("stroke-opacity", 0);
 
     const linkEnter = this.link
       .enter()
@@ -347,12 +401,13 @@ class Chart {
 
     this.node = chartSvg.selectAll(".chart-node").data(nodes, (d) => d.id);
 
-    const nodeExit = this.node.exit()
-    
-    nodeExit.transition(transition)
-        .remove()
-        .attr("fill-opacity", 0)
-        .attr("stroke-opacity", 0);
+    const nodeExit = this.node.exit();
+
+    nodeExit
+      .transition(transition)
+      .remove()
+      .attr("fill-opacity", 0)
+      .attr("stroke-opacity", 0);
 
     this.node
       .exit()
@@ -382,20 +437,15 @@ class Chart {
         this.clicked(clickedNodeData);
       })
       .on("mouseover", (event, hoveringNodeData) => {
-        tooltip
-          .style("visibility", "visible")
-          .html(() => {
-            if(hoveringNodeData.data.command == "root"){
-              return isCpuModeOn
-              ? `Command: ${hoveringNodeData.data.command}`
-              : `Command: ${hoveringNodeData.data.command}`
-            }else{
-              return isCpuModeOn
+        tooltip.style("visibility", "visible").html(() => {
+          if (hoveringNodeData.data.command === "root") {
+            return `Command: ${hoveringNodeData.data.command}`;
+          } else {
+            return isCpuModeOn
               ? `Command: ${hoveringNodeData.data.command}<br>CPU usage: ${hoveringNodeData.data.cpu} %`
-              : `Command: ${hoveringNodeData.data.command}<br>Memory usage: ${hoveringNodeData.data.mem} %`
-            }
+              : `Command: ${hoveringNodeData.data.command}<br>Memory usage: ${hoveringNodeData.data.mem} %`;
           }
-          );
+        });
       })
       .on("mousemove", (event, d) => {
         tooltip
@@ -429,20 +479,19 @@ class Chart {
       )
       .sort((a, b) => b.depth - a.depth);
 
-    nodeEnter.append("circle")
-            .attr("r", (d) =>
-              d.data.command === "root"
-                ? 50
-                : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.mem) * 15, 5)
-            )
-            .style("text-anchor", (d) => (d.children ? "end" : "start"))
-            .text((d) => d.data.command);
+    nodeEnter
+      .append("circle")
+      .attr("r", (d) =>
+        d.data.command === "root"
+          ? 50
+          : Math.max(Math.sqrt(isCpuModeOn ? d.data.cpu : d.data.mem) * 15, 5)
+      )
+      .style("text-anchor", (d) => (d.children ? "end" : "start"))
+      .text((d) => d.data.command);
 
     const nodeUpdate = nodeEnter.merge(this.node);
 
-    nodeUpdate
-      .select("circle")
-      .remove()
+    nodeUpdate.select("circle").remove();
 
     nodeUpdate
       .append("circle")
@@ -456,8 +505,7 @@ class Chart {
       .style("text-anchor", (d) => (d.children ? "end" : "start"))
       .text((d) => d.data.command);
 
-    this.node = nodeUpdate
-    /* simulation にノードとリンクをセットする */
+    this.node = nodeUpdate;
     this.simulation.nodes(nodes);
     this.simulation.force("link").links(links);
   }
@@ -468,67 +516,94 @@ class Chart {
    * @param {Object} clickedNodeData クリックされたデータ
    */
   clicked(clickedNodeData) {
-    const selectedColor = "white"
-    const notSelectedColor = "#ccc"
-    const selectedStrokeWidth = "5"
-    const notSelectedStrokeWidth = "3"
-    const selectedOpacity = "1.0"
-    const notSelectedOpacity = "0.2"
+    const selectedColor = "white";
+    const notSelectedColor = "#ccc";
+    const selectedStrokeWidth = "5";
+    const notSelectedStrokeWidth = "3";
+    const selectedOpacity = "1.0";
+    const notSelectedOpacity = "0.2";
+
+    /**
+     * クリックされたノードに対応する hierarchy のノードをハイライトする
+     * @param {Object} nodeData クリックされたノードのデータ
+     */
     const highlightHierarchyNode = (nodeData) => {
       d3.selectAll("#hierarchy-node")
         .style("stroke", notSelectedColor)
         .style("stroke-width", notSelectedStrokeWidth)
-        .style("opacity", notSelectedOpacity)
-      const selectedHierarchyNode = d3.select(`#hierarchyNode${nodeData.id}`)
-      let daughter = nodeData
-      selectedHierarchyNode.data()[0].ancestors().forEach((mother) => {
-        d3.select(`#hierarchyNode${mother.id}`)
-          .style(
-            "stroke",
-            this.selectedNodeId > 0 ? selectedColor : notSelectedColor
-          )
-          .style(
-            "stroke-width",
-            this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth
-          ).style(
-            "opacity",
-            this.selectedNodeId > 0 ? selectedOpacity : notSelectedOpacity
-          );
-        daughter = mother;
-      });
+        .style("opacity", notSelectedOpacity);
+      const selectedHierarchyNode = d3.select(`#hierarchyNode${nodeData.id}`);
+      let daughter = nodeData;
+      selectedHierarchyNode
+        .data()[0]
+        .ancestors()
+        .forEach((mother) => {
+          d3.select(`#hierarchyNode${mother.id}`)
+            .style(
+              "stroke",
+              this.selectedNodeId > 0 ? selectedColor : notSelectedColor
+            )
+            .style(
+              "stroke-width",
+              this.selectedNodeId > 0
+                ? selectedStrokeWidth
+                : notSelectedStrokeWidth
+            )
+            .style(
+              "opacity",
+              this.selectedNodeId > 0 ? selectedOpacity : notSelectedOpacity
+            );
+          daughter = mother;
+        });
     };
+
+    /**
+     * クリックされたノードの色を変更する
+     * @param {Object} nodeData クリックされたノードのデータ
+     */
     const changeNodeColorByClick = (nodeData) => {
-      if (
-        this.selectedNodeId < 0 ||
-        this.selectedNodeId !== nodeData.id
-      ) {
+      if (this.selectedNodeId < 0 || this.selectedNodeId !== nodeData.id) {
         this.selectedNodeId = nodeData.id;
       } else {
         this.selectedNodeId = -1;
       }
+
       const selectedColor = "white";
       const notSelectedColor = "#666";
       const selectedStrokeWidth = "5";
       const notSelectedStrokeWidth = "0";
 
-      d3.selectAll(".chart-node").style("stroke", notSelectedColor)
-        .style("stroke-width", notSelectedStrokeWidth)
-      d3.select(`#chartNode${nodeData.id}`).style("stroke", this.selectedNodeId > 0 ? selectedColor : notSelectedColor)
-        .style("stroke-width", this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth)
-    }
+      d3.selectAll(".chart-node")
+        .style("stroke", notSelectedColor)
+        .style("stroke-width", notSelectedStrokeWidth);
+      d3.select(`#chartNode${nodeData.id}`)
+        .style(
+          "stroke",
+          this.selectedNodeId > 0 ? selectedColor : notSelectedColor
+        )
+        .style(
+          "stroke-width",
+          this.selectedNodeId > 0 ? selectedStrokeWidth : notSelectedStrokeWidth
+        );
+    };
 
     changeNodeColorByClick(clickedNodeData);
     highlightHierarchyNode(clickedNodeData);
   }
 }
 
+/**
+ * legend を司るクラス
+ */
 class Legend {
+  /**
+   * コンストラクタ
+   * @param {Object} tsv TSV ファイルの内容
+   * @param {Object} json TSV から作った json
+   */
   constructor(tsv, json) {
     this.tsv = tsv;
     this.json = json;
-  }
-
-  draw() {
     this.statusList = [];
     Object.keys(NODE_TYPE.leaf).forEach((data) => {
       this.statusList.push({
@@ -538,15 +613,20 @@ class Legend {
         buttonClickable: false,
       });
     });
+  }
 
-    this.existingStatusList = this.selectExistingStatus(this.tsv);
-    this.statusList.forEach((status) => {
-      if (this.existingStatusList.includes(status.stat)) {
-        status.isStatusDisplayed = true;
-        status.buttonClickable = true;
-      }
-    });
+  /**
+   * 描画関数
+   */
+  draw() {
+    this.updateStatusList();
+    this.updateSvg();
+  }
 
+  /**
+   * SVG を更新する
+   */
+  updateSvg() {
     legendSvg
       .attr("width", DIM_LEGEND.container.width)
       .attr("height", DIM_LEGEND.container.height);
@@ -558,17 +638,17 @@ class Legend {
       .data(this.statusList)
       .enter()
       .append("svg:g")
-      .attr("transform", (d, i) => {
-        return i < 4
+      .attr("transform", (d, i) =>
+        i < 4
           ? "translate(0," +
-              i * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
-              ")"
+            i * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
+            ")"
           : "translate(" +
-              (DIM_LEGEND.each.width + DIM_LEGEND.each.spacing) +
-              "," +
-              (i - 4) * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
-              ")";
-      });
+            (DIM_LEGEND.each.width + DIM_LEGEND.each.spacing) +
+            "," +
+            (i - 4) * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
+            ")"
+      );
 
     legendGroup
       .append("svg:rect")
@@ -611,6 +691,7 @@ class Legend {
       countChildren(this.root);
       flatten(this.root);
 
+      /* ステータスをクリックした時にそれ以外のノードを折りたたむ */
       this.root.eachAfter((node) => {
         node.hiddenValue = node.value;
         if (node.children) {
@@ -632,18 +713,36 @@ class Legend {
 
       countChildren(this.root);
 
-      legendGroup.selectAll("rect").style("opacity", (d) => {
-        if (d.isStatusDisplayed) {
-          return 0.6;
-        } else if (d.buttonClickable) {
-          return 0.2;
-        } else {
-          return 0.1;
-        }
-      });
+      legendGroup
+        .selectAll("rect")
+        .style("opacity", (d) =>
+          d.isStatusDisplayed ? 0.6 : d.buttonClickable ? 0.2 : 0.1
+        );
     });
   }
 
+  /**
+   * ステータスの状態（クリックできるか，表示するか）を変更する
+   */
+  updateStatusList() {
+    this.statusList.forEach((status) => {
+      status.isStatusDisplayed = false;
+      status.buttonClickable = false;
+    });
+    this.existingStatusList = this.selectExistingStatus(this.tsv);
+    this.statusList.forEach((status) => {
+      if (this.existingStatusList.includes(status.stat)) {
+        status.isStatusDisplayed = true;
+        status.buttonClickable = true;
+      }
+    });
+  }
+
+  /**
+   * プロセスから存在するステータスの１文字目を抽出する
+   * @param {Object} statusData プロセスの一覧
+   * @returns 存在するステータスの１文字目のリスト
+   */
   selectExistingStatus(statusData) {
     let uniqueStatusList = [];
     statusData.forEach((status) => {
@@ -656,7 +755,14 @@ class Legend {
   }
 }
 
+/**
+ * hierarchy を司るクラス
+ */
 class Hierarchy {
+  /**
+   * コンストラクタ
+   * @param {Object} json json ファイル
+   */
   constructor(json) {
     Object.defineProperty(this, "DURATION", {
       value: 500,
@@ -668,6 +774,9 @@ class Hierarchy {
     this.selectedNodeId = -1;
   }
 
+  /**
+   * 描画関数
+   */
   draw() {
     this.root = d3.hierarchy(this.json);
     this.tree = d3.tree();
@@ -676,26 +785,32 @@ class Hierarchy {
     this.resetSvg();
     hierarchySvg.select("g").remove();
     this.group = hierarchySvg.append("g");
-    // this.foldChildrenNode(this.root);
     this.update(this.root);
   }
 
+  /**
+   * SVG を初期化する
+   */
   resetSvg() {
     DIM_HIERARCHY.container.height =
       this.root.value * DIM_HIERARCHY.rect.height +
       (this.root.value - 1) *
-      (DIM_HIERARCHY.space.height - DIM_HIERARCHY.rect.height) +
+        (DIM_HIERARCHY.space.height - DIM_HIERARCHY.rect.height) +
       DIM_HIERARCHY.space.padding * 2;
     DIM_HIERARCHY.container.width =
       (this.root.height + 1) * DIM_HIERARCHY.rect.width +
       this.root.height *
-      (DIM_HIERARCHY.space.width - DIM_HIERARCHY.rect.width) +
+        (DIM_HIERARCHY.space.width - DIM_HIERARCHY.rect.width) +
       DIM_HIERARCHY.space.padding * 2;
     hierarchySvg
       .attr("width", DIM_HIERARCHY.container.width)
       .attr("height", DIM_HIERARCHY.container.height);
   }
 
+  /**
+   * ツリーのあるノード以下のノードを折りたたむ
+   * @param {Object} source 折りたたむ根ノード
+   */
   foldChildrenNode(source) {
     const UNFOLDED_LAYER = 1;
     for (
@@ -712,6 +827,10 @@ class Hierarchy {
     }
   }
 
+  /**
+   * hierarchy の座標位置を再計算し再描画する
+   * @param {Object} source 根ノード
+   */
   update(source) {
     countChildren(this.root);
 
@@ -836,7 +955,7 @@ class Hierarchy {
       .duration(this.DURATION)
       .attr("d", (d) =>
         ` M ${d.target.x}, ${d.target.y + DIM_HIERARCHY.rect.height / 2}
-            L ${d.source.x + DIM_HIERARCHY.link.left}, 
+            L ${d.source.x + DIM_HIERARCHY.link.left},
               ${d.target.y + DIM_HIERARCHY.rect.height / 2}
             L ${d.source.x + DIM_HIERARCHY.link.left},
               ${d.source.y + DIM_HIERARCHY.rect.height}`
@@ -850,7 +969,7 @@ class Hierarchy {
       .duration(this.DURATION)
       .attr("d", (d) =>
         ` M ${source.x}, ${source.y + DIM_HIERARCHY.rect.height / 2}
-        L ${d.source.x + DIM_HIERARCHY.link.left}, 
+        L ${d.source.x + DIM_HIERARCHY.link.left},
           ${source.y + DIM_HIERARCHY.rect.height / 2}
         L ${d.source.x + DIM_HIERARCHY.link.left},
           ${d.source.y + DIM_HIERARCHY.rect.height}`
@@ -911,15 +1030,23 @@ class Hierarchy {
     });
   }
 
+  /**
+   * ノードをクリックした時に呼ばれる関数
+   * @param {Object} clickedNodeData クリックされたノードのデータ
+   */
   clicked(clickedNodeData) {
-    this.updateStatusId(clickedNodeData);
+    this.updateSelectedNodeId(clickedNodeData);
     this.toggle(clickedNodeData);
     this.update(clickedNodeData);
     this.highlightPath(clickedNodeData);
     this.highlightChartNode(clickedNodeData);
   }
 
-  updateStatusId(nodeData) {
+  /**
+   * クラスの selectedNodeId を更新する
+   * @param {Object} nodeData クリックしたノード
+   */
+  updateSelectedNodeId(nodeData) {
     if (this.selectedNodeId < 0 || this.selectedNodeId !== nodeData.id) {
       this.selectedNodeId = nodeData.id;
     } else {
@@ -927,6 +1054,10 @@ class Hierarchy {
     }
   }
 
+  /**
+   * ノードの子を出し入れする
+   * @param {Object} d ノードのデータ
+   */
   toggle(d) {
     if (d.children) {
       d._children = d.children;
@@ -937,17 +1068,17 @@ class Hierarchy {
     }
   }
 
-  highlightPath(d) { }
-
-  highlightChartNode(clickedNodeData) {
+  /**
+   * クリックされた時に対応する chart のノードをハイライトする
+   * @param {Object} nodeData ノードのデータ
+   */
+  highlightChartNode(nodeData) {
     const selectedColor = "white";
     const notSelectedColor = "none";
     const selectedOpacity = "1.0";
-    const notSelectedOpacity = "0.2"
+    const notSelectedOpacity = "0.2";
     d3.selectAll(".hierarchy-node").style("stroke", notSelectedColor);
-    const selectedHierarchyNode = d3.select(
-      `#hierarchyNode${clickedNodeData.id}`
-    );
+    const selectedHierarchyNode = d3.select(`#hierarchyNode${nodeData.id}`);
     selectedHierarchyNode.style(
       "fill",
       this.selectedNodeId > 0 ? selectedColor : notSelectedColor
@@ -959,7 +1090,7 @@ class Hierarchy {
       .style("stroke", "#ccc")
       .style("stroke-width", 3)
       .style("opacity", notSelectedOpacity);
-    let daughter = clickedNodeData;
+    let daughter = nodeData;
     selectedHierarchyNode
       .data()[0]
       .ancestors()
@@ -968,11 +1099,14 @@ class Hierarchy {
           "stroke-width",
           this.selectedNodeId > 0 ? 3 : 0
         );
-        if (mother != clickedNodeData) {
+        if (mother != nodeData) {
           d3.select(`#chartLink${mother.id}-${daughter.id}`)
             .style("stroke", this.selectedNodeId > 0 ? selectedColor : "#ccc")
             .style("stroke-width", this.selectedNodeId > 0 ? 5 : 3)
-            .style("opacity", this.selectedNodeId > 0 ? selectedOpacity : notSelectedOpacity);
+            .style(
+              "opacity",
+              this.selectedNodeId > 0 ? selectedOpacity : notSelectedOpacity
+            );
         }
         daughter = mother;
       });
