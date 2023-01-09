@@ -620,6 +620,13 @@ class Legend {
    */
   draw() {
     this.updateStatusList();
+    this.updateSvg();
+  }
+
+  /**
+   * SVG を更新する
+   */
+  updateSvg() {
     legendSvg
       .attr("width", DIM_LEGEND.container.width)
       .attr("height", DIM_LEGEND.container.height);
@@ -631,17 +638,17 @@ class Legend {
       .data(this.statusList)
       .enter()
       .append("svg:g")
-      .attr("transform", (d, i) => {
-        return i < 4
+      .attr("transform", (d, i) =>
+        i < 4
           ? "translate(0," +
-              i * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
-              ")"
+            i * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
+            ")"
           : "translate(" +
-              (DIM_LEGEND.each.width + DIM_LEGEND.each.spacing) +
-              "," +
-              (i - 4) * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
-              ")";
-      });
+            (DIM_LEGEND.each.width + DIM_LEGEND.each.spacing) +
+            "," +
+            (i - 4) * (DIM_LEGEND.each.height + DIM_LEGEND.each.spacing) +
+            ")"
+      );
 
     legendGroup
       .append("svg:rect")
@@ -1071,9 +1078,7 @@ class Hierarchy {
     const selectedOpacity = "1.0";
     const notSelectedOpacity = "0.2";
     d3.selectAll(".hierarchy-node").style("stroke", notSelectedColor);
-    const selectedHierarchyNode = d3.select(
-      `#hierarchyNode${nodeData.id}`
-    );
+    const selectedHierarchyNode = d3.select(`#hierarchyNode${nodeData.id}`);
     selectedHierarchyNode.style(
       "fill",
       this.selectedNodeId > 0 ? selectedColor : notSelectedColor
